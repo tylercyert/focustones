@@ -4,9 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-dist
-build
+# Build outputs (don't exclude during build, will be created)
+# dist
+# build
 
 # Development files
 .git
@@ -55,7 +55,7 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
-# Docker files
-Dockerfile
-.dockerignore
-docker-compose.yml
+# Docker files (don't exclude, needed for build)
+# Dockerfile
+# .dockerignore
+# docker-compose.yml
