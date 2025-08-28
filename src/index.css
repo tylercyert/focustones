@@ -1,0 +1,502 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+  
+  /* Material Design 3 Color Tokens */
+  --md-sys-color-primary: #6750A4;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #EADDFF;
+  --md-sys-color-on-primary-container: #21005D;
+  
+  --md-sys-color-secondary: #625B71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8DEF8;
+  --md-sys-color-on-secondary-container: #1D192B;
+  
+  --md-sys-color-tertiary: #7D5260;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FFD8E4;
+  --md-sys-color-on-tertiary-container: #31111D;
+  
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+  
+  --md-sys-color-surface: #1C1B1F;
+  --md-sys-color-on-surface: #E6E1E5;
+  --md-sys-color-surface-variant: #49454F;
+  --md-sys-color-on-surface-variant: #CAC4D0;
+  
+  --md-sys-color-outline: #938F99;
+  --md-sys-color-outline-variant: #49454F;
+  
+  --md-sys-color-inverse-surface: #E6E1E5;
+  --md-sys-color-inverse-on-surface: #313033;
+  --md-sys-color-inverse-primary: #D0BCFF;
+  
+  /* Material Design 3 Elevation */
+  --md-sys-elevation-level0: 0px;
+  --md-sys-elevation-level1: 1px;
+  --md-sys-elevation-level2: 3px;
+  --md-sys-elevation-level3: 6px;
+  --md-sys-elevation-level4: 8px;
+  --md-sys-elevation-level5: 12px;
+  
+  /* Material Design 3 Typography */
+  --md-sys-typescale-display-large-size: 57px;
+  --md-sys-typescale-display-large-line-height: 64px;
+  --md-sys-typescale-display-large-weight: 400;
+  
+  --md-sys-typescale-display-medium-size: 45px;
+  --md-sys-typescale-display-medium-line-height: 52px;
+  --md-sys-typescale-display-medium-weight: 400;
+  
+  --md-sys-typescale-display-small-size: 36px;
+  --md-sys-typescale-display-small-line-height: 44px;
+  --md-sys-typescale-display-small-weight: 400;
+  
+  --md-sys-typescale-headline-large-size: 32px;
+  --md-sys-typescale-headline-large-line-height: 40px;
+  --md-sys-typescale-headline-large-weight: 400;
+  
+  --md-sys-typescale-headline-medium-size: 28px;
+  --md-sys-typescale-headline-medium-line-height: 36px;
+  --md-sys-typescale-headline-medium-weight: 400;
+  
+  --md-sys-typescale-headline-small-size: 24px;
+  --md-sys-typescale-headline-small-line-height: 32px;
+  --md-sys-typescale-headline-small-weight: 400;
+  
+  --md-sys-typescale-title-large-size: 22px;
+  --md-sys-typescale-title-large-line-height: 28px;
+  --md-sys-typescale-title-large-weight: 400;
+  
+  --md-sys-typescale-title-medium-size: 16px;
+  --md-sys-typescale-title-medium-line-height: 24px;
+  --md-sys-typescale-title-medium-weight: 500;
+  
+  --md-sys-typescale-title-small-size: 14px;
+  --md-sys-typescale-title-small-line-height: 20px;
+  --md-sys-typescale-title-small-weight: 500;
+  
+  --md-sys-typescale-body-large-size: 16px;
+  --md-sys-typescale-body-large-line-height: 24px;
+  --md-sys-typescale-body-large-weight: 400;
+  
+  --md-sys-typescale-body-medium-size: 14px;
+  --md-sys-typescale-body-medium-line-height: 20px;
+  --md-sys-typescale-body-medium-weight: 400;
+  
+  --md-sys-typescale-body-small-size: 12px;
+  --md-sys-typescale-body-small-line-height: 16px;
+  --md-sys-typescale-body-small-weight: 400;
+  
+  --md-sys-typescale-label-large-size: 14px;
+  --md-sys-typescale-label-large-line-height: 20px;
+  --md-sys-typescale-label-large-weight: 500;
+  
+  --md-sys-typescale-label-medium-size: 12px;
+  --md-sys-typescale-label-medium-line-height: 16px;
+  --md-sys-typescale-label-medium-weight: 500;
+  
+  --md-sys-typescale-label-small-size: 11px;
+  --md-sys-typescale-label-small-line-height: 16px;
+  --md-sys-typescale-label-small-weight: 500;
+  
+  /* Material Design 3 Spacing */
+  --md-sys-spacing-0: 0px;
+  --md-sys-spacing-1: 4px;
+  --md-sys-spacing-2: 8px;
+  --md-sys-spacing-3: 12px;
+  --md-sys-spacing-4: 16px;
+  --md-sys-spacing-5: 20px;
+  --md-sys-spacing-6: 24px;
+  --md-sys-spacing-7: 28px;
+  --md-sys-spacing-8: 32px;
+  --md-sys-spacing-9: 36px;
+  --md-sys-spacing-10: 40px;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Material Design 3 Modal Styles */
+.settings-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.32) !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  pointer-events: auto !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.settings-modal-content {
+  background-color: var(--md-sys-color-surface) !important;
+  color: var(--md-sys-color-on-surface) !important;
+  padding: var(--md-sys-spacing-6) !important;
+  border-radius: 0px !important;
+  box-shadow: 
+    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
+    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12),
+    0 var(--md-sys-elevation-level2) 4px 8px rgba(0, 0, 0, 0.12) !important;
+  width: 560px !important;
+  max-width: 90vw !important;
+  position: relative !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  pointer-events: auto !important;
+}
+
+.settings-modal-content .close-button {
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  color: var(--md-sys-color-on-surface-variant) !important;
+  font-size: 24px !important;
+  font-weight: 400 !important;
+}
+
+.settings-modal-content .close-button:hover {
+  background-color: var(--md-sys-color-surface-variant) !important;
+  color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.settings-modal-content button,
+.settings-modal-content input,
+.settings-modal-content select {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Mobile Responsive Settings */
+@media (max-width: 640px) {
+  .settings-modal-overlay {
+    padding: 10px !important;
+    align-items: flex-start !important;
+    padding-top: 20px !important;
+  }
+  
+  .settings-modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100vh - 40px) !important;
+    margin: 0 !important;
+    padding: 16px !important;
+  }
+  
+  .settings-modal-content h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.5rem !important;
+  }
+  
+  .settings-modal-content h4 {
+    font-size: 1rem !important;
+    line-height: 1.25rem !important;
+  }
+  
+  .settings-modal-content .md-button {
+    padding: 8px 12px !important;
+    font-size: 0.875rem !important;
+    min-height: 44px !important;
+    min-width: 60px !important;
+  }
+}
+
+/* Material Design 3 Button Styles */
+.md-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0px;
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+  font-family: inherit;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: 0.1px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  min-height: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.md-button-filled {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.md-button-filled:hover {
+  background-color: var(--md-sys-color-primary);
+  box-shadow: 
+    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
+    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.md-button-outlined {
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.md-button-outlined:hover {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.md-button-text {
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+}
+
+.md-button-text:hover {
+  background-color: var(--md-sys-color-surface-variant);
+}
+
+/* Material Design 3 Slider Styles */
+.md-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: calc(100% - 32px);
+  height: 4px;
+  border-radius: 0px;
+  background: var(--md-sys-color-surface-variant);
+  outline: none;
+  cursor: pointer;
+}
+
+.md-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 0px;
+  background: var(--md-sys-color-primary);
+  cursor: pointer;
+  box-shadow: 
+    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
+    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.md-slider::-webkit-slider-thumb:hover {
+  background: var(--md-sys-color-primary);
+  box-shadow: 
+    0 var(--md-sys-elevation-level2) 6px 2px rgba(0, 0, 0, 0.15),
+    0 var(--md-sys-elevation-level2) 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.md-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 0px;
+  background: var(--md-sys-color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 
+    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
+    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.md-slider::-webkit-slider-track {
+  height: 4px;
+  border-radius: 0px;
+  background: var(--md-sys-color-surface-variant);
+}
+
+.md-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 0px;
+  background: var(--md-sys-color-surface-variant);
+}
+
+/* Material Design 3 Typography Classes */
+.md-display-large {
+  font-size: var(--md-sys-typescale-display-large-size);
+  line-height: var(--md-sys-typescale-display-large-line-height);
+  font-weight: var(--md-sys-typescale-display-large-weight);
+  letter-spacing: -0.25px;
+}
+
+.md-display-medium {
+  font-size: var(--md-sys-typescale-display-medium-size);
+  line-height: var(--md-sys-typescale-display-medium-line-height);
+  font-weight: var(--md-sys-typescale-display-medium-weight);
+  letter-spacing: 0px;
+}
+
+.md-display-small {
+  font-size: var(--md-sys-typescale-display-small-size);
+  line-height: var(--md-sys-typescale-display-small-line-height);
+  font-weight: var(--md-sys-typescale-display-small-weight);
+  letter-spacing: 0px;
+}
+
+.md-headline-large {
+  font-size: var(--md-sys-typescale-headline-large-size);
+  line-height: var(--md-sys-typescale-headline-large-line-height);
+  font-weight: var(--md-sys-typescale-headline-large-weight);
+  letter-spacing: 0px;
+}
+
+.md-headline-medium {
+  font-size: var(--md-sys-typescale-headline-medium-size);
+  line-height: var(--md-sys-typescale-headline-medium-line-height);
+  font-weight: var(--md-sys-typescale-headline-medium-weight);
+  letter-spacing: 0px;
+}
+
+.md-headline-small {
+  font-size: var(--md-sys-typescale-headline-small-size);
+  line-height: var(--md-sys-typescale-headline-small-line-height);
+  font-weight: var(--md-sys-typescale-headline-small-weight);
+  letter-spacing: 0px;
+}
+
+.md-title-large {
+  font-size: var(--md-sys-typescale-title-large-size);
+  line-height: var(--md-sys-typescale-title-large-line-height);
+  font-weight: var(--md-sys-typescale-title-large-weight);
+  letter-spacing: 0px;
+}
+
+.md-title-medium {
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight);
+  letter-spacing: 0.1px;
+}
+
+.md-title-small {
+  font-size: var(--md-sys-typescale-title-small-size);
+  line-height: var(--md-sys-typescale-title-small-line-height);
+  font-weight: var(--md-sys-typescale-title-small-weight);
+  letter-spacing: 0.1px;
+}
+
+.md-body-large {
+  font-size: var(--md-sys-typescale-body-large-size);
+  line-height: var(--md-sys-typescale-body-large-line-height);
+  font-weight: var(--md-sys-typescale-body-large-weight);
+  letter-spacing: 0.5px;
+}
+
+.md-body-medium {
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  font-weight: var(--md-sys-typescale-body-medium-weight);
+  letter-spacing: 0.25px;
+}
+
+.md-body-small {
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+  font-weight: var(--md-sys-typescale-body-small-weight);
+  letter-spacing: 0.4px;
+}
+
+.md-label-large {
+  font-size: var(--md-sys-typescale-label-large-size);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  letter-spacing: 0.1px;
+}
+
+.md-label-medium {
+  font-size: var(--md-sys-typescale-label-medium-size);
+  line-height: var(--md-sys-typescale-label-medium-line-height);
+  font-weight: var(--md-sys-typescale-label-medium-weight);
+  letter-spacing: 0.5px;
+}
+
+.md-label-small {
+  font-size: var(--md-sys-typescale-label-small-size);
+  line-height: var(--md-sys-typescale-label-small-line-height);
+  font-weight: var(--md-sys-typescale-label-small-weight);
+  letter-spacing: 0.5px;
+}
+
+/* Material Design 3 Utility Classes */
+.bg-surface {
+  background-color: var(--md-sys-color-surface);
+}
+
+.bg-surface\/80 {
+  background-color: rgba(28, 27, 31, 0.8);
+}
+
+.border-outline-variant {
+  border-color: var(--md-sys-color-outline-variant);
+}
+
+.text-on-surface {
+  color: var(--md-sys-color-on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.rounded-3xl {
+  border-radius: 0px;
+}
+
+/* Legacy slider styles for backward compatibility */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 0px;
+  background: var(--md-sys-color-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 0px;
+  background: var(--md-sys-color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.slider::-webkit-slider-track {
+  height: 8px;
+  border-radius: 0px;
+}
+
+.slider::-moz-range-track {
+  height: 8px;
+  border-radius: 0px;
+}
