@@ -170,6 +170,8 @@ body {
   border: 1px solid var(--md-sys-color-outline-variant) !important;
   pointer-events: auto !important;
   margin: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 .settings-modal-content .close-button {
@@ -197,12 +199,41 @@ body {
   cursor: pointer !important;
 }
 
+/* Ensure modal content is scrollable and accessible */
+.settings-modal-content {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--md-sys-color-outline-variant) transparent !important;
+}
+
+.settings-modal-content::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.settings-modal-content::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.settings-modal-content::-webkit-scrollbar-thumb {
+  background-color: var(--md-sys-color-outline-variant) !important;
+  border-radius: 3px !important;
+}
+
+.settings-modal-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--md-sys-color-outline) !important;
+}
+
 /* Mobile Responsive Settings */
 @media (max-width: 640px) {
   .settings-modal-overlay {
     padding: 8px !important;
     align-items: flex-start !important;
     padding-top: 16px !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
   }
   
   .settings-modal-content {
@@ -211,6 +242,9 @@ body {
     max-height: calc(100vh - 32px) !important;
     margin: 0 !important;
     padding: 12px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
   }
   
   .settings-modal-content h3 {
@@ -242,6 +276,9 @@ body {
     padding: 8px !important;
     max-width: calc(100vw - 8px) !important;
     max-height: calc(100vh - 16px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
   }
   
   .settings-modal-content h3 {
@@ -273,6 +310,9 @@ body {
     padding: 6px !important;
     max-width: calc(100vw - 4px) !important;
     max-height: calc(100vh - 8px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
   }
   
   .settings-modal-content h3 {
