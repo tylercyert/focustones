@@ -136,7 +136,7 @@ function App() {
         letterSpacing: '0.25px',
         color: '#CAC4D0'
       }}>
-        Built and hosted by{' '}
+        Headphones Required | Built and hosted by{' '}
         <a 
           href="https://github.com/tylercyert" 
           target="_blank" 
