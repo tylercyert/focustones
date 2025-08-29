@@ -392,23 +392,23 @@ function App() {
                   I created FocusTone.co to aid in my own practice of deep work. The app generates customizable binaural tones designed to help guide the brain into different states of focus, rest, and creativity. Binaural beats work by nudging brainwaves into specific frequency ranges:
                 </p>
                 
-                <div className="space-y-2 mt-4">
+                                <div className="space-y-2 mt-4">
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
+                    <span className="font-semibold" style={{ color: '#21B5B0' }}>Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
+                    <span className="font-semibold" style={{ color: '#26C3A8' }}>Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
+                    <span className="font-semibold" style={{ color: '#7BBE62' }}>Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
+                    <span className="font-semibold" style={{ color: '#B8A64B' }}>Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
-        </p>
-      </div>
+                    <span className="font-semibold" style={{ color: '#F2A23A' }}>Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
+                  </p>
+                </div>
                 
                 <p className="md-body-large text-on-surface leading-relaxed mt-4">
                   These states provide heuristic benefits — practical ways to align your mental state with the task at hand, whether that's entering flow, resting deeply, or sparking creativity. FocusTone.co grew out of my own need for simple, effective tools to sustain focus and intentional work.
@@ -458,19 +458,19 @@ function App() {
                 
                 <div className="space-y-2 mt-4">
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
+                    <span className="font-semibold" style={{ color: '#21B5B0' }}>Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
+                    <span className="font-semibold" style={{ color: '#26C3A8' }}>Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
+                    <span className="font-semibold" style={{ color: '#7BBE62' }}>Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
+                    <span className="font-semibold" style={{ color: '#B8A64B' }}>Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold">Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
+                    <span className="font-semibold" style={{ color: '#F2A23A' }}>Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
                   </p>
                 </div>
                 
