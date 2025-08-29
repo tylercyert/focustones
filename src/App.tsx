@@ -405,19 +405,19 @@ function App() {
                 
                                 <div className="space-y-2 mt-4">
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#21B5B0' }}>Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
+                    <span className="font-semibold" style={{ color: '#21B5B0' }}>δ Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#26C3A8' }}>Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
+                    <span className="font-semibold" style={{ color: '#26C3A8' }}>θ Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#7BBE62' }}>Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
+                    <span className="font-semibold" style={{ color: '#7BBE62' }}>α Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#B8A64B' }}>Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
+                    <span className="font-semibold" style={{ color: '#B8A64B' }}>β Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#F2A23A' }}>Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
+                    <span className="font-semibold" style={{ color: '#F2A23A' }}>γ Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
                   </p>
                 </div>
                 
@@ -469,19 +469,19 @@ function App() {
                 
                 <div className="space-y-2 mt-4">
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#21B5B0' }}>Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
+                    <span className="font-semibold" style={{ color: '#21B5B0' }}>δ Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#26C3A8' }}>Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
+                    <span className="font-semibold" style={{ color: '#26C3A8' }}>θ Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#7BBE62' }}>Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
+                    <span className="font-semibold" style={{ color: '#7BBE62' }}>α Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#B8A64B' }}>Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
+                    <span className="font-semibold" style={{ color: '#B8A64B' }}>β Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
                   </p>
                   <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#F2A23A' }}>Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
+                    <span className="font-semibold" style={{ color: '#F2A23A' }}>γ Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
                   </p>
                 </div>
                 
