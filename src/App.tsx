@@ -129,9 +129,9 @@ function App() {
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid #49454F',
         textAlign: 'center',
-        padding: '16px 24px',
-        fontSize: '14px',
-        lineHeight: '20px',
+        padding: '12px 16px',
+        fontSize: '13px',
+        lineHeight: '18px',
         fontWeight: 400,
         letterSpacing: '0.25px',
         color: '#CAC4D0'
@@ -200,7 +200,7 @@ function App() {
                 {/* Carrier Frequency */}
                 <div className="mb-6">
                   <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Carrier Frequency</h4>
-                  <div className="flex gap-2 flex-wrap justify-center">
+                  <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                     {[174, 220, 256, 320, 432].map((freq) => (
                       <button
                         key={freq}
@@ -210,7 +210,7 @@ function App() {
                         }`}
                         style={{ 
                           minHeight: '44px', 
-                          minWidth: '70px',
+                          minWidth: '60px',
                           backgroundColor: carrierHz === freq ? 'var(--md-sys-color-primary)' : 'transparent',
                           borderColor: carrierHz === freq ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)',
                           color: carrierHz === freq ? 'white' : 'var(--md-sys-color-primary)'
@@ -225,7 +225,7 @@ function App() {
                 {/* Brainwave Band Selector */}
                 <div className="mb-6">
                   <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Brainwave Band</h4>
-                  <div className="flex gap-2 flex-wrap justify-center">
+                  <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                     {Object.entries(BAND_RANGES).map(([key, config]) => (
                       <button
                         key={key}
@@ -238,14 +238,25 @@ function App() {
                           borderColor: band === key ? config.color : "var(--md-sys-color-outline)",
                           color: band === key ? "white" : "var(--md-sys-color-primary)",
                           minHeight: '44px',
-                          width: '80px'
+                          width: '70px'
                         }}
                       >
-                        {key === "delta" ? "δ Delta" : 
-                         key === "theta" ? "θ Theta" : 
-                         key === "alpha" ? "α Alpha" : 
-                         key === "beta" ? "β Beta" : 
-                         key === "gamma" ? "γ Gamma" : key}
+                        <div className="flex flex-col items-center">
+                          <div className="text-lg font-bold">
+                            {key === "delta" ? "δ" : 
+                             key === "theta" ? "θ" : 
+                             key === "alpha" ? "α" : 
+                             key === "beta" ? "β" : 
+                             key === "gamma" ? "γ" : key}
+                          </div>
+                          <div className="text-xs">
+                            {key === "delta" ? "Delta" : 
+                             key === "theta" ? "Theta" : 
+                             key === "alpha" ? "Alpha" : 
+                             key === "beta" ? "Beta" : 
+                             key === "gamma" ? "Gamma" : key}
+                          </div>
+                        </div>
                       </button>
                     ))}
                   </div>

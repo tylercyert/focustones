@@ -277,12 +277,33 @@ export default function SphereViz({ onToggle }: Props) {
     }
     animate();
 
-    function onResize() {
-      if (!rendererRef.current || !cameraRef.current) return;
+    // Track previous dimensions to detect actual changes
+    let lastWidth = container.clientWidth;
+    let lastHeight = container.clientHeight;
+    
+    // Define resize function that can access all necessary refs
+    const handleResize = () => {
+      if (!rendererRef.current || !cameraRef.current || !sceneRef.current) return;
       
       // Get the actual container dimensions
       const w = container.clientWidth;
       const h = container.clientHeight;
+      
+      // Check if dimensions actually changed
+      if (w === lastWidth && h === lastHeight) {
+        return; // No change, skip resize
+      }
+      
+      // Update stored dimensions
+      lastWidth = w;
+      lastHeight = h;
+      
+      console.log('SphereViz dimensions changed:', { 
+        oldWidth: lastWidth, 
+        oldHeight: lastHeight, 
+        newWidth: w, 
+        newHeight: h 
+      });
       
       // Update camera aspect ratio
       cameraRef.current.aspect = w / h;
@@ -291,7 +312,7 @@ export default function SphereViz({ onToggle }: Props) {
       // Update renderer size
       rendererRef.current.setSize(w, h, false);
       
-      // Ensure camera is perfectly centered
+      // Ensure camera is perfectly centered and at correct distance
       const targetZ = computeTargetCameraZ(scaleRef.current);
       cameraRef.current.position.z = targetZ;
       cameraRef.current.position.x = 0;
@@ -299,22 +320,105 @@ export default function SphereViz({ onToggle }: Props) {
       cameraRef.current.lookAt(0, 0, 0);
       
       // Force a render to update immediately
-      rendererRef.current.render(scene, camera);
-    }
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+      
+      // Log resize for debugging (remove in production)
+      console.log('SphereViz resized:', { width: w, height: h, cameraZ: targetZ });
+    };
     
     // Use ResizeObserver for more reliable resize detection
-    const resizeObserver = new ResizeObserver(() => {
-      // Debounce resize events to avoid excessive calls
+    const resizeObserver = new ResizeObserver((entries) => {
+      // Log what ResizeObserver detected
+      entries.forEach(entry => {
+        console.log('ResizeObserver detected change:', {
+          contentRect: entry.contentRect,
+          borderBoxSize: entry.borderBoxSize,
+          contentBoxSize: entry.contentBoxSize
+        });
+      });
+      
+      // Immediate resize for immediate feedback
+      handleResize();
+      
+      // Debounced resize for performance optimization
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(onResize, 16); // ~60fps
+      resizeTimeout = setTimeout(handleResize, 100);
     });
     resizeObserver.observe(container);
     
     // Also listen to window resize for compatibility
-    window.addEventListener("resize", onResize);
+    let lastViewportHeight = window.innerHeight;
+    let lastViewportWidth = window.innerWidth;
+    
+    const handleWindowResize = () => {
+      console.log('Window resize event fired');
+      
+      const currentHeight = window.innerHeight;
+      const currentWidth = window.innerWidth;
+      const heightChanged = currentHeight !== lastViewportHeight;
+      const widthChanged = currentWidth !== lastViewportWidth;
+      
+      if (heightChanged) {
+        console.log('Viewport height changed:', { old: lastViewportHeight, new: currentHeight });
+        lastViewportHeight = currentHeight;
+        
+        // Force container to update its dimensions
+        if (mountRef.current) {
+          mountRef.current.style.height = `${currentHeight}px`;
+          mountRef.current.style.width = `${currentWidth}px`;
+        }
+        
+        // Force immediate resize for height changes
+        handleResize();
+      }
+      
+      if (widthChanged) {
+        console.log('Viewport width changed:', { old: lastViewportWidth, new: currentWidth });
+        lastViewportWidth = currentWidth;
+      }
+      
+      // Always do immediate resize for any resize event
+      handleResize();
+      
+      // Debounced resize for performance
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 100);
+    };
+    
+    window.addEventListener("resize", handleWindowResize);
+    
+    // Handle orientation changes specifically
+    window.addEventListener("orientationchange", () => {
+      console.log('Orientation change detected');
+      // Wait for orientation change to complete, then resize
+      setTimeout(handleResize, 300);
+    });
+    
+    // Listen for visual viewport changes (mobile keyboard, etc.)
+    let visualViewportListener: (() => void) | null = null;
+    if ('visualViewport' in window) {
+      const visualViewport = (window as any).visualViewport;
+      visualViewportListener = () => {
+        console.log('Visual viewport changed:', {
+          width: visualViewport.width,
+          height: visualViewport.height,
+          scale: visualViewport.scale
+        });
+        
+        // Force container update
+        if (mountRef.current) {
+          mountRef.current.style.height = `${visualViewport.height}px`;
+          mountRef.current.style.width = `${visualViewport.width}px`;
+        }
+        
+        // Force resize
+        handleResize();
+      };
+      visualViewport.addEventListener('resize', visualViewportListener);
+    }
     
     // Initial resize to ensure perfect centering after container is fully rendered
-    setTimeout(onResize, 100);
+    setTimeout(handleResize, 100);
     
     let resizeTimeout: number;
 
@@ -322,7 +426,15 @@ export default function SphereViz({ onToggle }: Props) {
       cancelAnimationFrame(animationId);
       clearTimeout(resizeTimeout);
       resizeObserver.disconnect();
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", handleWindowResize);
+      window.removeEventListener("orientationchange", handleResize);
+      
+      // Clean up visual viewport listener
+      if (visualViewportListener && 'visualViewport' in window) {
+        const visualViewport = (window as any).visualViewport;
+        visualViewport.removeEventListener('resize', visualViewportListener);
+      }
+      
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
       renderer.domElement.removeEventListener("click", onClick);
       renderer.dispose();
@@ -355,6 +467,15 @@ export default function SphereViz({ onToggle }: Props) {
     <div
       ref={mountRef}
       className="relative w-full h-full select-none"
+      style={{
+        width: '100vw',
+        height: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0
+      }}
       role="button"
       aria-label="Binaural sphere visualizer. Click to play or stop."
       tabIndex={0}
