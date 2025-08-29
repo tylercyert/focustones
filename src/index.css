@@ -137,7 +137,7 @@ body {
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Material Design 3 Modal Styles */
+/* Material Design 3 Modal Styles - COMPLETELY REWRITTEN */
 .settings-modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -148,11 +148,24 @@ body {
   z-index: 9999 !important;
   display: flex !important;
   justify-content: center !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   pointer-events: auto !important;
   backdrop-filter: blur(8px) !important;
   padding: 16px !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Use actual viewport height instead of 100vh */
+@media (max-width: 768px) {
+  .settings-modal-overlay {
+    height: 100% !important;
+    height: -webkit-fill-available !important;
+    height: stretch !important;
+    /* Ensure modal takes full available height */
+    min-height: 100% !important;
+    min-height: -webkit-fill-available !important;
+  }
 }
 
 .settings-modal-content {
@@ -166,12 +179,27 @@ body {
     0 var(--md-sys-elevation-level2) 4px 8px rgba(0, 0, 0, 0.12) !important;
   width: 560px !important;
   max-width: calc(100vw - 32px) !important;
+  max-height: calc(100vh - 32px) !important;
   position: relative !important;
   border: 1px solid var(--md-sys-color-outline-variant) !important;
   pointer-events: auto !important;
-  margin: auto !important;
-  overflow-y: auto !important;
+  margin: 0 !important;
+  overflow-y: scroll !important;
   -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+  /* Force scrolling to work */
+  overscroll-behavior: contain !important;
+  /* Ensure content is not clipped */
+  contain: layout style paint !important;
+}
+
+/* Use dynamic viewport height for mobile */
+@media (max-width: 768px) {
+  .settings-modal-content {
+    max-height: calc(100% - 32px) !important;
+    max-height: calc(-webkit-fill-available - 32px) !important;
+    max-height: calc(stretch - 32px) !important;
+  }
 }
 
 .settings-modal-content .close-button {
@@ -203,6 +231,32 @@ body {
 .settings-modal-content {
   scrollbar-width: thin !important;
   scrollbar-color: var(--md-sys-color-outline-variant) transparent !important;
+  /* Force scrolling to work on mobile */
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  /* Ensure content is not clipped */
+}
+
+/* Modal content scrollable area */
+.modal-content-scrollable {
+  overflow-y: auto !important;
+  max-height: calc(100% - 120px) !important;
+  height: calc(100% - 120px) !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  padding-right: 8px !important;
+  /* Ensure content is fully scrollable */
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile-specific modal content scrolling */
+@media (max-width: 768px) {
+  .modal-content-scrollable {
+    max-height: calc(100% - 100px) !important;
+    height: calc(100% - 100px) !important;
+    padding-right: 4px !important;
+  }
 }
 
 .settings-modal-content::-webkit-scrollbar {
@@ -222,7 +276,7 @@ body {
   background-color: var(--md-sys-color-outline) !important;
 }
 
-/* Mobile Responsive Settings */
+/* Mobile Responsive Settings - COMPLETELY REWRITTEN */
 @media (max-width: 640px) {
   .settings-modal-overlay {
     padding: 8px !important;
@@ -234,17 +288,26 @@ body {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+    z-index: 9999 !important;
   }
   
   .settings-modal-content {
     width: 100% !important;
     max-width: calc(100vw - 16px) !important;
-    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100% - 32px) !important;
+    height: calc(100% - 32px) !important;
     margin: 0 !important;
     padding: 12px !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     position: relative !important;
+    /* Remove flexbox that might be causing issues */
+    display: block !important;
+    /* Force scrolling */
+    overscroll-behavior: contain !important;
+    contain: layout style paint !important;
+    /* Ensure proper height calculation */
+    box-sizing: border-box !important;
   }
   
   .settings-modal-content h3 {

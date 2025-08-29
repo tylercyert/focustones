@@ -192,7 +192,7 @@ function App() {
             </div>
 
                         {/* Content */}
-            <div className="space-y-8">
+            <div className="space-y-6 modal-content-scrollable">
               {/* Binaural Generator Section */}
               <div className="bg-surface-container">
                 <h3 className="md-headline-small text-primary text-center m-0">Binaural Generator</h3>

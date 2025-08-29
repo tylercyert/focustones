@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "host": "npm run build && vite preview --host 0.0.0.0 --port 3000",
+    "host:dev": "vite --host 0.0.0.0 --port 3000",
     "docker:build": "docker build -t focustones:latest .",
     "docker:run": "docker run -d --name focustones-app -p 3000:80 --restart unless-stopped focustones:latest",
     "docker:stop": "docker stop focustones-app && docker rm focustones-app",
