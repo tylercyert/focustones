@@ -1,53 +1,113 @@
-import { useAppState, BAND_RANGES } from "../state/appState";
+import { useAppState, BAND_RANGES, type Band } from "../state/appState";
+
+const BAND_SYMBOLS: Record<Band, string> = {
+  delta: "\u03B4",
+  theta: "\u03B8",
+  alpha: "\u03B1",
+  beta: "\u03B2",
+  gamma: "\u03B3",
+};
 
 export default function BrainwaveBandSelector() {
   const band = useAppState((s) => s.band);
   const setBand = useAppState((s) => s.setBand);
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-      <div className="bg-surface/80 backdrop-blur-md p-1 sm:p-3 md:p-4 border border-outline-variant shadow-lg">
-        <div className="flex gap-0.5 sm:gap-2 md:gap-3 items-center justify-center">
-          {Object.entries(BAND_RANGES).map(([key, config]) => (
-            <button
-              key={key}
-              onClick={() => {
-                console.log('Brainwave band button clicked:', key);
-                setBand(key as keyof typeof BAND_RANGES);
-              }}
-              className={`md-button ${
-                band === key ? "md-button-filled" : "md-button-outlined"
-              } flex-col items-center justify-center w-[45px] h-[40px] sm:w-[60px] sm:h-[50px] md:w-[80px] md:h-[60px]`}
-              style={{
-                backgroundColor: band === key ? config.color : "transparent",
-                borderColor: band === key ? config.color : "var(--md-sys-color-outline)",
-                color: band === key ? "white" : "var(--md-sys-color-primary)"
-              }}
-              aria-label={`Select ${key} brainwave band (${config.min}-${config.max} Hz)`}
-            >
-              <div className="md-title-large mb-1">{config.color === "#21B5B0" ? "δ" : config.color === "#26C3A8" ? "θ" : config.color === "#7BBE62" ? "α" : config.color === "#B8A64B" ? "β" : "γ"}</div>
-              <div className="md-label-small hidden sm:block">{key.charAt(0).toUpperCase() + key.slice(1)}</div>
-            </button>
-          ))}
-          
-          {/* Settings Button - matches exact styling of brainwave band buttons */}
+    <div style={{
+      position: 'absolute',
+      bottom: 38,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 50,
+      pointerEvents: 'auto',
+    }}>
+      <div
+        className="win98-window"
+        style={{ padding: 3 }}
+      >
+        <div style={{
+          display: 'flex',
+          gap: 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2,
+        }}>
+          {(Object.keys(BAND_RANGES) as Band[]).map((key) => {
+            const config = BAND_RANGES[key];
+            const isActive = band === key;
+
+            return (
+              <button
+                key={key}
+                onClick={() => setBand(key)}
+                className={`win98-btn ${isActive ? 'win98-btn-active' : ''}`}
+                style={{
+                  minWidth: 44,
+                  minHeight: 36,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '2px 6px',
+                  ...(isActive
+                    ? {
+                        background: config.color,
+                        color: '#fff',
+                        textShadow: '1px 1px 0 rgba(0,0,0,0.4)',
+                      }
+                    : {}),
+                }}
+                aria-label={`Select ${key} brainwave band (${config.min}-${config.max} Hz)`}
+              >
+                <span style={{ fontSize: 16, fontWeight: 700, lineHeight: 1 }}>
+                  {BAND_SYMBOLS[key]}
+                </span>
+                <span style={{ fontSize: 9, lineHeight: 1, marginTop: 1 }}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </span>
+              </button>
+            );
+          })}
+
+          <div style={{
+            width: 2,
+            height: 28,
+            borderLeft: '1px solid var(--win98-button-shadow)',
+            borderRight: '1px solid var(--win98-button-highlight)',
+            margin: '0 2px',
+          }} />
+
+          {/* Settings */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('openSettings'))}
-            className="md-button md-button-outlined flex-col items-center justify-center w-[45px] h-[40px] sm:w-[60px] sm:h-[50px] md:w-[80px] md:h-[60px]"
+            className="win98-btn"
+            style={{ minWidth: 36, minHeight: 36, padding: '2px 6px' }}
             aria-label="Open settings"
+            title="Sound Control Panel"
           >
-            <div className="md-title-large mb-1">⚙</div>
-            <div className="md-label-small hidden sm:block">Settings</div>
+            <span style={{ fontSize: 16 }}>&#9881;</span>
           </button>
-          
-          {/* About Button - matches exact styling of brainwave band buttons */}
+
+          {/* Blog */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('openBlog'))}
+            className="win98-btn"
+            style={{ minWidth: 36, minHeight: 36, padding: '2px 6px' }}
+            aria-label="Open blog"
+            title="The Zine"
+          >
+            <span style={{ fontSize: 16 }}>&#128196;</span>
+          </button>
+
+          {/* About */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('openAbout'))}
-            className="md-button md-button-outlined flex-col items-center justify-center w-[45px] h-[40px] sm:w-[60px] sm:h-[50px] md:w-[80px] md:h-[60px]"
-            aria-label="About FocusTone"
+            className="win98-btn"
+            style={{ minWidth: 36, minHeight: 36, padding: '2px 6px' }}
+            aria-label="About FocusTones"
+            title="About"
           >
-            <div className="md-title-large mb-1">ℹ</div>
-            <div className="md-label-small hidden sm:block">About</div>
+            <span style={{ fontSize: 14 }}>&#9432;</span>
           </button>
         </div>
       </div>

@@ -1,675 +1,679 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================
+   WINDOWS 98 THEME - FocusTones Time Capsule
+   ============================================= */
+
 :root {
-  color-scheme: light dark;
-  
-  /* Material Design 3 Color Tokens */
-  --md-sys-color-primary: #6750A4;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #EADDFF;
-  --md-sys-color-on-primary-container: #21005D;
-  
-  --md-sys-color-secondary: #625B71;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #E8DEF8;
-  --md-sys-color-on-secondary-container: #1D192B;
-  
-  --md-sys-color-tertiary: #7D5260;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FFD8E4;
-  --md-sys-color-on-tertiary-container: #31111D;
-  
-  --md-sys-color-error: #BA1A1A;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #FFDAD6;
-  --md-sys-color-on-error-container: #410002;
-  
-  --md-sys-color-surface: #1C1B1F;
-  --md-sys-color-on-surface: #E6E1E5;
-  --md-sys-color-surface-variant: #49454F;
-  --md-sys-color-on-surface-variant: #CAC4D0;
-  
-  --md-sys-color-outline: #938F99;
-  --md-sys-color-outline-variant: #49454F;
-  
-  --md-sys-color-inverse-surface: #E6E1E5;
-  --md-sys-color-inverse-on-surface: #313033;
-  --md-sys-color-inverse-primary: #D0BCFF;
-  
-  /* Material Design 3 Elevation */
-  --md-sys-elevation-level0: 0px;
-  --md-sys-elevation-level1: 1px;
-  --md-sys-elevation-level2: 3px;
-  --md-sys-elevation-level3: 6px;
-  --md-sys-elevation-level4: 8px;
-  --md-sys-elevation-level5: 12px;
-  
-  /* Material Design 3 Typography */
-  --md-sys-typescale-display-large-size: 57px;
-  --md-sys-typescale-display-large-line-height: 64px;
-  --md-sys-typescale-display-large-weight: 400;
-  
-  --md-sys-typescale-display-medium-size: 45px;
-  --md-sys-typescale-display-medium-line-height: 52px;
-  --md-sys-typescale-display-medium-weight: 400;
-  
-  --md-sys-typescale-display-small-size: 36px;
-  --md-sys-typescale-display-small-line-height: 44px;
-  --md-sys-typescale-display-small-weight: 400;
-  
-  --md-sys-typescale-headline-large-size: 32px;
-  --md-sys-typescale-headline-large-line-height: 40px;
-  --md-sys-typescale-headline-large-weight: 400;
-  
-  --md-sys-typescale-headline-medium-size: 28px;
-  --md-sys-typescale-headline-medium-line-height: 36px;
-  --md-sys-typescale-headline-medium-weight: 400;
-  
-  --md-sys-typescale-headline-small-size: 24px;
-  --md-sys-typescale-headline-small-line-height: 32px;
-  --md-sys-typescale-headline-small-weight: 400;
-  
-  --md-sys-typescale-title-large-size: 22px;
-  --md-sys-typescale-title-large-line-height: 28px;
-  --md-sys-typescale-title-large-weight: 400;
-  
-  --md-sys-typescale-title-medium-size: 16px;
-  --md-sys-typescale-title-medium-line-height: 24px;
-  --md-sys-typescale-title-medium-weight: 500;
-  
-  --md-sys-typescale-title-small-size: 14px;
-  --md-sys-typescale-title-small-line-height: 20px;
-  --md-sys-typescale-title-small-weight: 500;
-  
-  --md-sys-typescale-body-large-size: 16px;
-  --md-sys-typescale-body-large-line-height: 24px;
-  --md-sys-typescale-body-large-weight: 400;
-  
-  --md-sys-typescale-body-medium-size: 14px;
-  --md-sys-typescale-body-medium-line-height: 20px;
-  --md-sys-typescale-body-medium-weight: 400;
-  
-  --md-sys-typescale-body-small-size: 12px;
-  --md-sys-typescale-body-small-line-height: 16px;
-  --md-sys-typescale-body-small-weight: 400;
-  
-  --md-sys-typescale-label-large-size: 14px;
-  --md-sys-typescale-label-large-line-height: 20px;
-  --md-sys-typescale-label-large-weight: 500;
-  
-  --md-sys-typescale-label-medium-size: 12px;
-  --md-sys-typescale-label-medium-line-height: 16px;
-  --md-sys-typescale-label-medium-weight: 500;
-  
-  --md-sys-typescale-label-small-size: 11px;
-  --md-sys-typescale-label-small-line-height: 16px;
-  --md-sys-typescale-label-small-weight: 500;
-  
-  /* Material Design 3 Spacing */
-  --md-sys-spacing-0: 0px;
-  --md-sys-spacing-1: 4px;
-  --md-sys-spacing-2: 8px;
-  --md-sys-spacing-3: 12px;
-  --md-sys-spacing-4: 16px;
-  --md-sys-spacing-5: 20px;
-  --md-sys-spacing-6: 24px;
-  --md-sys-spacing-7: 28px;
-  --md-sys-spacing-8: 32px;
-  --md-sys-spacing-9: 36px;
-  --md-sys-spacing-10: 40px;
+  color-scheme: light;
+
+  /* Win98 System Colors */
+  --win98-desktop: #008080;
+  --win98-silver: #C0C0C0;
+  --win98-dark-silver: #808080;
+  --win98-white: #FFFFFF;
+  --win98-black: #000000;
+  --win98-titlebar: #000080;
+  --win98-titlebar-inactive: #808080;
+  --win98-titlebar-text: #FFFFFF;
+  --win98-window-bg: #C0C0C0;
+  --win98-window-text: #000000;
+  --win98-button-face: #C0C0C0;
+  --win98-button-highlight: #FFFFFF;
+  --win98-button-shadow: #808080;
+  --win98-button-dark-shadow: #000000;
+  --win98-field-bg: #FFFFFF;
+  --win98-field-text: #000000;
+  --win98-selection: #000080;
+  --win98-selection-text: #FFFFFF;
+  --win98-link: #0000FF;
+  --win98-visited-link: #800080;
+  --win98-scrollbar: #C0C0C0;
+
+  /* Band colors - kept from original */
+  --band-delta: #21B5B0;
+  --band-theta: #26C3A8;
+  --band-alpha: #7BBE62;
+  --band-beta: #B8A64B;
+  --band-gamma: #F2A23A;
+}
+
+/* ---- Base Reset ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--win98-desktop);
+  color: var(--win98-window-text);
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Microsoft Sans Serif', 'Tahoma', 'Arial', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
 }
 
-/* Material Design 3 Modal Styles - COMPLETELY REWRITTEN */
-.settings-modal-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.32) !important;
-  z-index: 9999 !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  pointer-events: auto !important;
-  backdrop-filter: blur(8px) !important;
-  padding: 16px !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+/* ---- Win98 Beveled Borders ---- */
+.win98-raised {
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
 }
 
-/* Use actual viewport height instead of 100vh */
-@media (max-width: 768px) {
-  .settings-modal-overlay {
-    height: 100% !important;
-    height: -webkit-fill-available !important;
-    height: stretch !important;
-    /* Ensure modal takes full available height */
-    min-height: 100% !important;
-    min-height: -webkit-fill-available !important;
-  }
+.win98-sunken {
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow), inset -1px -1px 0 var(--win98-silver);
 }
 
-.settings-modal-content {
-  background-color: var(--md-sys-color-surface) !important;
-  color: var(--md-sys-color-on-surface) !important;
-  padding: var(--md-sys-spacing-6) !important;
-  border-radius: 0px !important;
-  box-shadow: 
-    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
-    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12),
-    0 var(--md-sys-elevation-level2) 4px 8px rgba(0, 0, 0, 0.12) !important;
-  width: 560px !important;
-  max-width: calc(100vw - 32px) !important;
-  max-height: calc(100vh - 32px) !important;
-  position: relative !important;
-  border: 1px solid var(--md-sys-color-outline-variant) !important;
-  pointer-events: auto !important;
-  margin: 0 !important;
-  overflow-y: scroll !important;
-  -webkit-overflow-scrolling: touch !important;
-  box-sizing: border-box !important;
-  /* Force scrolling to work */
-  overscroll-behavior: contain !important;
-  /* Ensure content is not clipped */
-  contain: layout style paint !important;
+.win98-etched {
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
 }
 
-/* Use dynamic viewport height for mobile */
-@media (max-width: 768px) {
-  .settings-modal-content {
-    max-height: calc(100% - 32px) !important;
-    max-height: calc(-webkit-fill-available - 32px) !important;
-    max-height: calc(stretch - 32px) !important;
-  }
+/* ---- Win98 Window ---- */
+.win98-window {
+  background: var(--win98-window-bg);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  padding: 3px;
 }
 
-.settings-modal-content .close-button {
-  width: 40px !important;
-  height: 40px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 0px !important;
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
-  color: var(--md-sys-color-on-surface-variant) !important;
-  font-size: 24px !important;
-  font-weight: 400 !important;
+.win98-titlebar {
+  background: linear-gradient(90deg, var(--win98-titlebar) 0%, #1084D0 100%);
+  color: var(--win98-titlebar-text);
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 13px;
+  user-select: none;
+  min-height: 22px;
 }
 
-.settings-modal-content .close-button:hover {
-  background-color: var(--md-sys-color-surface-variant) !important;
-  color: var(--md-sys-color-on-surface-variant) !important;
+.win98-titlebar-inactive {
+  background: linear-gradient(90deg, var(--win98-titlebar-inactive) 0%, #B0B0B0 100%);
 }
 
-.settings-modal-content button,
-.settings-modal-content input,
-.settings-modal-content select {
-  pointer-events: auto !important;
-  cursor: pointer !important;
+.win98-titlebar-icon {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
 }
 
-/* Ensure modal content is scrollable and accessible */
-.settings-modal-content {
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--md-sys-color-outline-variant) transparent !important;
-  /* Force scrolling to work on mobile */
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: contain !important;
-  /* Ensure content is not clipped */
+.win98-titlebar-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  letter-spacing: 0.5px;
 }
 
-/* Modal content scrollable area */
-.modal-content-scrollable {
-  overflow-y: auto !important;
-  max-height: calc(100% - 120px) !important;
-  height: calc(100% - 120px) !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: contain !important;
-  padding-right: 8px !important;
-  /* Ensure content is fully scrollable */
-  position: relative !important;
-  box-sizing: border-box !important;
+.win98-titlebar-buttons {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
 }
 
-/* Mobile-specific modal content scrolling */
-@media (max-width: 768px) {
-  .modal-content-scrollable {
-    max-height: calc(100% - 100px) !important;
-    height: calc(100% - 100px) !important;
-    padding-right: 4px !important;
-  }
+/* ---- Win98 Title Bar Buttons ---- */
+.win98-titlebar-btn {
+  width: 16px;
+  height: 14px;
+  background: var(--win98-button-face);
+  border: 1px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'Marlett', 'Pixelify Sans', sans-serif;
+  color: var(--win98-black);
+  line-height: 1;
 }
 
-.settings-modal-content::-webkit-scrollbar {
-  width: 6px !important;
+.win98-titlebar-btn:active {
+  border-color: var(--win98-button-dark-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-dark-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-shadow);
+  padding: 1px 0 0 1px;
 }
 
-.settings-modal-content::-webkit-scrollbar-track {
-  background: transparent !important;
-}
-
-.settings-modal-content::-webkit-scrollbar-thumb {
-  background-color: var(--md-sys-color-outline-variant) !important;
-  border-radius: 3px !important;
-}
-
-.settings-modal-content::-webkit-scrollbar-thumb:hover {
-  background-color: var(--md-sys-color-outline) !important;
-}
-
-/* Mobile Responsive Settings - COMPLETELY REWRITTEN */
-@media (max-width: 640px) {
-  .settings-modal-overlay {
-    padding: 8px !important;
-    align-items: flex-start !important;
-    padding-top: 16px !important;
-    overflow: hidden !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 9999 !important;
-  }
-  
-  .settings-modal-content {
-    width: 100% !important;
-    max-width: calc(100vw - 16px) !important;
-    max-height: calc(100% - 32px) !important;
-    height: calc(100% - 32px) !important;
-    margin: 0 !important;
-    padding: 12px !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    position: relative !important;
-    /* Remove flexbox that might be causing issues */
-    display: block !important;
-    /* Force scrolling */
-    overscroll-behavior: contain !important;
-    contain: layout style paint !important;
-    /* Ensure proper height calculation */
-    box-sizing: border-box !important;
-  }
-  
-  .settings-modal-content h3 {
-    font-size: 1.125rem !important;
-    line-height: 1.375rem !important;
-  }
-  
-  .settings-modal-content h4 {
-    font-size: 0.875rem !important;
-    line-height: 1.125rem !important;
-  }
-  
-  .settings-modal-content .md-button {
-    padding: 6px 8px !important;
-    font-size: 0.75rem !important;
-    min-height: 40px !important;
-    min-width: 50px !important;
-  }
-}
-
-/* Extra Small Mobile Responsive Settings */
-@media (max-width: 480px) {
-  .settings-modal-overlay {
-    padding: 4px !important;
-    padding-top: 8px !important;
-  }
-  
-  .settings-modal-content {
-    padding: 8px !important;
-    max-width: calc(100vw - 8px) !important;
-    max-height: calc(100vh - 16px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    position: relative !important;
-  }
-  
-  .settings-modal-content h3 {
-    font-size: 1rem !important;
-    line-height: 1.25rem !important;
-  }
-  
-  .settings-modal-content h4 {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-  }
-  
-  .settings-modal-content .md-button {
-    padding: 4px 6px !important;
-    font-size: 0.625rem !important;
-    min-height: 36px !important;
-    min-width: 45px !important;
-  }
-}
-
-/* Ultra Small Mobile Responsive Settings */
-@media (max-width: 360px) {
-  .settings-modal-overlay {
-    padding: 2px !important;
-    padding-top: 4px !important;
-  }
-  
-  .settings-modal-content {
-    padding: 6px !important;
-    max-width: calc(100vw - 4px) !important;
-    max-height: calc(100vh - 8px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    position: relative !important;
-  }
-  
-  .settings-modal-content h3 {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-  }
-  
-  .settings-modal-content h4 {
-    font-size: 0.5rem !important;
-    line-height: 0.75rem !important;
-  }
-  
-  .settings-modal-content p {
-    font-size: 0.625rem !important;
-    line-height: 0.875rem !important;
-  }
-  
-  .settings-modal-content .md-button {
-    padding: 2px 3px !important;
-    font-size: 0.375rem !important;
-    min-height: 28px !important;
-    min-width: 36px !important;
-  }
-}
-
-/* Material Design 3 Button Styles */
-.md-button {
+/* ---- Win98 Buttons ---- */
+.win98-btn {
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  color: var(--win98-black);
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  font-size: 12px;
+  padding: 3px 12px;
+  cursor: pointer;
+  min-height: 23px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 0px;
-  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
-  font-family: inherit;
-  font-size: var(--md-sys-typescale-label-large-size);
-  font-weight: var(--md-sys-typescale-label-large-weight);
-  line-height: var(--md-sys-typescale-label-large-line-height);
-  letter-spacing: 0.1px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-  min-height: 40px;
-  position: relative;
-  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.md-button-filled {
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+.win98-btn:active {
+  border-color: var(--win98-button-dark-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-dark-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-shadow);
+  padding: 4px 11px 2px 13px;
 }
 
-.md-button-filled:hover {
-  background-color: var(--md-sys-color-primary);
-  box-shadow: 
-    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
-    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
+.win98-btn:focus-visible {
+  outline: 1px dotted var(--win98-black);
+  outline-offset: -4px;
 }
 
-.md-button-outlined {
-  background-color: transparent;
-  color: var(--md-sys-color-primary);
-  border: 1px solid var(--md-sys-color-outline);
+.win98-btn-active {
+  border-color: var(--win98-button-dark-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-dark-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-shadow);
+  padding: 4px 11px 2px 13px;
 }
 
-.md-button-outlined:hover {
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  border-color: var(--md-sys-color-primary);
+.win98-btn-default {
+  outline: 1px solid var(--win98-black);
+  outline-offset: -1px;
 }
 
-.md-button-text {
-  background-color: transparent;
-  color: var(--md-sys-color-primary);
+/* ---- Win98 Input/Slider ---- */
+.win98-input {
+  background: var(--win98-field-bg);
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow), inset -1px -1px 0 var(--win98-silver);
+  color: var(--win98-field-text);
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  font-size: 12px;
+  padding: 2px 4px;
 }
 
-.md-button-text:hover {
-  background-color: var(--md-sys-color-surface-variant);
-}
-
-/* Material Design 3 Slider Styles */
-.md-slider {
+.win98-slider {
   -webkit-appearance: none;
   appearance: none;
-  width: calc(100% - 32px);
-  height: 4px;
-  border-radius: 0px;
-  background: var(--md-sys-color-surface-variant);
+  width: 100%;
+  height: 21px;
+  background: transparent;
   outline: none;
   cursor: pointer;
 }
 
-.md-slider::-webkit-slider-thumb {
+.win98-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--win98-button-face);
+  border: 1px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow);
+}
+
+.win98-slider::-moz-range-track {
+  height: 4px;
+  background: var(--win98-button-face);
+  border: 1px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow);
+}
+
+.win98-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 0px;
-  background: var(--md-sys-color-primary);
+  width: 12px;
+  height: 21px;
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
   cursor: pointer;
-  box-shadow: 
-    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
-    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  margin-top: -9px;
 }
 
-.md-slider::-webkit-slider-thumb:hover {
-  background: var(--md-sys-color-primary);
-  box-shadow: 
-    0 var(--md-sys-elevation-level2) 6px 2px rgba(0, 0, 0, 0.15),
-    0 var(--md-sys-elevation-level2) 4px 8px rgba(0, 0, 0, 0.12);
-}
-
-.md-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 0px;
-  background: var(--md-sys-color-primary);
+.win98-slider::-moz-range-thumb {
+  width: 12px;
+  height: 21px;
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
   cursor: pointer;
-  border: none;
-  box-shadow: 
-    0 var(--md-sys-elevation-level1) 3px 1px rgba(0, 0, 0, 0.15),
-    0 var(--md-sys-elevation-level1) 2px 4px rgba(0, 0, 0, 0.12);
+  border-radius: 0;
 }
 
-.md-slider::-webkit-slider-track {
-  height: 4px;
-  border-radius: 0px;
-  background: var(--md-sys-color-surface-variant);
-}
-
-.md-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 0px;
-  background: var(--md-sys-color-surface-variant);
-}
-
-/* Material Design 3 Typography Classes */
-.md-display-large {
-  font-size: var(--md-sys-typescale-display-large-size);
-  line-height: var(--md-sys-typescale-display-large-line-height);
-  font-weight: var(--md-sys-typescale-display-large-weight);
-  letter-spacing: -0.25px;
-}
-
-.md-display-medium {
-  font-size: var(--md-sys-typescale-display-medium-size);
-  line-height: var(--md-sys-typescale-display-medium-line-height);
-  font-weight: var(--md-sys-typescale-display-medium-weight);
-  letter-spacing: 0px;
-}
-
-.md-display-small {
-  font-size: var(--md-sys-typescale-display-small-size);
-  line-height: var(--md-sys-typescale-display-small-line-height);
-  font-weight: var(--md-sys-typescale-display-small-weight);
-  letter-spacing: 0px;
-}
-
-.md-headline-large {
-  font-size: var(--md-sys-typescale-headline-large-size);
-  line-height: var(--md-sys-typescale-headline-large-line-height);
-  font-weight: var(--md-sys-typescale-headline-large-weight);
-  letter-spacing: 0px;
-}
-
-.md-headline-medium {
-  font-size: var(--md-sys-typescale-headline-medium-size);
-  line-height: var(--md-sys-typescale-headline-medium-line-height);
-  font-weight: var(--md-sys-typescale-headline-medium-weight);
-  letter-spacing: 0px;
-}
-
-.md-headline-small {
-  font-size: var(--md-sys-typescale-headline-small-size);
-  line-height: var(--md-sys-typescale-headline-small-line-height);
-  font-weight: var(--md-sys-typescale-headline-small-weight);
-  letter-spacing: 0px;
-}
-
-.md-title-large {
-  font-size: var(--md-sys-typescale-title-large-size);
-  line-height: var(--md-sys-typescale-title-large-line-height);
-  font-weight: var(--md-sys-typescale-title-large-weight);
-  letter-spacing: 0px;
-}
-
-.md-title-medium {
-  font-size: var(--md-sys-typescale-title-medium-size);
-  line-height: var(--md-sys-typescale-title-medium-line-height);
-  font-weight: var(--md-sys-typescale-title-medium-weight);
-  letter-spacing: 0.1px;
-}
-
-.md-title-small {
-  font-size: var(--md-sys-typescale-title-small-size);
-  line-height: var(--md-sys-typescale-title-small-line-height);
-  font-weight: var(--md-sys-typescale-title-small-weight);
-  letter-spacing: 0.1px;
-}
-
-.md-body-large {
-  font-size: var(--md-sys-typescale-body-large-size);
-  line-height: var(--md-sys-typescale-body-large-line-height);
-  font-weight: var(--md-sys-typescale-body-large-weight);
-  letter-spacing: 0.5px;
-}
-
-.md-body-medium {
-  font-size: var(--md-sys-typescale-body-medium-size);
-  line-height: var(--md-sys-typescale-body-medium-line-height);
-  font-weight: var(--md-sys-typescale-body-medium-weight);
-  letter-spacing: 0.25px;
-}
-
-.md-body-small {
-  font-size: var(--md-sys-typescale-body-small-size);
-  line-height: var(--md-sys-typescale-body-small-line-height);
-  font-weight: var(--md-sys-typescale-body-small-weight);
-  letter-spacing: 0.4px;
-}
-
-.md-label-large {
-  font-size: var(--md-sys-typescale-label-large-size);
-  line-height: var(--md-sys-typescale-label-large-line-height);
-  font-weight: var(--md-sys-typescale-label-large-weight);
-  letter-spacing: 0.1px;
-}
-
-.md-label-medium {
-  font-size: var(--md-sys-typescale-label-medium-size);
-  line-height: var(--md-sys-typescale-label-medium-line-height);
-  font-weight: var(--md-sys-typescale-label-medium-weight);
-  letter-spacing: 0.5px;
-}
-
-.md-label-small {
-  font-size: var(--md-sys-typescale-label-small-size);
-  line-height: var(--md-sys-typescale-label-small-line-height);
-  font-weight: var(--md-sys-typescale-label-small-weight);
-  letter-spacing: 0.5px;
-}
-
-/* Material Design 3 Utility Classes */
-.bg-surface {
-  background-color: var(--md-sys-color-surface);
-}
-
-.bg-surface\/80 {
-  background-color: rgba(28, 27, 31, 0.8);
-}
-
-.border-outline-variant {
-  border-color: var(--md-sys-color-outline-variant);
-}
-
-.text-on-surface {
-  color: var(--md-sys-color-on-surface);
-}
-
-.text-on-surface-variant {
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.rounded-3xl {
-  border-radius: 0px;
-}
-
-/* Legacy slider styles for backward compatibility */
-.slider::-webkit-slider-thumb {
+/* ---- Win98 Checkbox ---- */
+.win98-checkbox {
   appearance: none;
-  height: 16px;
-  width: 16px;
-  border-radius: 0px;
-  background: var(--md-sys-color-primary);
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  background: var(--win98-field-bg);
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow), inset -1px -1px 0 var(--win98-silver);
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  vertical-align: middle;
+  position: relative;
 }
 
-.slider::-moz-range-thumb {
-  height: 16px;
-  width: 16px;
-  border-radius: 0px;
-  background: var(--md-sys-color-primary);
+.win98-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--win98-black);
+  line-height: 1;
+}
+
+/* ---- Win98 Group Box ---- */
+.win98-groupbox {
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  padding: 12px 8px 8px;
+  margin: 8px 0;
+  position: relative;
+}
+
+.win98-groupbox-label {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  background: var(--win98-window-bg);
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--win98-black);
+}
+
+/* ---- Win98 Taskbar ---- */
+.win98-taskbar {
+  background: var(--win98-button-face);
+  border-top: 2px solid;
+  border-color: var(--win98-button-highlight);
+  box-shadow: inset 0 1px 0 var(--win98-silver);
+  padding: 2px 3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 30px;
+}
+
+.win98-start-btn {
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  padding: 2px 6px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 700;
+  font-size: 12px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  min-height: 24px;
+}
+
+.win98-start-btn:active,
+.win98-start-btn.active {
+  border-color: var(--win98-button-dark-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-dark-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-shadow);
+}
+
+.win98-taskbar-divider {
+  width: 2px;
+  height: 22px;
+  border-left: 1px solid var(--win98-button-shadow);
+  border-right: 1px solid var(--win98-button-highlight);
+  margin: 0 2px;
+}
+
+.win98-taskbar-item {
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win98-taskbar-item.active {
+  border-color: var(--win98-button-dark-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-dark-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-shadow);
+  background: repeating-conic-gradient(var(--win98-silver) 0% 25%, var(--win98-button-face) 0% 50%) 0 0 / 2px 2px;
+}
+
+.win98-systray {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  border: 1px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  min-height: 22px;
+  font-size: 11px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+}
+
+/* ---- Win98 Start Menu ---- */
+.win98-start-menu {
+  position: absolute;
+  bottom: 30px;
+  left: 3px;
+  background: var(--win98-silver);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
+  min-width: 180px;
+  z-index: 10000;
+  display: flex;
+}
+
+.win98-start-menu-sidebar {
+  width: 24px;
+  background: linear-gradient(180deg, var(--win98-titlebar) 0%, #000040 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.win98-start-menu-sidebar-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--win98-white);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+}
+
+.win98-start-menu-items {
+  flex: 1;
+  padding: 2px 0;
+}
+
+.win98-start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  color: var(--win98-black);
+  white-space: nowrap;
+  min-height: 28px;
+}
+
+.win98-start-menu-item:hover {
+  background: var(--win98-selection);
+  color: var(--win98-selection-text);
+}
+
+.win98-start-menu-separator {
+  height: 2px;
+  margin: 2px 3px;
+  border-top: 1px solid var(--win98-button-shadow);
+  border-bottom: 1px solid var(--win98-button-highlight);
+}
+
+.win98-start-menu-item-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- Win98 Desktop Icons ---- */
+.win98-desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px;
+  width: 72px;
+  text-align: center;
+  user-select: none;
+}
+
+.win98-desktop-icon:hover .win98-desktop-icon-label,
+.win98-desktop-icon:focus .win98-desktop-icon-label {
+  background: var(--win98-selection);
+  color: var(--win98-selection-text);
+}
+
+.win98-desktop-icon-img {
+  width: 32px;
+  height: 32px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
+}
+
+.win98-desktop-icon-label {
+  color: var(--win98-white);
+  font-size: 11px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+  padding: 1px 2px;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+/* ---- Win98 Modal Overlay ---- */
+.win98-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  pointer-events: auto;
+}
+
+.win98-modal-overlay .win98-window {
+  max-width: 560px;
+  width: 100%;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+.win98-window-body {
+  background: var(--win98-window-bg);
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.win98-window-body::-webkit-scrollbar {
+  width: 16px;
+}
+
+.win98-window-body::-webkit-scrollbar-track {
+  background: repeating-conic-gradient(var(--win98-silver) 0% 25%, var(--win98-white) 0% 50%) 0 0 / 2px 2px;
+}
+
+.win98-window-body::-webkit-scrollbar-thumb {
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+  box-shadow: inset 1px 1px 0 var(--win98-silver);
+}
+
+.win98-window-body::-webkit-scrollbar-button {
+  height: 16px;
+  background: var(--win98-button-face);
+  border: 2px solid;
+  border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
+}
+
+/* ---- Win98 Status Bar ---- */
+.win98-statusbar {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  min-height: 20px;
+}
+
+.win98-statusbar-section {
+  border: 1px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+  flex: 1;
+}
+
+/* ---- Blog Retro Styles ---- */
+.retro-link {
+  color: var(--win98-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.retro-link:visited {
+  color: var(--win98-visited-link);
+}
+
+.retro-link:hover {
+  color: #FF0000;
+}
+
+.retro-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.retro-marquee-inner {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.retro-hr {
   border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--win98-titlebar) 20%,
+    #FF00FF 50%,
+    var(--win98-titlebar) 80%,
+    transparent
+  );
+  margin: 8px 0;
 }
 
-.slider::-webkit-slider-track {
-  height: 8px;
-  border-radius: 0px;
+.retro-counter {
+  display: inline-flex;
+  gap: 1px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.slider::-moz-range-track {
-  height: 8px;
-  border-radius: 0px;
+.retro-counter-digit {
+  background: #000;
+  color: #0F0;
+  padding: 2px 4px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.retro-construction {
+  display: inline-block;
+  color: #FFD700;
+  font-size: 16px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.retro-heading {
+  color: var(--win98-titlebar);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 8px 0 4px;
+  font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+  .win98-modal-overlay {
+    padding: 8px;
+  }
+
+  .win98-modal-overlay .win98-window {
+    max-height: calc(100vh - 16px);
+  }
+
+  .win98-titlebar {
+    font-size: 11px;
+  }
+
+  .win98-start-menu {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .win98-modal-overlay {
+    padding: 4px;
+  }
+
+  .win98-modal-overlay .win98-window {
+    max-height: calc(100vh - 8px);
+  }
 }

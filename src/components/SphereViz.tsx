@@ -298,13 +298,6 @@ export default function SphereViz({ onToggle }: Props) {
       lastWidth = w;
       lastHeight = h;
       
-      console.log('SphereViz dimensions changed:', { 
-        oldWidth: lastWidth, 
-        oldHeight: lastHeight, 
-        newWidth: w, 
-        newHeight: h 
-      });
-      
       // Update camera aspect ratio
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
@@ -322,25 +315,11 @@ export default function SphereViz({ onToggle }: Props) {
       // Force a render to update immediately
       rendererRef.current.render(sceneRef.current, cameraRef.current);
       
-      // Log resize for debugging (remove in production)
-      console.log('SphereViz resized:', { width: w, height: h, cameraZ: targetZ });
     };
     
     // Use ResizeObserver for more reliable resize detection
-    const resizeObserver = new ResizeObserver((entries) => {
-      // Log what ResizeObserver detected
-      entries.forEach(entry => {
-        console.log('ResizeObserver detected change:', {
-          contentRect: entry.contentRect,
-          borderBoxSize: entry.borderBoxSize,
-          contentBoxSize: entry.contentBoxSize
-        });
-      });
-      
-      // Immediate resize for immediate feedback
+    const resizeObserver = new ResizeObserver(() => {
       handleResize();
-      
-      // Debounced resize for performance optimization
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(handleResize, 100);
     });
@@ -351,15 +330,12 @@ export default function SphereViz({ onToggle }: Props) {
     let lastViewportWidth = window.innerWidth;
     
     const handleWindowResize = () => {
-      console.log('Window resize event fired');
-      
       const currentHeight = window.innerHeight;
       const currentWidth = window.innerWidth;
       const heightChanged = currentHeight !== lastViewportHeight;
       const widthChanged = currentWidth !== lastViewportWidth;
-      
+
       if (heightChanged) {
-        console.log('Viewport height changed:', { old: lastViewportHeight, new: currentHeight });
         lastViewportHeight = currentHeight;
         
         // Force container to update its dimensions
@@ -373,7 +349,6 @@ export default function SphereViz({ onToggle }: Props) {
       }
       
       if (widthChanged) {
-        console.log('Viewport width changed:', { old: lastViewportWidth, new: currentWidth });
         lastViewportWidth = currentWidth;
       }
       
@@ -389,32 +364,25 @@ export default function SphereViz({ onToggle }: Props) {
     
     // Handle orientation changes specifically
     window.addEventListener("orientationchange", () => {
-      console.log('Orientation change detected');
-      // Wait for orientation change to complete, then resize
       setTimeout(handleResize, 300);
     });
     
     // Listen for visual viewport changes (mobile keyboard, etc.)
     let visualViewportListener: (() => void) | null = null;
     if ('visualViewport' in window) {
-      const visualViewport = (window as any).visualViewport;
+      const vv = window.visualViewport;
       visualViewportListener = () => {
-        console.log('Visual viewport changed:', {
-          width: visualViewport.width,
-          height: visualViewport.height,
-          scale: visualViewport.scale
-        });
-        
+        if (!vv) return;
         // Force container update
         if (mountRef.current) {
-          mountRef.current.style.height = `${visualViewport.height}px`;
-          mountRef.current.style.width = `${visualViewport.width}px`;
+          mountRef.current.style.height = `${vv.height}px`;
+          mountRef.current.style.width = `${vv.width}px`;
         }
         
         // Force resize
         handleResize();
       };
-      visualViewport.addEventListener('resize', visualViewportListener);
+      vv?.addEventListener('resize', visualViewportListener);
     }
     
     // Initial resize to ensure perfect centering after container is fully rendered
@@ -430,9 +398,8 @@ export default function SphereViz({ onToggle }: Props) {
       window.removeEventListener("orientationchange", handleResize);
       
       // Clean up visual viewport listener
-      if (visualViewportListener && 'visualViewport' in window) {
-        const visualViewport = (window as any).visualViewport;
-        visualViewport.removeEventListener('resize', visualViewportListener);
+      if (visualViewportListener && window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', visualViewportListener);
       }
       
       renderer.domElement.removeEventListener("pointermove", onPointerMove);

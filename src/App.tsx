@@ -1,11 +1,17 @@
 import './App.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import SphereViz from './components/SphereViz'
 import ControlsOverlay from './components/ControlsOverlay'
+import Win98Window from './components/Win98Window'
+import BlogWindow from './components/BlogWindow'
 import { useAppState, BAND_RANGES } from './state/appState'
 import { audioEngine } from './audio/audioEngine'
 import { overlayAudioEngine } from './audio/overlayAudio'
+
+const BAND_SYMBOLS: Record<string, string> = {
+  delta: "\u03B4", theta: "\u03B8", alpha: "\u03B1", beta: "\u03B2", gamma: "\u03B3"
+};
 
 function App() {
   const band = useAppState((s) => s.band)
@@ -13,7 +19,7 @@ function App() {
   const carrierHz = useAppState((s) => s.carrierHz)
   const volume = useAppState((s) => s.volume)
   const waveform = useAppState((s) => s.waveform)
-
+  const isPlaying = useAppState((s) => s.isPlaying)
 
   const setPlaying = useAppState((s) => s.setPlaying)
   const setBand = useAppState((s) => s.setBand)
@@ -27,33 +33,25 @@ function App() {
   const setOverlaySound = useAppState((s) => s.setOverlaySound)
   const setOverlayVolume = useAppState((s) => s.setOverlayVolume)
   const setOverlayLowPassFreq = useAppState((s) => s.setOverlayLowPassFreq)
-  
-  // Settings modal state at App level
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
+  const [isBlogOpen, setIsBlogOpen] = useState(false)
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(() => {
-    // Check if this is the first visit
     const hasVisited = localStorage.getItem('hasVisitedBefore');
     return !hasVisited;
   });
+  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false)
 
   useEffect(() => {
-    // Always update audio parameters when they change, regardless of playing state
-    // This ensures the brainwave selector works even when audio is not playing
-    
-    // Add a small delay to ensure audio engine is ready before tuning
     const timeoutId = setTimeout(() => {
       if (audioEngine.getIsPlaying()) {
         audioEngine.tune({ carrierHz, offsetHz, volume, waveform });
       }
-    }, 100); // 100ms delay to ensure audio engine is ready
-    
+    }, 100);
     return () => clearTimeout(timeoutId);
   }, [band, carrierHz, offsetHz, volume, waveform])
 
-
-
-  // Sync overlay audio parameters when they change (but don't start/stop automatically)
   useEffect(() => {
     if (overlayAudioEngine.getState().isPlaying) {
       overlayAudioEngine.setVolume(overlayVolume);
@@ -69,462 +67,499 @@ function App() {
   useEffect(() => {
     const handleOpenSettings = () => setIsSettingsOpen(true);
     const handleOpenAbout = () => setIsAboutOpen(true);
+    const handleOpenBlog = () => setIsBlogOpen(true);
     window.addEventListener('openSettings', handleOpenSettings);
     window.addEventListener('openAbout', handleOpenAbout);
+    window.addEventListener('openBlog', handleOpenBlog);
     return () => {
       window.removeEventListener('openSettings', handleOpenSettings);
       window.removeEventListener('openAbout', handleOpenAbout);
+      window.removeEventListener('openBlog', handleOpenBlog);
     };
   }, []);
 
-  const toggle = () => {
+  // Close start menu when clicking elsewhere
+  useEffect(() => {
+    if (!isStartMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.win98-start-menu') && !target.closest('.win98-start-btn')) {
+        setIsStartMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isStartMenuOpen]);
+
+  const toggle = useCallback(() => {
     const audioIsPlaying = audioEngine.getIsPlaying();
-    
-    // Get the current state values at the time of calling toggle
     const currentState = useAppState.getState();
     const { carrierHz: currentCarrierHz, offsetHz: currentOffsetHz, volume: currentVolume, waveform: currentWaveform, overlaySound: currentOverlaySound } = currentState;
-    
+
     if (!audioIsPlaying) {
-      // Start playing with current settings
       audioEngine.start({ carrierHz: currentCarrierHz, offsetHz: currentOffsetHz, volume: currentVolume, waveform: currentWaveform })
-      
-      // Start overlay audio if enabled
       if (currentOverlaySound === "white-noise") {
         overlayAudioEngine.start("white-noise", overlayVolume);
       }
-      
       setPlaying(true)
     } else {
-      // Stop playing
       audioEngine.stop()
-      
-      // Stop overlay audio
       overlayAudioEngine.stop()
-      
       setPlaying(false)
     }
-  }
+  }, [overlayVolume, setPlaying]);
+
+  // Current time for the system tray clock
+  const [clock, setClock] = useState(() => {
+    const d = new Date();
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const d = new Date();
+      setClock(d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="bg-surface text-on-surface">
-      {/* Three.js canvas fills entire viewport */}
-      <div className="fixed inset-0 z-0">
+    <div style={{ background: 'var(--win98-desktop)', width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+      {/* Desktop area with sphere viz */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
         <SphereViz onToggle={toggle} />
       </div>
-      
-      {/* UI controls float above the canvas - MUST take full viewport */}
-      <div className="fixed inset-0 w-screen h-screen z-10 pointer-events-none">
+
+      {/* Desktop Icons */}
+      <div style={{ position: 'fixed', top: 12, left: 12, zIndex: 5, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button className="win98-desktop-icon" onClick={() => setIsSettingsOpen(true)} tabIndex={0}>
+          <span className="win98-desktop-icon-img">&#9881;</span>
+          <span className="win98-desktop-icon-label">Sound<br/>Control</span>
+        </button>
+        <button className="win98-desktop-icon" onClick={() => setIsBlogOpen(true)} tabIndex={0}>
+          <span className="win98-desktop-icon-img">&#128196;</span>
+          <span className="win98-desktop-icon-label">The<br/>Zine</span>
+        </button>
+        <button className="win98-desktop-icon" onClick={() => setIsAboutOpen(true)} tabIndex={0}>
+          <span className="win98-desktop-icon-img">&#9432;</span>
+          <span className="win98-desktop-icon-label">About</span>
+        </button>
+      </div>
+
+      {/* Brainwave band selector floating controls */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
         <ControlsOverlay />
       </div>
-      
-      {/* Footer - Fixed at bottom */}
-      <footer style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 20,
-        pointerEvents: 'auto',
-        backgroundColor: 'rgba(28, 27, 31, 0.9)',
-        backdropFilter: 'blur(8px)',
-        borderTop: '1px solid #49454F',
-        textAlign: 'center',
-        padding: '12px 16px',
-        fontSize: '13px',
-        lineHeight: '18px',
-        fontWeight: 400,
-        letterSpacing: '0.25px',
-        color: '#CAC4D0'
-      }}>
-        Headphones Required | Built and hosted by{' '}
-        <a 
-          href="https://github.com/tylercyert" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          style={{
-            color: '#E6E1E5',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'color 0.2s ease'
-          }}
-          onMouseEnter={(e) => (e.target as HTMLElement).style.color = '#6750A4'}
-          onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#E6E1E5'}
+
+      {/* Win98 Taskbar */}
+      <div className="win98-taskbar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100 }}>
+        {/* Start Button */}
+        <button
+          className={`win98-start-btn ${isStartMenuOpen ? 'active' : ''}`}
+          onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
         >
-          Tyler Cyert
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            height="15" 
-            viewBox="0 0 16 16" 
-            width="16" 
-            fill="currentColor" 
-            aria-hidden="true"
-            style={{ display: 'inline-block' }}
-          >
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
-              -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78
-              -.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67
-              -.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82
-              2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87
-              3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2
-              0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
-            </path>
-          </svg>
-        </a>
-      </footer>
-      
-      {/* Settings Modal - Rendered via portal to document body */}
-      {isSettingsOpen && createPortal(
-        <div className="settings-modal-overlay">
-          <div className="settings-modal-content max-w-[95vw] max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="md-headline-small text-on-surface text-center">Settings</h3>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="close-button"
-                aria-label="Close settings"
-              >
-                ×
-              </button>
-            </div>
-
-                        {/* Content */}
-            <div className="space-y-6 modal-content-scrollable">
-              {/* Binaural Generator Section */}
-              <div className="bg-surface-container">
-                <h3 className="md-headline-small text-primary text-center m-0">Binaural Generator</h3>
-                
-                {/* Carrier Frequency */}
-                <div className="mb-6">
-                  <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Carrier Frequency</h4>
-                  <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
-                    {[174, 220, 256, 320, 432].map((freq) => (
-                      <button
-                        key={freq}
-                        onClick={() => setCarrierHz(freq)}
-                        className={`md-button text-sm sm:text-base ${
-                          carrierHz === freq ? "md-button-filled" : "md-button-outlined"
-                        }`}
-                        style={{ 
-                          minHeight: '44px', 
-                          minWidth: '60px',
-                          backgroundColor: carrierHz === freq ? 'var(--md-sys-color-primary)' : 'transparent',
-                          borderColor: carrierHz === freq ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)',
-                          color: carrierHz === freq ? 'white' : 'var(--md-sys-color-primary)'
-                        }}
-                      >
-                        {freq} Hz
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Brainwave Band Selector */}
-                <div className="mb-6">
-                  <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Brainwave Band</h4>
-                  <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
-                    {Object.entries(BAND_RANGES).map(([key, config]) => (
-                      <button
-                        key={key}
-                        onClick={() => setBand(key as keyof typeof BAND_RANGES)}
-                        className={`md-button text-sm sm:text-base ${
-                          band === key ? "md-button-filled" : "md-button-outlined"
-                        }`}
-                        style={{
-                          backgroundColor: band === key ? config.color : "transparent",
-                          borderColor: band === key ? config.color : "var(--md-sys-color-outline)",
-                          color: band === key ? "white" : "var(--md-sys-color-primary)",
-                          minHeight: '44px',
-                          width: '70px'
-                        }}
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className="text-lg font-bold">
-                            {key === "delta" ? "δ" : 
-                             key === "theta" ? "θ" : 
-                             key === "alpha" ? "α" : 
-                             key === "beta" ? "β" : 
-                             key === "gamma" ? "γ" : key}
-                          </div>
-                          <div className="text-xs">
-                            {key === "delta" ? "Delta" : 
-                             key === "theta" ? "Theta" : 
-                             key === "alpha" ? "Alpha" : 
-                             key === "beta" ? "Beta" : 
-                             key === "gamma" ? "Gamma" : key}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Offset Frequency */}
-                <div className="mb-6">
-                  <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Offset Frequency</h4>
-                  <div className="md-title-large text-on-surface mb-2 text-center">
-                    {offsetHz.toFixed(1)} Hz
-                  </div>
-                  <input
-                    type="range"
-                    min={BAND_RANGES[band].min}
-                    max={BAND_RANGES[band].max}
-                    step={0.1}
-                    value={offsetHz}
-                    onChange={(e) => setOffsetHz(parseFloat(e.target.value))}
-                    className="md-slider"
-                    style={{ margin: '16px' }}
-                  />
-
-                </div>
-
-                {/* Binaural Volume */}
-                <div>
-                  <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Binaural Volume</h4>
-                  <div className="md-title-large text-on-surface mb-2 text-center">
-                    {Math.round(volume * 100)}%
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={volume}
-                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="md-slider"
-                    style={{ margin: '16px' }}
-                  />
-                </div>
-              </div>
-
-              {/* Noise Generator Section */}
-              <div className="bg-surface-container">
-                <h3 className="md-headline-small text-primary text-center m-0">Noise Generator</h3>
-                
-                {/* White Noise Toggle */}
-                <div className="flex items-center justify-center mb-6">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={overlaySound === "white-noise"}
-                      onChange={(e) => {
-                        const newSound = e.target.checked ? "white-noise" : "none";
-                        setOverlaySound(newSound);
-                        
-                        // Only start white noise if binaural beats are playing
-                        if (newSound === "white-noise" && audioEngine.getIsPlaying()) {
-                          overlayAudioEngine.transitionTo("white-noise", overlayVolume);
-                        } else if (newSound === "none") {
-                          overlayAudioEngine.transitionTo("none");
-                        }
-                        // If checking white noise but binaural not playing, just save the preference
-                        // White noise will start automatically when binaural beats start
-                      }}
-                      className="w-5 h-5 accent-primary"
-                    />
-                    <span className="md-title-medium text-on-surface">White Noise</span>
-                  </label>
-                </div>
-                
-                {overlaySound !== "none" && (
-                  <div className="space-y-6">
-                    {/* Noise Volume */}
-                    <div>
-                      <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Noise Volume</h4>
-                      <div className="md-title-large text-on-surface mb-2 text-center">
-                        {Math.round(overlayVolume * 2500)}%
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={overlayVolume * 2500}
-                        onChange={(e) => setOverlayVolume(parseFloat(e.target.value) / 2500)}
-                        className="md-slider"
-                        style={{ margin: '16px' }}
-                      />
-                    </div>
-                    
-                    {/* Low-Pass Filter */}
-                    <div>
-                      <h4 className="md-title-medium text-on-surface-variant mb-3 text-center">Low-Pass Filter</h4>
-                      <div className="md-title-large text-on-surface mb-2 text-center">
-                        {overlayLowPassFreq} Hz
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max="100"
-                        step="1"
-                        value={((overlayLowPassFreq - 500) / (8000 - 500)) * 100}
-                        onChange={(e) => {
-                          const sliderValue = parseFloat(e.target.value) / 100;
-                          const freq = 500 + (sliderValue * (8000 - 500));
-                          setOverlayLowPassFreq(freq);
-                        }}
-                        className="md-slider"
-                        style={{ margin: '16px' }}
-                      />
-
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-      </div>
-        </div>,
-        document.body
-      )}
-
-      {/* About Modal */}
-      {isAboutOpen && createPortal(
-        <div className="settings-modal-overlay">
-          <div className="settings-modal-content max-w-[95vw] max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="md-headline-small text-on-surface text-center m-0">About FocusTones</h3>
-              <button
-                onClick={() => setIsAboutOpen(false)}
-                className="close-button"
-                aria-label="Close about"
-              >
-                ×
+          <span style={{ fontSize: 14 }}>&#127988;</span>
+          <span>Start</span>
         </button>
-            </div>
 
-            {/* Content */}
-            <div className="space-y-6">
-              <div className="prose prose-invert max-w-none">
-                <p className="md-body-large text-on-surface leading-relaxed">
-                  I created FocusTone.co to aid in my own practice of deep work. The app generates customizable binaural tones designed to help guide the brain into different states of focus, rest, and creativity. Binaural beats work by nudging brainwaves into specific frequency ranges:
-                </p>
-                
-                                <div className="space-y-2 mt-4">
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#21B5B0' }}>δ Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#26C3A8' }}>θ Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#7BBE62' }}>α Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#B8A64B' }}>β Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#F2A23A' }}>γ Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
-                  </p>
+        <div className="win98-taskbar-divider" />
+
+        {/* Taskbar Items for open windows */}
+        {isSettingsOpen && (
+          <button
+            className="win98-taskbar-item active"
+            onClick={() => setIsSettingsOpen(true)}
+          >
+            &#9881; Sound Control
+          </button>
+        )}
+        {isBlogOpen && (
+          <button
+            className="win98-taskbar-item active"
+            onClick={() => setIsBlogOpen(true)}
+          >
+            &#128196; The Zine
+          </button>
+        )}
+        {isAboutOpen && (
+          <button
+            className="win98-taskbar-item active"
+            onClick={() => setIsAboutOpen(true)}
+          >
+            &#9432; About
+          </button>
+        )}
+
+        {/* Playing indicator in taskbar */}
+        {isPlaying && (
+          <button
+            className="win98-taskbar-item active"
+            onClick={toggle}
+            style={{ color: 'var(--win98-black)' }}
+          >
+            &#9654; {BAND_SYMBOLS[band]} {offsetHz.toFixed(1)}Hz
+          </button>
+        )}
+
+        {/* System Tray */}
+        <div className="win98-systray">
+          {isPlaying && <span title="Audio playing" style={{ fontSize: 12 }}>&#128266;</span>}
+          <span>{clock}</span>
+        </div>
+      </div>
+
+      {/* Start Menu */}
+      {isStartMenuOpen && (
+        <div className="win98-start-menu" style={{ zIndex: 101 }}>
+          <div className="win98-start-menu-sidebar">
+            <span className="win98-start-menu-sidebar-text">FocusTones98</span>
+          </div>
+          <div className="win98-start-menu-items">
+            <div
+              className="win98-start-menu-item"
+              onClick={() => { setIsSettingsOpen(true); setIsStartMenuOpen(false); }}
+            >
+              <span className="win98-start-menu-item-icon">&#9881;</span>
+              <span>Sound Control Panel</span>
+            </div>
+            <div
+              className="win98-start-menu-item"
+              onClick={() => { setIsBlogOpen(true); setIsStartMenuOpen(false); }}
+            >
+              <span className="win98-start-menu-item-icon">&#128196;</span>
+              <span>The Zine</span>
+            </div>
+            <div
+              className="win98-start-menu-item"
+              onClick={() => { setIsAboutOpen(true); setIsStartMenuOpen(false); }}
+            >
+              <span className="win98-start-menu-item-icon">&#9432;</span>
+              <span>About FocusTones</span>
+            </div>
+            <div className="win98-start-menu-separator" />
+            <div
+              className="win98-start-menu-item"
+              onClick={() => { toggle(); setIsStartMenuOpen(false); }}
+            >
+              <span className="win98-start-menu-item-icon">{isPlaying ? '&#9209;' : '&#9654;'}</span>
+              <span>{isPlaying ? 'Stop Playback' : 'Start Playback'}</span>
+            </div>
+            <div className="win98-start-menu-separator" />
+            <a
+              className="win98-start-menu-item"
+              href="https://github.com/tylercyert"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+              onClick={() => setIsStartMenuOpen(false)}
+            >
+              <span className="win98-start-menu-item-icon">&#128279;</span>
+              <span>Tyler Cyert (GitHub)</span>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* === SETTINGS MODAL === */}
+      {isSettingsOpen && createPortal(
+        <div className="win98-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsSettingsOpen(false); }}>
+          <Win98Window
+            title="Sound Control Panel"
+            icon="&#9881;"
+            onClose={() => setIsSettingsOpen(false)}
+            statusBar={
+              <div className="win98-statusbar-section">
+                {isPlaying ? `Playing: ${band} @ ${offsetHz.toFixed(1)}Hz` : 'Stopped'}
+              </div>
+            }
+          >
+            {/* Binaural Generator Group */}
+            <div className="win98-groupbox" style={{ marginTop: 4 }}>
+              <span className="win98-groupbox-label">Binaural Generator</span>
+
+              {/* Carrier Frequency */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>Carrier Frequency</div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {[174, 220, 256, 320, 432].map((freq) => (
+                    <button
+                      key={freq}
+                      onClick={() => setCarrierHz(freq)}
+                      className={`win98-btn ${carrierHz === freq ? 'win98-btn-active' : ''}`}
+                      style={{
+                        minWidth: 56,
+                        ...(carrierHz === freq ? { background: 'var(--win98-selection)', color: 'var(--win98-selection-text)' } : {})
+                      }}
+                    >
+                      {freq} Hz
+                    </button>
+                  ))}
                 </div>
-                
-                <p className="md-body-large text-on-surface leading-relaxed mt-4">
-                  These states provide heuristic benefits — practical ways to align your mental state with the task at hand, whether that's entering flow, resting deeply, or sparking creativity. FocusTone.co grew out of my own need for simple, effective tools to sustain focus and intentional work.
-                </p>
-                
-                <p className="md-body-large text-on-surface leading-relaxed mt-4">
-                  You can learn more about me and my work at{' '}
-                  <a 
-                    href="https://tylercyert.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    tylercyert.com
-                  </a>
-                  .
-                </p>
+              </div>
+
+              {/* Brainwave Band */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>Brainwave Band</div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {Object.entries(BAND_RANGES).map(([key, config]) => (
+                    <button
+                      key={key}
+                      onClick={() => setBand(key as keyof typeof BAND_RANGES)}
+                      className={`win98-btn ${band === key ? 'win98-btn-active' : ''}`}
+                      style={{
+                        minWidth: 60,
+                        ...(band === key
+                          ? { background: config.color, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.3)' }
+                          : {})
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, marginRight: 2 }}>{BAND_SYMBOLS[key]}</span>
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Offset Frequency */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>
+                  Offset Frequency: <span style={{ fontWeight: 400 }}>{offsetHz.toFixed(1)} Hz</span>
+                </div>
+                <input
+                  type="range"
+                  min={BAND_RANGES[band].min}
+                  max={BAND_RANGES[band].max}
+                  step={0.1}
+                  value={offsetHz}
+                  onChange={(e) => setOffsetHz(parseFloat(e.target.value))}
+                  className="win98-slider"
+                />
+              </div>
+
+              {/* Volume */}
+              <div>
+                <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>
+                  Volume: <span style={{ fontWeight: 400 }}>{Math.round(volume * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="win98-slider"
+                />
               </div>
             </div>
-          </div>
+
+            {/* Noise Generator Group */}
+            <div className="win98-groupbox">
+              <span className="win98-groupbox-label">Noise Generator</span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  className="win98-checkbox"
+                  id="white-noise-toggle"
+                  checked={overlaySound === "white-noise"}
+                  onChange={(e) => {
+                    const newSound = e.target.checked ? "white-noise" : "none";
+                    setOverlaySound(newSound);
+                    if (newSound === "white-noise" && audioEngine.getIsPlaying()) {
+                      overlayAudioEngine.transitionTo("white-noise", overlayVolume);
+                    } else if (newSound === "none") {
+                      overlayAudioEngine.transitionTo("none");
+                    }
+                  }}
+                />
+                <label htmlFor="white-noise-toggle" style={{ fontSize: 12, cursor: 'pointer' }}>
+                  White Noise
+                </label>
+              </div>
+
+              {overlaySound !== "none" && (
+                <>
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>
+                      Noise Volume: <span style={{ fontWeight: 400 }}>{Math.round(overlayVolume * 2500)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={overlayVolume * 2500}
+                      onChange={(e) => setOverlayVolume(parseFloat(e.target.value) / 2500)}
+                      className="win98-slider"
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 12 }}>
+                      Low-Pass Filter: <span style={{ fontWeight: 400 }}>{Math.round(overlayLowPassFreq)} Hz</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={((overlayLowPassFreq - 500) / (8000 - 500)) * 100}
+                      onChange={(e) => {
+                        const sliderValue = parseFloat(e.target.value) / 100;
+                        const freq = 500 + (sliderValue * (8000 - 500));
+                        setOverlayLowPassFreq(freq);
+                      }}
+                      className="win98-slider"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--win98-button-shadow)' }}>
+              <button className="win98-btn" onClick={toggle} style={{ minWidth: 80 }}>
+                {isPlaying ? '&#9209; Stop' : '&#9654; Play'}
+              </button>
+              <button className="win98-btn" onClick={() => setIsSettingsOpen(false)} style={{ minWidth: 80 }}>
+                OK
+              </button>
+            </div>
+          </Win98Window>
         </div>,
         document.body
       )}
 
-      {/* Welcome Modal for First-Time Visitors */}
-      {isWelcomeOpen && createPortal(
-        <div className="settings-modal-overlay">
-          <div className="settings-modal-content max-w-[95vw] max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="md-headline-small text-on-surface text-center m-0">Welcome to FocusTone</h3>
-              <button
-                onClick={() => setIsWelcomeOpen(false)}
-                className="close-button"
-                aria-label="Close welcome"
-              >
-                ×
-              </button>
-            </div>
+      {/* === ABOUT MODAL === */}
+      {isAboutOpen && createPortal(
+        <div className="win98-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsAboutOpen(false); }}>
+          <Win98Window
+            title="About FocusTones"
+            icon="&#9432;"
+            onClose={() => setIsAboutOpen(false)}
+          >
+            <div style={{ padding: 8 }}>
+              <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--win98-titlebar)' }}>FocusTones 98</div>
+                <div style={{ fontSize: 11, color: 'var(--win98-dark-silver)' }}>Version 1.0 - Binaural Beat Generator</div>
+                <div className="retro-hr" />
+              </div>
 
-            {/* Content */}
-            <div className="space-y-6">
-              <div className="prose prose-invert max-w-none">
-                <p className="md-body-large text-on-surface leading-relaxed">
-                  I created FocusTone.co to aid in my own practice of deep work. The app generates customizable binaural tones designed to help guide the brain into different states of focus, rest, and creativity. Binaural beats work by nudging brainwaves into specific frequency ranges:
-                </p>
-                
-                <div className="space-y-2 mt-4">
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#21B5B0' }}>δ Delta (0.5–4 Hz):</span> Deep sleep, restoration, and healing.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#26C3A8' }}>θ Theta (4–8 Hz):</span> Relaxation, meditation, and heightened creativity.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#7BBE62' }}>α Alpha (8–12 Hz):</span> Calm, present awareness — ideal for light focus and flow.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#B8A64B' }}>β Beta (12–30 Hz):</span> Active thinking, problem-solving, and alertness.
-                  </p>
-                  <p className="md-body-medium text-on-surface">
-                    <span className="font-semibold" style={{ color: '#F2A23A' }}>γ Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.
-                  </p>
-                </div>
-                
-                <p className="md-body-large text-on-surface leading-relaxed mt-4">
-                  These states provide heuristic benefits — practical ways to align your mental state with the task at hand, whether that's entering flow, resting deeply, or sparking creativity. FocusTone.co grew out of my own need for simple, effective tools to sustain focus and intentional work.
-                </p>
-                
-                <p className="md-body-large text-on-surface leading-relaxed mt-4">
-                  You can learn more about me and my work at{' '}
-                  <a 
-                    href="https://tylercyert.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    tylercyert.com
-                  </a>
-                  .
-                </p>
+              <p style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+                I created FocusTone.co to aid in my own practice of deep work. The app generates
+                customizable binaural tones designed to help guide the brain into different states
+                of focus, rest, and creativity.
+              </p>
 
-                {/* Get Started Button */}
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => {
-                      localStorage.setItem('hasVisitedBefore', 'true');
-                      setIsWelcomeOpen(false);
-                    }}
-                    className="md-button-filled px-8 py-3 text-lg"
-                    style={{ minHeight: '48px', minWidth: '160px' }}
-                  >
-                    Get Started
-                  </button>
+              <p style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+                Binaural beats work by nudging brainwaves into specific frequency ranges:
+              </p>
+
+              <div className="win98-groupbox">
+                <span className="win98-groupbox-label">Brainwave Bands</span>
+                <div style={{ fontSize: 12, lineHeight: 1.8 }}>
+                  <div><span style={{ color: '#21B5B0', fontWeight: 700 }}>{BAND_SYMBOLS.delta} Delta (0.5-4 Hz):</span> Deep sleep, restoration, and healing.</div>
+                  <div><span style={{ color: '#26C3A8', fontWeight: 700 }}>{BAND_SYMBOLS.theta} Theta (4-8 Hz):</span> Relaxation, meditation, and heightened creativity.</div>
+                  <div><span style={{ color: '#7BBE62', fontWeight: 700 }}>{BAND_SYMBOLS.alpha} Alpha (8-12 Hz):</span> Calm, present awareness - ideal for light focus and flow.</div>
+                  <div><span style={{ color: '#B8A64B', fontWeight: 700 }}>{BAND_SYMBOLS.beta} Beta (12-30 Hz):</span> Active thinking, problem-solving, and alertness.</div>
+                  <div><span style={{ color: '#F2A23A', fontWeight: 700 }}>{BAND_SYMBOLS.gamma} Gamma (30+ Hz):</span> High-level cognition, memory, and peak concentration.</div>
                 </div>
               </div>
+
+              <p style={{ fontSize: 12, lineHeight: 1.6, marginTop: 8 }}>
+                These states provide heuristic benefits - practical ways to align your mental state
+                with the task at hand, whether that's entering flow, resting deeply, or sparking creativity.
+              </p>
+
+              <div className="retro-hr" />
+
+              <div style={{ textAlign: 'center', fontSize: 11 }}>
+                Built by{' '}
+                <a href="https://tylercyert.com" target="_blank" rel="noopener noreferrer" className="retro-link">
+                  Tyler Cyert
+                </a>
+                {' '}&bull;{' '}
+                <a href="https://github.com/tylercyert" target="_blank" rel="noopener noreferrer" className="retro-link">
+                  GitHub
+                </a>
+              </div>
             </div>
-          </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--win98-button-shadow)' }}>
+              <button className="win98-btn win98-btn-default" onClick={() => setIsAboutOpen(false)} style={{ minWidth: 80 }}>
+                OK
+              </button>
+            </div>
+          </Win98Window>
+        </div>,
+        document.body
+      )}
+
+      {/* === BLOG MODAL === */}
+      {isBlogOpen && createPortal(
+        <div className="win98-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsBlogOpen(false); }}>
+          <BlogWindow onClose={() => setIsBlogOpen(false)} />
+        </div>,
+        document.body
+      )}
+
+      {/* === WELCOME MODAL === */}
+      {isWelcomeOpen && createPortal(
+        <div className="win98-modal-overlay">
+          <Win98Window
+            title="Welcome to FocusTones 98"
+            icon="&#128075;"
+          >
+            <div style={{ padding: 8 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+                <div style={{ fontSize: 40, lineHeight: 1 }}>&#128266;</div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: 'var(--win98-titlebar)' }}>
+                    Welcome to FocusTones 98
+                  </div>
+                  <p style={{ fontSize: 12, lineHeight: 1.6, margin: 0 }}>
+                    FocusTones generates customizable binaural beats to guide your brain into
+                    optimal states for focus, creativity, and deep work.
+                  </p>
+                </div>
+              </div>
+
+              <div className="win98-groupbox">
+                <span className="win98-groupbox-label">Quick Start</span>
+                <div style={{ fontSize: 12, lineHeight: 1.8 }}>
+                  <div>&#128266; <b>Click the sphere</b> or press <b>Space</b> to play/stop</div>
+                  <div>&#127911; <b>Headphones required</b> for binaural effect</div>
+                  <div>&#127912; <b>Select a brainwave band</b> from the bottom panel</div>
+                  <div>&#9881; <b>Sound Control Panel</b> for advanced settings</div>
+                  <div>&#128196; <b>The Zine</b> for articles about beats, ambient & DnB</div>
+                </div>
+              </div>
+
+              <div className="retro-hr" />
+
+              <p style={{ fontSize: 11, textAlign: 'center', color: 'var(--win98-dark-silver)' }}>
+                Built with &#9829; by Tyler Cyert &bull; Best experienced with headphones
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--win98-button-shadow)' }}>
+              <button
+                className="win98-btn win98-btn-default"
+                onClick={() => {
+                  localStorage.setItem('hasVisitedBefore', 'true');
+                  setIsWelcomeOpen(false);
+                }}
+                style={{ minWidth: 100 }}
+              >
+                Get Started
+              </button>
+            </div>
+          </Win98Window>
         </div>,
         document.body
       )}
     </div>
   )
 }
-
-
 
 export default App
