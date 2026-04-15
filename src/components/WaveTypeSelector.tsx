@@ -11,6 +11,7 @@ const BAND_SYMBOLS: Record<Band, string> = {
 export default function BrainwaveBandSelector() {
   const band = useAppState((s) => s.band);
   const setBand = useAppState((s) => s.setBand);
+  const isPlaying = useAppState((s) => s.isPlaying);
 
   return (
     <div style={{
@@ -76,6 +77,17 @@ export default function BrainwaveBandSelector() {
             borderRight: '1px solid var(--win98-button-highlight)',
             margin: '0 2px',
           }} />
+
+          {/* Play/Stop */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('togglePlayback'))}
+            className={`win98-btn ${isPlaying ? 'win98-btn-active' : ''}`}
+            style={{ minWidth: 36, minHeight: 36, padding: '2px 6px' }}
+            aria-label={isPlaying ? 'Stop playback' : 'Start playback'}
+            title={isPlaying ? 'Stop' : 'Play'}
+          >
+            <span style={{ fontSize: 16 }}>{isPlaying ? '\u23F9' : '\u25B6'}</span>
+          </button>
 
           {/* Settings */}
           <button

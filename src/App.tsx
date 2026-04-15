@@ -64,33 +64,6 @@ function App() {
     }
   }, [overlayLowPassFreq]);
 
-  useEffect(() => {
-    const handleOpenSettings = () => setIsSettingsOpen(true);
-    const handleOpenAbout = () => setIsAboutOpen(true);
-    const handleOpenBlog = () => setIsBlogOpen(true);
-    window.addEventListener('openSettings', handleOpenSettings);
-    window.addEventListener('openAbout', handleOpenAbout);
-    window.addEventListener('openBlog', handleOpenBlog);
-    return () => {
-      window.removeEventListener('openSettings', handleOpenSettings);
-      window.removeEventListener('openAbout', handleOpenAbout);
-      window.removeEventListener('openBlog', handleOpenBlog);
-    };
-  }, []);
-
-  // Close start menu when clicking elsewhere
-  useEffect(() => {
-    if (!isStartMenuOpen) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.win98-start-menu') && !target.closest('.win98-start-btn')) {
-        setIsStartMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [isStartMenuOpen]);
-
   const toggle = useCallback(() => {
     const audioIsPlaying = audioEngine.getIsPlaying();
     const currentState = useAppState.getState();
@@ -108,6 +81,36 @@ function App() {
       setPlaying(false)
     }
   }, [overlayVolume, setPlaying]);
+
+  useEffect(() => {
+    const handleOpenSettings = () => setIsSettingsOpen(true);
+    const handleOpenAbout = () => setIsAboutOpen(true);
+    const handleOpenBlog = () => setIsBlogOpen(true);
+    const handleTogglePlayback = () => toggle();
+    window.addEventListener('openSettings', handleOpenSettings);
+    window.addEventListener('openAbout', handleOpenAbout);
+    window.addEventListener('openBlog', handleOpenBlog);
+    window.addEventListener('togglePlayback', handleTogglePlayback);
+    return () => {
+      window.removeEventListener('openSettings', handleOpenSettings);
+      window.removeEventListener('openAbout', handleOpenAbout);
+      window.removeEventListener('openBlog', handleOpenBlog);
+      window.removeEventListener('togglePlayback', handleTogglePlayback);
+    };
+  }, [toggle]);
+
+  // Close start menu when clicking elsewhere
+  useEffect(() => {
+    if (!isStartMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.win98-start-menu') && !target.closest('.win98-start-btn')) {
+        setIsStartMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isStartMenuOpen]);
 
   // Current time for the system tray clock
   const [clock, setClock] = useState(() => {
