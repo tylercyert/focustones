@@ -1,8 +1,7 @@
 import './App.css'
 import { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import SphereViz from './components/SphereViz'
-import ControlsOverlay from './components/ControlsOverlay'
+import MediaPlayerWindow from './components/MediaPlayerWindow'
 import Win98Window from './components/Win98Window'
 import BlogWindow from './components/BlogWindow'
 import { useAppState, BAND_RANGES } from './state/appState'
@@ -86,18 +85,15 @@ function App() {
     const handleOpenSettings = () => setIsSettingsOpen(true);
     const handleOpenAbout = () => setIsAboutOpen(true);
     const handleOpenBlog = () => setIsBlogOpen(true);
-    const handleTogglePlayback = () => toggle();
     window.addEventListener('openSettings', handleOpenSettings);
     window.addEventListener('openAbout', handleOpenAbout);
     window.addEventListener('openBlog', handleOpenBlog);
-    window.addEventListener('togglePlayback', handleTogglePlayback);
     return () => {
       window.removeEventListener('openSettings', handleOpenSettings);
       window.removeEventListener('openAbout', handleOpenAbout);
       window.removeEventListener('openBlog', handleOpenBlog);
-      window.removeEventListener('togglePlayback', handleTogglePlayback);
     };
-  }, [toggle]);
+  }, []);
 
   // Close start menu when clicking elsewhere
   useEffect(() => {
@@ -127,11 +123,6 @@ function App() {
 
   return (
     <div style={{ background: 'var(--win98-desktop)', width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      {/* Desktop area with sphere viz */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
-        <SphereViz onToggle={toggle} />
-      </div>
-
       {/* Desktop Icons */}
       <div style={{ position: 'fixed', top: 12, left: 12, zIndex: 5, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button className="win98-desktop-icon" onClick={() => setIsSettingsOpen(true)} tabIndex={0}>
@@ -148,9 +139,22 @@ function App() {
         </button>
       </div>
 
-      {/* Brainwave band selector floating controls */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
-        <ControlsOverlay />
+      {/* Media Player Window - centered on desktop */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 30,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        pointerEvents: 'none',
+        zIndex: 8,
+      }}>
+        <div style={{ pointerEvents: 'auto', width: 420, maxWidth: 'calc(100vw - 24px)' }}>
+          <MediaPlayerWindow onToggle={toggle} />
+        </div>
       </div>
 
       {/* Win98 Taskbar */}
@@ -192,16 +196,10 @@ function App() {
           </button>
         )}
 
-        {/* Playing indicator in taskbar */}
-        {isPlaying && (
-          <button
-            className="win98-taskbar-item active"
-            onClick={toggle}
-            style={{ color: 'var(--win98-black)' }}
-          >
-            &#9654; {BAND_SYMBOLS[band]} {offsetHz.toFixed(1)}Hz
-          </button>
-        )}
+        {/* Media Player taskbar item */}
+        <button className="win98-taskbar-item active">
+          &#127925; FocusTones Player
+        </button>
 
         {/* System Tray */}
         <div className="win98-systray">

@@ -50,8 +50,8 @@ export default function SphereViz({ onToggle }: Props) {
       const getContainerSize = () => {
         const rect = container.getBoundingClientRect();
         return {
-          width: rect.width || container.clientWidth || window.innerWidth,
-          height: rect.height || container.clientHeight || window.innerHeight
+          width: rect.width || container.clientWidth || 300,
+          height: rect.height || container.clientHeight || 200
         };
       };
       
@@ -221,7 +221,7 @@ export default function SphereViz({ onToggle }: Props) {
       return Math.max(minZVert, minZHorz) + margin;
     }
 
-    const baseScale = 0.5; // global downscale to leave breathing space in viewport
+    const baseScale = 0.65; // scale relative to container
     function animate() {
       const t = clock.getElapsedTime();
       const dt = Math.max(0, t - lastTime);
@@ -317,91 +317,22 @@ export default function SphereViz({ onToggle }: Props) {
       
     };
     
-    // Use ResizeObserver for more reliable resize detection
+    // Use ResizeObserver to track container size changes
+    let resizeTimeout: number;
     const resizeObserver = new ResizeObserver(() => {
       handleResize();
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(handleResize, 100);
     });
     resizeObserver.observe(container);
-    
-    // Also listen to window resize for compatibility
-    let lastViewportHeight = window.innerHeight;
-    let lastViewportWidth = window.innerWidth;
-    
-    const handleWindowResize = () => {
-      const currentHeight = window.innerHeight;
-      const currentWidth = window.innerWidth;
-      const heightChanged = currentHeight !== lastViewportHeight;
-      const widthChanged = currentWidth !== lastViewportWidth;
 
-      if (heightChanged) {
-        lastViewportHeight = currentHeight;
-        
-        // Force container to update its dimensions
-        if (mountRef.current) {
-          mountRef.current.style.height = `${currentHeight}px`;
-          mountRef.current.style.width = `${currentWidth}px`;
-        }
-        
-        // Force immediate resize for height changes
-        handleResize();
-      }
-      
-      if (widthChanged) {
-        lastViewportWidth = currentWidth;
-      }
-      
-      // Always do immediate resize for any resize event
-      handleResize();
-      
-      // Debounced resize for performance
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 100);
-    };
-    
-    window.addEventListener("resize", handleWindowResize);
-    
-    // Handle orientation changes specifically
-    window.addEventListener("orientationchange", () => {
-      setTimeout(handleResize, 300);
-    });
-    
-    // Listen for visual viewport changes (mobile keyboard, etc.)
-    let visualViewportListener: (() => void) | null = null;
-    if ('visualViewport' in window) {
-      const vv = window.visualViewport;
-      visualViewportListener = () => {
-        if (!vv) return;
-        // Force container update
-        if (mountRef.current) {
-          mountRef.current.style.height = `${vv.height}px`;
-          mountRef.current.style.width = `${vv.width}px`;
-        }
-        
-        // Force resize
-        handleResize();
-      };
-      vv?.addEventListener('resize', visualViewportListener);
-    }
-    
-    // Initial resize to ensure perfect centering after container is fully rendered
+    // Initial resize to ensure correct sizing after mount
     setTimeout(handleResize, 100);
-    
-    let resizeTimeout: number;
 
     return () => {
       cancelAnimationFrame(animationId);
       clearTimeout(resizeTimeout);
       resizeObserver.disconnect();
-      window.removeEventListener("resize", handleWindowResize);
-      window.removeEventListener("orientationchange", handleResize);
-      
-      // Clean up visual viewport listener
-      if (visualViewportListener && window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', visualViewportListener);
-      }
-      
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
       renderer.domElement.removeEventListener("click", onClick);
       renderer.dispose();
@@ -433,20 +364,10 @@ export default function SphereViz({ onToggle }: Props) {
   return (
     <div
       ref={mountRef}
-      className="relative w-full h-full select-none"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}
+      style={{ width: '100%', height: '100%' }}
       role="button"
       aria-label="Binaural sphere visualizer. Click to play or stop."
       tabIndex={0}
-
       onKeyDown={(e) => {
         if (e.code === "Space") onToggle?.();
       }}
