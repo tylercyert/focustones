@@ -649,6 +649,45 @@ body {
   font-family: 'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif;
 }
 
+/* ---- Media Player Window ---- */
+.media-player-viz {
+  background: #000000;
+  position: relative;
+  overflow: hidden;
+  height: 280px;
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow), inset -1px -1px 0 var(--win98-silver);
+}
+
+.media-player-lcd {
+  background: #0a0a0a;
+  color: #00ff41;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 24px;
+  border: 2px solid;
+  border-color: var(--win98-button-shadow) var(--win98-button-highlight) var(--win98-button-highlight) var(--win98-button-shadow);
+  box-shadow: inset 1px 1px 0 var(--win98-button-dark-shadow), inset -1px -1px 0 var(--win98-silver);
+}
+
+.media-player-lcd-section {
+  white-space: nowrap;
+}
+
+.media-player-transport {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  padding: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
   .win98-modal-overlay {
@@ -665,6 +704,10 @@ body {
 
   .win98-start-menu {
     min-width: 160px;
+  }
+
+  .media-player-viz {
+    height: 200px;
   }
 }
 
