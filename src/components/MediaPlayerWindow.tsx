@@ -113,6 +113,17 @@ export default function MediaPlayerWindow({ onToggle }: Props) {
             {isPlaying ? "\u23F9" : "\u25B6"}
           </span>
         </button>
+
+        {/* Settings */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("openSettings"))}
+          className="win98-btn"
+          style={{ minWidth: 44, minHeight: 32, padding: "2px 8px" }}
+          aria-label="Open Sound Control Panel"
+          title="Sound Control Panel"
+        >
+          <span style={{ fontSize: 14 }}>&#9881;</span>
+        </button>
       </div>
     </Win98Window>
   );
