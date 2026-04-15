@@ -420,7 +420,7 @@ function App() {
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--win98-button-shadow)' }}>
               <button className="win98-btn" onClick={toggle} style={{ minWidth: 80 }}>
-                {isPlaying ? '&#9209; Stop' : '&#9654; Play'}
+                {isPlaying ? '\u23F9 Stop' : '\u25B6 Play'}
               </button>
               <button className="win98-btn" onClick={() => setIsSettingsOpen(false)} style={{ minWidth: 80 }}>
                 OK
