@@ -92,6 +92,10 @@ body {
   border-color: var(--win98-button-highlight) var(--win98-button-dark-shadow) var(--win98-button-dark-shadow) var(--win98-button-highlight);
   box-shadow: inset 1px 1px 0 var(--win98-silver), inset -1px -1px 0 var(--win98-button-shadow);
   padding: 3px;
+  display: flex;
+  flex-direction: column;
+  max-width: min(560px, calc(100vw - 16px));
+  max-height: calc(100vh - 60px);
 }
 
 .win98-titlebar {
@@ -499,7 +503,7 @@ body {
   word-break: break-word;
 }
 
-/* ---- Win98 Modal Overlay ---- */
+/* ---- Win98 Modal Overlay (used only for true modals like the first-run Welcome) ---- */
 .win98-modal-overlay {
   position: fixed;
   top: 0;
@@ -508,19 +512,7 @@ body {
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.15);
   z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 16px;
-  pointer-events: auto;
-}
-
-.win98-modal-overlay .win98-window {
-  max-width: 560px;
-  width: 100%;
-  max-height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
+  pointer-events: none;
 }
 
 .win98-window-body {
@@ -690,12 +682,9 @@ body {
 
 /* ---- Responsive ---- */
 @media (max-width: 640px) {
-  .win98-modal-overlay {
-    padding: 8px;
-  }
-
-  .win98-modal-overlay .win98-window {
-    max-height: calc(100vh - 16px);
+  .win98-window {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 40px);
   }
 
   .win98-titlebar {
@@ -712,11 +701,14 @@ body {
 }
 
 @media (max-width: 480px) {
-  .win98-modal-overlay {
-    padding: 4px;
+  .win98-window {
+    max-width: calc(100vw - 8px);
+    max-height: calc(100vh - 36px);
   }
+}
 
-  .win98-modal-overlay .win98-window {
-    max-height: calc(100vh - 8px);
-  }
+/* ---- Taskbar minimized (inactive) state ---- */
+.win98-taskbar-item.minimized {
+  /* Raised (not pressed), no hatched background */
+  background: var(--win98-button-face);
 }

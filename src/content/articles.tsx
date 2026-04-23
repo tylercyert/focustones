@@ -1,17 +1,20 @@
-import { useState } from "react";
-import Win98Window from "./Win98Window";
+import type { ReactNode } from "react";
 
-type BlogArticle = {
+export type Article = {
   id: string;
   title: string;
+  shortTitle: string;
+  desktopLabel: string;
   icon: string;
-  content: React.ReactNode;
+  content: ReactNode;
 };
 
-const articles: BlogArticle[] = [
+export const articles: Article[] = [
   {
     id: "binaural",
     title: "Binaural Beats: Your Brain on Frequencies",
+    shortTitle: "Binaural Beats",
+    desktopLabel: "Binaural\nBeats",
     icon: "\uD83C\uDFB5",
     content: (
       <>
@@ -63,6 +66,8 @@ const articles: BlogArticle[] = [
   {
     id: "ambient",
     title: "Ambient Music: The Sound of Thinking",
+    shortTitle: "Ambient Music",
+    desktopLabel: "Ambient\nMusic",
     icon: "\uD83C\uDF0A",
     content: (
       <>
@@ -109,6 +114,8 @@ const articles: BlogArticle[] = [
   {
     id: "dnb",
     title: "Intelligent DnB: The Thinking Person's Jungle",
+    shortTitle: "Intelligent DnB",
+    desktopLabel: "Intelligent\nDnB",
     icon: "\uD83E\uDD41",
     content: (
       <>
@@ -174,130 +181,8 @@ const articles: BlogArticle[] = [
   },
 ];
 
-type Props = {
-  onClose: () => void;
-};
+export const articlesById: Record<string, Article> = Object.fromEntries(
+  articles.map((a) => [a.id, a]),
+);
 
-export default function BlogWindow({ onClose }: Props) {
-  const [activeArticle, setActiveArticle] = useState<string>("binaural");
-  const current = articles.find((a) => a.id === activeArticle) || articles[0];
-
-  return (
-    <Win98Window
-      title="The Zine - FocusTones Reader"
-      icon="&#128196;"
-      onClose={onClose}
-      statusBar={
-        <>
-          <div className="win98-statusbar-section" style={{ flex: 2 }}>
-            {current.icon} {current.title}
-          </div>
-          <div className="win98-statusbar-section" style={{ flex: 0, minWidth: 100, textAlign: 'center' }}>
-            <span className="retro-construction">&#128679;</span> Under Construction
-          </div>
-        </>
-      }
-    >
-      {/* Address bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        marginBottom: 4,
-        padding: '2px 4px',
-        background: 'var(--win98-window-bg)',
-      }}>
-        <span style={{ fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>Address:</span>
-        <div className="win98-input" style={{ flex: 1, fontSize: 11, padding: '1px 4px' }}>
-          C:\FocusTones\zine\{activeArticle}.html
-        </div>
-      </div>
-
-      {/* Navigation tabs */}
-      <div style={{ display: 'flex', gap: 2, marginBottom: 6, flexWrap: 'wrap' }}>
-        {articles.map((article) => (
-          <button
-            key={article.id}
-            onClick={() => setActiveArticle(article.id)}
-            className={`win98-btn ${activeArticle === article.id ? 'win98-btn-active' : ''}`}
-            style={{
-              fontSize: 11,
-              padding: '2px 8px',
-              ...(activeArticle === article.id
-                ? { background: '#fff' }
-                : {}),
-            }}
-          >
-            {article.icon} {article.title.split(':')[0]}
-          </button>
-        ))}
-      </div>
-
-      {/* Article content area */}
-      <div style={{
-        background: '#fff',
-        border: '2px solid',
-        borderColor: '#808080 #fff #fff #808080',
-        boxShadow: 'inset 1px 1px 0 #000, inset -1px -1px 0 #C0C0C0',
-        padding: 12,
-        maxHeight: 'calc(100vh - 280px)',
-        overflowY: 'auto',
-        color: '#000',
-      }}>
-        {/* Retro page header */}
-        <div style={{ textAlign: 'center', marginBottom: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#000080', marginBottom: 2 }}>
-            ~ The FocusTones Zine ~
-          </div>
-          <div className="retro-hr" />
-          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', marginBottom: 4 }}>
-            <div className="retro-marquee-inner" style={{ fontSize: 11, color: '#800080' }}>
-              *** Welcome to The Zine *** Your source for binaural beats, ambient soundscapes, and intelligent drum & bass *** Best viewed at 800x600 ***
-            </div>
-          </div>
-          <div className="retro-hr" />
-        </div>
-
-        {/* Article title */}
-        <h2 style={{
-          fontSize: 16,
-          fontWeight: 700,
-          color: '#000080',
-          marginBottom: 8,
-          fontFamily: "'Pixelify Sans', 'MS Sans Serif', 'Tahoma', sans-serif",
-        }}>
-          {current.icon} {current.title}
-        </h2>
-
-        {/* Article body */}
-        {current.content}
-
-        {/* Retro footer */}
-        <div className="retro-hr" style={{ marginTop: 12 }} />
-        <div style={{ textAlign: 'center', fontSize: 10, color: '#808080' }}>
-          <div style={{ marginBottom: 4 }}>
-            <span className="retro-construction">&#128679;</span>
-            {' '}This page is under construction{' '}
-            <span className="retro-construction">&#128679;</span>
-          </div>
-          <div style={{ marginBottom: 4 }}>
-            You are visitor #{' '}
-            <span className="retro-counter">
-              <span className="retro-counter-digit">0</span>
-              <span className="retro-counter-digit">0</span>
-              <span className="retro-counter-digit">4</span>
-              <span className="retro-counter-digit">2</span>
-              <span className="retro-counter-digit">0</span>
-            </span>
-          </div>
-          <div>
-            <a href="https://tylercyert.com" target="_blank" rel="noopener noreferrer" className="retro-link" style={{ fontSize: 10 }}>
-              tylercyert.com
-            </a>
-            {' '}&bull; Last updated: January 1999
-          </div>
-        </div>
-      </div>
-    </Win98Window>
-  );
-}
+export const articleWindowId = (articleId: string) => `article:${articleId}`;
