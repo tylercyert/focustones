@@ -51,6 +51,33 @@ Three.js scene initialized in a single `useEffect` (runs once). Uses refs (`stat
 
 **Important pattern**: The animation loop reads from `stateRef.current` (mutated by separate `useEffect` hooks), not from React state directly. This avoids re-creating the Three.js scene on every state change.
 
+### Articles (`src/content/articles.tsx`)
+
+Articles ("The Zine") are data-driven: each entry in the `articles` array automatically gets a desktop icon *and* a window. There is **no per-article wiring** in `App.tsx`, `ArticleWindow`, or `WindowLayer` -- they iterate over the array.
+
+To add a new article, append one object to `articles`:
+
+```tsx
+{
+  id: "sleep",                          // unique kebab-case id; becomes the window id via articleWindowId()
+  title: "Sleep and the Delta Band",    // full title shown at the top of the article window
+  shortTitle: "Sleep & Delta",          // compact title used in taskbar / window chrome
+  desktopLabel: "Sleep &\nDelta",       // desktop icon caption; \n forces a line break
+  icon: "🌙",                           // single emoji or glyph rendered as the desktop icon and window icon
+  content: (<>... JSX ...</>),          // article body; use inline styles matching existing articles for Win98 consistency
+}
+```
+
+What happens automatically when you add an entry:
+
+- `App.tsx` renders a desktop icon (iterating `articles`) that calls `openArticle(id)`.
+- `WindowLayer` renders an `ArticleWindow` per open article (keyed by `articleWindowId(id)`).
+- `useWindowState` tracks open/focus/position for the derived window id.
+
+Keep content JSX consistent with existing articles: 12px body copy, 1.7 line-height, 8px bottom margin on `<p>`. For callout boxes, reuse the sunken-border pattern from the binaural article. The marquee text in `ArticleWindow.tsx` is generic -- it does not need to be updated per article.
+
+To remove an article, delete its entry. There are no dangling references to clean up.
+
 ### UI Theme (`src/index.css`)
 
 Windows 98 CSS system. All styling uses `win98-*` class names (e.g., `win98-btn`, `win98-window`, `win98-titlebar`, `win98-slider`). The beveled border effect uses the classic 4-color border trick (`border-color: highlight dark-shadow dark-shadow highlight` + `box-shadow: inset`). Retro blog styles use `retro-*` classes.

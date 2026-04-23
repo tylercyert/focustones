@@ -61,7 +61,7 @@ export default function ArticleWindow({ articleId }: Props) {
           <div className="retro-hr" />
           <div style={{ overflow: "hidden", whiteSpace: "nowrap", marginBottom: 4 }}>
             <div className="retro-marquee-inner" style={{ fontSize: 11, color: "#800080" }}>
-              *** Welcome to The Zine *** Your source for binaural beats, ambient soundscapes, and intelligent drum &amp; bass *** Best viewed at 800x600 ***
+              *** Welcome to The Zine *** Essays on sound, focus, and the frequencies that move us *** Best viewed at 800x600 ***
             </div>
           </div>
           <div className="retro-hr" />
