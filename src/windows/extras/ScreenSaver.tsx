@@ -35,7 +35,8 @@ export function ScreenSaverScene({ onWake }: { onWake: () => void }) {
       if (!origin.current) { origin.current = { x: e.clientX, y: e.clientY }; return; }
       if (Math.hypot(e.clientX - origin.current.x, e.clientY - origin.current.y) > 8) onWake();
     };
-    const opts = { capture: true } as const;
+    // Not passive: the wake handler consumes the input (preventDefault), so a wheel that wakes the saver scrolls nothing.
+    const opts = { capture: true, passive: false } as const;
     window.addEventListener('keydown', wake, opts);
     window.addEventListener('pointerdown', wake, opts);
     window.addEventListener('wheel', wake, opts);

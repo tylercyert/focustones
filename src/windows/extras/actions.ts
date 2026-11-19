@@ -21,14 +21,30 @@ export function moveToTrash(ids: readonly string[], closeWindow: (id: string) =>
 
 // The alert shown after emptying the Trash: one at a time, dismissed with OK, Return or Esc.
 let alertText: string | null = null;
+let alertFrom: Element | null = null;
 const alertSubs = new Set<() => void>();
-export const showAlert = (text: string | null) => { alertText = text; alertSubs.forEach((f) => f()); };
+/** Shows (or, with null, hides) the alert, remembering the control that opened it so focus can go back there. */
+export const showAlert = (text: string | null) => {
+  if (text && !alertText) alertFrom = document.activeElement;
+  alertText = text;
+  alertSubs.forEach((f) => f());
+};
+/**
+ * Where focus goes when the alert closes: the control that opened it if it is still on the page, else the Trash window
+ * (its Empty Trash button is replaced by the empty state), else the Special menu, else the desktop.
+ */
+export function alertReturnTarget(): HTMLElement | null {
+  const from = alertFrom as HTMLElement | null;
+  alertFrom = null;
+  if (from?.isConnected && from !== document.body && !from.closest('[role="menu"]')) return from;
+  return document.querySelector<HTMLElement>('[data-window="trash"]') ?? document.querySelector<HTMLElement>('[data-trigger="special"]') ?? document.querySelector<HTMLElement>('.surface');
+}
 export const useAlert = () => useSyncExternalStore((f) => { alertSubs.add(f); return () => { alertSubs.delete(f); }; }, () => alertText, () => alertText);
 
 /** Empties the Trash: a crumple at the desktop's volume (from the user's click), then the alert. */
-export function emptyTrash(volume: number, message: string): void {
+export function emptyTrash(message: string): void {
   if (!trashStore.get().trashed.length) return;
-  playCrumple(volume);
+  playCrumple();
   trashDispatch({ type: 'empty' });
   showAlert(message);
 }

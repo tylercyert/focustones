@@ -32,17 +32,22 @@ async function openIcon(page: Page, label: string) {
   await expect(win(page, label)).toBeVisible();
 }
 /** Counts the sounds the delights make: oscillators and noise bursts created on any audio context. */
-const sounds = (page: Page) => page.evaluate(() => ({ ...(window as unknown as { __sounds: { osc: number; buf: number } }).__sounds }));
+const sounds = (page: Page) => page.evaluate(() => ({ ...(window as unknown as { __sounds: { osc: number; buf: number; oscGone: number; targets: number[] } }).__sounds }));
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('focustones.startup.seen', '1');
-    const s = { osc: 0, buf: 0 };
+    const s = { osc: 0, buf: 0, oscGone: 0, targets: [] as number[] };
     (window as unknown as { __sounds: typeof s }).__sounds = s;
     const P = BaseAudioContext.prototype;
     const osc = P.createOscillator, buf = P.createBufferSource;
     P.createOscillator = function (this: BaseAudioContext) { s.osc++; return osc.call(this); };
     P.createBufferSource = function (this: BaseAudioContext) { s.buf++; return buf.call(this); };
+    // Teardown and live volume: oscillators fully disconnected, and every gain target set while sounds play.
+    const disconnect = AudioNode.prototype.disconnect as (this: AudioNode, ...a: unknown[]) => unknown;
+    AudioNode.prototype.disconnect = function (this: AudioNode, ...a: unknown[]) { if (!a.length && this instanceof OscillatorNode) s.oscGone++; return disconnect.apply(this, a); } as typeof AudioNode.prototype.disconnect;
+    const target = AudioParam.prototype.setTargetAtTime;
+    AudioParam.prototype.setTargetAtTime = function (this: AudioParam, v: number, t: number, c: number) { s.targets.push(v); return target.call(this, v, t, c); };
   });
   const problems: string[] = [];
   page.on('request', (r) => { if (new URL(r.url()).hostname !== 'localhost' && !/^(data|blob):/.test(r.url())) problems.push(`outside request: ${r.url()}`); });
@@ -81,6 +86,27 @@ test.describe('Distractions → Trash', () => {
       await page.mouse.up();
       await expect(trashIcon(page)).not.toHaveAttribute('data-drop', '');
       await expect(folder.getByRole('option', { name: 'Just one more video' })).toHaveCount(0);
+      // The listbox keyboard model: one Tab stop; arrows, Home/End and typeahead move focus and selection together.
+      const opt = (n: string) => folder.getByRole('option', { name: n });
+      await opt('Notifications').focus();
+      await expect(folder.locator('[role="option"][tabindex="0"]')).toHaveCount(1);
+      await page.keyboard.press('ArrowRight');
+      await expect(opt('Inbox (99+)')).toBeFocused();
+      await expect(opt('Inbox (99+)')).toHaveAttribute('aria-selected', 'true');
+      await page.keyboard.press('End');
+      await expect(opt('47 open tabs')).toBeFocused();
+      await page.keyboard.press('Home');
+      await expect(opt('Notifications')).toBeFocused();
+      await page.keyboard.press('ArrowUp'); // stays at the first
+      await expect(opt('Notifications')).toBeFocused();
+      await page.keyboard.press('g');
+      await expect(opt('Group chat')).toHaveAttribute('aria-selected', 'true');
+      await page.waitForTimeout(600); // a new search after a pause
+      await page.keyboard.press('4');
+      await expect(opt('47 open tabs')).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(folder.getByText('You will read them someday.')).toBeVisible();
+      await expect(folder.locator('[role="option"][tabindex="0"]')).toHaveCount(1);
       // Keyboard: select an item and press Ctrl+Delete.
       await folder.getByRole('option', { name: 'Inbox (99+)' }).click();
       await page.keyboard.press('Control+Delete');
@@ -126,7 +152,22 @@ test.describe('Distractions → Trash', () => {
     await expect(alert).toContainText('Distractions emptied. Enjoy the quiet.');
     expect((await sounds(page)).buf - before.buf).toBeGreaterThan(10);
     await shot(page, 'emptied');
-    await press(page, alert.getByRole('button', { name: 'OK' }));
+    // Modal: focus starts on OK and Tab / Shift-Tab cannot leave; the desktop behind is inert and its shortcuts wait.
+    const ok = alert.getByRole('button', { name: 'OK' });
+    await expect(ok).toBeFocused();
+    if (!phone(page)) {
+      for (const k of ['Tab', 'Shift+Tab', 'Tab', 'Tab']) { await page.keyboard.press(k); await expect(ok).toBeFocused(); }
+      await expect(page.locator('.menubar')).toHaveAttribute('inert', '');
+      await expect(page.locator('.surface')).toHaveAttribute('inert', '');
+      await page.keyboard.press('Control+w');
+      await expect(win(page, 'Trash')).toBeVisible(); // Ctrl+W did not reach the shell
+      await page.keyboard.press('Escape');
+      await expect(alert).toHaveCount(0);
+      await expect(win(page, 'Trash')).toBeFocused(); // back to where it was opened from (the menu has closed)
+      await expect(page.locator('.menubar')).not.toHaveAttribute('inert', '');
+    } else {
+      await press(page, ok);
+    }
     await expect(alert).toHaveCount(0);
     await expect(win(page, 'Trash').getByText('The Trash is empty.')).toBeVisible();
     if (!phone(page)) {
@@ -207,6 +248,22 @@ test('Beat Calculator: beat, band and color from two ears; Hear It plays the pai
   await expect(listen.getByTestId('status')).toHaveText('Paused');
 });
 
+test('Beat Calculator: muting the desktop silences a running Hear It, and closing the window tears its sound down', async ({ page }) => {
+  await page.goto('/');
+  await menu(page, 'FocusTones menu', 'Beat Calculator');
+  const calc = win(page, 'Beat Calculator');
+  await press(page, calc.getByRole('button', { name: 'Hear It' }));
+  await expect(calc.getByRole('button', { name: 'Stop' })).toBeVisible();
+  const before = await sounds(page);
+  await press(page, page.getByRole('button', { name: /^Volume/ }));
+  await page.getByRole('slider', { name: 'Volume' }).fill('0');
+  await expect.poll(async () => (await sounds(page)).targets.slice(before.targets.length)).toContain(0); // the bus's gain heads to 0 now
+  await page.keyboard.press('Escape');
+  // Closing the window mid-sound stops it and disconnects both oscillators.
+  await press(page, calc.getByRole('button', { name: 'Close' }));
+  await expect.poll(async () => { const n = await sounds(page); return n.oscGone - n.osc; }, { timeout: 3000 }).toBe(0);
+});
+
 test.describe('screen saver', () => {
   test('starts after 2 idle minutes, wakes on input, Off keeps it away, Test starts it', async ({ page }) => {
     await page.clock.install();
@@ -240,6 +297,21 @@ test.describe('screen saver', () => {
     await expect(saver).toHaveCount(0);
   });
 
+  test('a wheel wakes it without a console error and scrolls nothing underneath', async ({ page }) => {
+    test.skip(phone(page), 'A wheel is a desktop input.');
+    await page.goto('/');
+    const body = win(page, 'Get FocusTones').locator('.win-body');
+    const top = await body.evaluate((el) => el.scrollTop);
+    await menu(page, 'Special', 'Start Screen Saver');
+    const saver = page.getByTestId('screen-saver');
+    await expect(saver).toBeVisible();
+    await page.waitForTimeout(900); // past the grace period
+    await page.mouse.move(700, 400);
+    await page.mouse.wheel(0, 120);
+    await expect(saver).toHaveCount(0);
+    expect(await body.evaluate((el) => el.scrollTop)).toBe(top);
+  });
+
   test('holds still with Reduce Motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
@@ -258,6 +330,21 @@ test('Desktop Patterns: pick one, tinted by the band, remembered; the startup ch
   await expect(panel.getByRole('radio')).toHaveCount(8);
   await expect(panel.getByRole('radio', { name: 'Default' })).toHaveAttribute('aria-checked', 'true');
   await expect(page.locator('.surface')).not.toHaveAttribute('data-pattern');
+  if (!phone(page)) {
+    // Radio-group keys (WAI-ARIA): arrows move and select, wrapping; Home and End jump to the ends.
+    await panel.getByRole('radio', { name: 'Default' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(panel.getByRole('radio', { name: 'Waveform' })).toBeFocused();
+    await expect(page.locator('.surface')).toHaveAttribute('data-pattern', 'waveform');
+    await page.keyboard.press('End');
+    await expect(panel.getByRole('radio', { name: 'Drizzle' })).toHaveAttribute('aria-checked', 'true');
+    await page.keyboard.press('ArrowRight');
+    await expect(panel.getByRole('radio', { name: 'Default' })).toHaveAttribute('aria-checked', 'true');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Home');
+    await expect(panel.getByRole('radio', { name: 'Default' })).toBeFocused();
+    await expect(page.locator('.surface')).not.toHaveAttribute('data-pattern');
+  }
   await press(page, panel.getByRole('radio', { name: 'Ripple' }));
   await expect(page.locator('.surface')).toHaveAttribute('data-pattern', 'ripple');
   const tint = () => page.locator('.surface').evaluate((el) => (el as HTMLElement).style.getPropertyValue('--dx-band'));
@@ -297,12 +384,18 @@ test.describe('small eggs', () => {
     await expect(page.getByRole('menuitem', { name: /Credits/ })).toHaveCount(0); // hidden until found
     if (phone(page)) expect((await page.locator('.menubar').boundingBox())!.height).toBeLessThanOrEqual(46); // the menu bar stays one row
     if (phone(page)) {
-      // Touch: swipe ↑↑↓↓←→←→ on the bare desktop, then tap twice for B and A.
-      const swipe = (dx: number, dy: number) => page.locator('.surface').evaluate((el, [dx, dy]) => {
-        const at = (type: string, x: number, y: number) => el.dispatchEvent(new PointerEvent(type, { pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
-        at('pointerdown', 180, 600); at('pointerup', 180 + dx, 600 + dy);
-      }, [dx, dy]);
-      for (const [dx, dy] of [[0, -80], [0, -80], [0, 80], [0, 80], [-80, 0], [80, 0], [-80, 0], [80, 0], [0, 0], [0, 0]]) await swipe(dx, dy);
+      // Native touch through Chromium's input pipeline (not synthetic events): the browser may take a swipe as a pan and
+      // cancel its pointer events, so this checks the egg still hears it. Swipes ↑↑↓↓←→←→ on bare desktop, then two taps.
+      const cdp = await page.context().newCDPSession(page);
+      const icons = await page.locator('nav .dicon').evaluateAll((els) => Math.max(...els.map((e) => e.getBoundingClientRect().bottom)));
+      const x0 = 188, y0 = Math.round(icons + 70);
+      const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number, y: number) =>
+        cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+      for (const [dx, dy] of [[0, -50], [0, -50], [0, 50], [0, 50], [-90, 0], [90, 0], [-90, 0], [90, 0], [0, 0], [0, 0]]) {
+        await touch('touchStart', x0, y0);
+        for (let i = 1; i <= 6; i++) await touch('touchMove', x0 + (dx * i) / 6, y0 + (dy * i) / 6);
+        await touch('touchEnd', x0 + dx, y0 + dy);
+      }
     } else {
       for (const k of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']) await page.keyboard.press(k);
       await expect(page.locator('.desktop')).toHaveAttribute('data-wave', '');
@@ -345,5 +438,54 @@ test.describe('small eggs', () => {
     await tune.focus();
     await page.keyboard.press('Enter');
     await expect(win(page, 'Tune')).toBeVisible();
+  });
+
+  test('a desktop position never strands an icon: phones ignore it, smaller windows clamp it, and it returns intact', async ({ page }) => {
+    test.skip(phone(page), 'Starts with a mouse drag on the desktop layout.');
+    await page.goto('/');
+    await closeAll(page);
+    const tune = icon(page, 'Tune');
+    const a = (await tune.boundingBox())!;
+    await page.mouse.move(a.x + a.width / 2, a.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(a.x - 480, a.y + 420, { steps: 10 }); // far left and low
+    await page.mouse.up();
+    const dragged = (await tune.boundingBox())!;
+    // Phone layout: the grid ignores the desktop offset and the icon is fully on screen.
+    await page.setViewportSize({ width: 375, height: 812 });
+    await expect(tune).toHaveCSS('transform', 'none');
+    const p = (await tune.boundingBox())!;
+    expect(p.x).toBeGreaterThanOrEqual(0);
+    expect(p.x + p.width).toBeLessThanOrEqual(375);
+    // A smaller desktop window: the icon is shown clamped inside the surface.
+    await page.setViewportSize({ width: 900, height: 520 });
+    await expect.poll(async () => { const b = (await tune.boundingBox())!; return b.x >= 0 && b.y + b.height <= 520 && b.x + b.width <= 900; }).toBe(true);
+    // Back at full size, the saved position is intact.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect.poll(async () => { const b = (await tune.boundingBox())!; return [Math.round(b.x), Math.round(b.y)]; }).toEqual([Math.round(dragged.x), Math.round(dragged.y)]);
+  });
+});
+
+test.describe('touch tablet', () => {
+  test.use({ hasTouch: true });
+
+  test('a native finger drag carries a Distractions item to the Trash without the browser cancelling it as a pan', async ({ page }) => {
+    test.skip(phone(page), 'Phones select and press Move to Trash; item dragging is for the desktop layout.');
+    await page.goto('/');
+    await closeAll(page);
+    await openIcon(page, 'Distractions');
+    const folder = win(page, 'Distractions');
+    const cdp = await page.context().newCDPSession(page);
+    const from = (await folder.getByRole('option', { name: 'Group chat' }).boundingBox())!;
+    const to = (await trashIcon(page).boundingBox())!;
+    const cancels = await page.evaluateHandle(() => { const c = { n: 0 }; window.addEventListener('pointercancel', () => c.n++); return c; });
+    const point = (x: number, y: number) => [{ x: Math.round(x), y: Math.round(y) }];
+    const [x0, y0, x1, y1] = [from.x + from.width / 2, from.y + 20, to.x + to.width / 2, to.y + 20];
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: point(x0, y0) });
+    for (let i = 1; i <= 14; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: point(x0 + ((x1 - x0) * i) / 14, y0 + ((y1 - y0) * i) / 14) });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    expect(await cancels.evaluate((c) => c.n)).toBe(0);
+    await expect(folder.getByRole('option', { name: 'Group chat' })).toHaveCount(0);
+    await expect(folder.getByRole('option')).toHaveCount(4);
   });
 });

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { strings } from '../../content/strings.ts';
 import { useDesktop } from '../../desktop/context.ts';
 import { useReducedMotion } from '../../desktop/hooks.ts';
-import { playChord } from '../../engine/toy.ts';
+import { playChord, setToyVolume, stopToys } from '../../engine/toy.ts';
 import { listenEngine } from '../listen/engineAdapter.ts';
-import { moveToTrash, showAlert, useAlert } from './actions.ts';
+import { alertReturnTarget, moveToTrash, showAlert, useAlert } from './actions.ts';
 import { createIdleTimer, IDLE_MS } from './idle.ts';
 import { completes, keyToken, push, swipeToken, type Token } from './konami.ts';
 import { ScreenSaverScene } from './ScreenSaver.tsx';
@@ -23,16 +23,18 @@ export function Delights({ selected }: { selected: readonly string[] }) {
   const [saver, setSaver] = useState(false);
   const alert = useAlert();
   const root = useRef<HTMLDivElement>(null);
-  const volumeRef = useRef(volume);
-  volumeRef.current = volume;
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
+
+  // Every delight sound follows the desktop's volume live (muting silences one already playing); unmounting stops them.
+  useEffect(() => { setToyVolume(volume); }, [volume]);
+  useEffect(() => () => stopToys(), []);
 
   // Startup chord: the engine says "starting" synchronously inside the Play click, so this is still the user's gesture.
   useEffect(() => listenEngine().on('state', (s) => {
     if (s !== 'starting' || chordPlayed) return;
     chordPlayed = true;
-    if (settingsStore.get().chord) playChord(volumeRef.current);
+    if (settingsStore.get().chord) playChord();
   }), []);
 
   // Screen saver after two idle minutes, only while the page is visible and focused and the saver is on.
@@ -71,18 +73,36 @@ export function Delights({ selected }: { selected: readonly string[] }) {
       if (editable(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
       feed(keyToken(e.key));
     };
-    let start: { x: number; y: number } | null = null;
+    // Touch: the browser may claim a swipe as a pan and cancel its pointer events (pointercancel, no pointerup), so this
+    // follows touch events, which keep reporting positions, and reads the swipe at touchend or touchcancel alike.
+    let touch: { id: number; x0: number; y0: number; x: number; y: number } | null = null;
     const bare = (el: EventTarget | null) => el instanceof Element && !!el.closest('.surface') && !el.closest('.win');
-    const onDown = (e: PointerEvent) => { start = e.pointerType === 'touch' && bare(e.target) ? { x: e.clientX, y: e.clientY } : null; };
-    const onUp = (e: PointerEvent) => {
-      if (!start || e.pointerType !== 'touch') return;
-      feed(swipeToken(e.clientX - start.x, e.clientY - start.y));
-      start = null;
+    const onStart = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      touch = e.touches.length === 1 && t && bare(e.target) ? { id: t.identifier, x0: t.clientX, y0: t.clientY, x: t.clientX, y: t.clientY } : null;
     };
+    const find = (e: TouchEvent) => [...e.changedTouches].find((t) => t.identifier === touch?.id);
+    const onMove = (e: TouchEvent) => { const t = find(e); if (t && touch) { touch.x = t.clientX; touch.y = t.clientY; } };
+    const onEnd = (e: TouchEvent) => {
+      const t = find(e);
+      if (!t || !touch) return;
+      if (e.type === 'touchend') { touch.x = t.clientX; touch.y = t.clientY; }
+      feed(swipeToken(touch.x - touch.x0, touch.y - touch.y0));
+      touch = null;
+    };
+    const passive = { passive: true } as const;
     window.addEventListener('keydown', onKey);
-    window.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointerup', onUp);
-    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('pointerdown', onDown); window.removeEventListener('pointerup', onUp); };
+    window.addEventListener('touchstart', onStart, passive);
+    window.addEventListener('touchmove', onMove, passive);
+    window.addEventListener('touchend', onEnd, passive);
+    window.addEventListener('touchcancel', onEnd, passive);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('touchstart', onStart);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
+    };
   }, [openWindow]);
 
   // Cmd/Ctrl+Delete moves the selection to the Trash: an item focused in the folder, else the folder icon.
@@ -108,21 +128,36 @@ export function Delights({ selected }: { selected: readonly string[] }) {
   );
 }
 
-/** A classic alert box: the message, and OK (Return, Esc or a click outside also dismiss it). */
+/**
+ * A classic alert box, modal: focus starts on OK and Tab or Shift-Tab cannot leave it, the rest of the desktop is inert,
+ * and the shell's shortcuts are held off while it is open. OK, Return or Esc (or a click outside) dismiss it, and
+ * focus goes back to the control that emptied the Trash (or the nearest thing that still exists).
+ */
 function Alert({ text, reduced }: { text: string; reduced: boolean }) {
   const ok = useRef<HTMLButtonElement>(null);
-  const back = useRef<Element | null>(null);
-  const close = useCallback(() => { showAlert(null); (back.current as HTMLElement | null)?.focus?.({ preventScroll: true }); }, []);
+  const box = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => { showAlert(null); }, []);
   useEffect(() => {
-    back.current = document.activeElement;
+    const desk = box.current?.closest('.desktop');
+    const layer = box.current?.closest('.dx-root');
+    const others = desk ? [...desk.children].filter((el) => el !== layer) : [];
+    others.forEach((el) => el.setAttribute('inert', ''));
     ok.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); } };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); close(); return; }
+      if (e.key === 'Tab') { e.preventDefault(); ok.current?.focus(); return; } // OK is the only control: focus stays on it
+      if (e.key !== ' ' || document.activeElement !== ok.current) { e.stopImmediatePropagation(); if (e.metaKey || e.ctrlKey || e.altKey) e.preventDefault(); }
+    };
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', onKey, { capture: true });
+      others.forEach((el) => el.removeAttribute('inert'));
+      alertReturnTarget()?.focus({ preventScroll: true });
+    };
   }, [close]);
   return (
     <div className="dx-alert-layer" onPointerDown={(e) => { if (e.target === e.currentTarget) close(); }}>
-      <div className="dx-alert" role="alertdialog" aria-modal="true" aria-labelledby="dx-alert-text" data-still={reduced || undefined}>
+      <div ref={box} className="dx-alert" role="alertdialog" aria-modal="true" aria-labelledby="dx-alert-text" data-still={reduced || undefined}>
         <span className="dx-alert-icon" aria-hidden="true">
           <svg width="32" height="32" viewBox="0 0 32 32" shapeRendering="crispEdges"><rect x="2" y="2" width="28" height="28" fill="#fff" stroke="#000" /><rect x="14" y="7" width="4" height="12" /><rect x="14" y="22" width="4" height="4" /></svg>
         </span>

@@ -48,8 +48,34 @@ export function DistractionsWindow() {
     if (d?.moved && trashAt(e.clientX, e.clientY)) moveToTrash([d.id], closeWindow);
   };
 
+  // The listbox keyboard model (WAI-ARIA APG): one Tab stop, selection follows focus; arrows move by one, Home and End
+  // jump to the ends, and typing jumps to the next item whose name starts with the letters typed (half a second apart).
+  const list = useRef<HTMLDivElement>(null);
+  const typed = useRef({ text: '', at: 0 });
+  const go = (id: Item) => {
+    folderSelection.set(id);
+    setQuip(null);
+    list.current?.querySelector<HTMLElement>(`[data-item="${id}"]`)?.focus();
+  };
   const onKey = (e: KeyboardEvent, id: Item) => {
+    const at = items.indexOf(id);
+    const to = (i: number) => { e.preventDefault(); go(items[(i + items.length) % items.length]); };
     if (e.key === 'Enter') { e.preventDefault(); setQuip(t.items[id].quip); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') to(Math.min(at + 1, items.length - 1));
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') to(Math.max(at - 1, 0));
+    else if (e.key === 'Home') to(0);
+    else if (e.key === 'End') to(items.length - 1);
+    else if (e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      const now = performance.now();
+      const text = (now - typed.current.at < 500 ? typed.current.text : '') + e.key.toLowerCase();
+      typed.current = { text, at: now };
+      // Repeating one letter cycles through the items that start with it; otherwise search from the current item.
+      const same = [...text].every((c) => c === text[0]);
+      const needle = same ? text[0] : text;
+      const order = [...items.slice(at + (same ? 1 : 0)), ...items.slice(0, at + (same ? 1 : 0))];
+      const hit = order.find((i) => t.items[i].name.toLowerCase().startsWith(needle));
+      if (hit) { e.preventDefault(); go(hit); }
+    }
   };
 
   const count = items.length === 1 ? t.countOne : fill(t.count, { n: items.length });
@@ -59,10 +85,11 @@ export function DistractionsWindow() {
     <div className="dx dx-folder">
       <div className="dx-folder-bar" aria-live="polite">{count}</div>
       {items.length ? (
-        <div className="dx-folder-items" role="listbox" aria-label={t.itemsLabel}>
-          {items.map((id) => (
+        <div ref={list} className="dx-folder-items" role="listbox" aria-label={t.itemsLabel}>
+          {items.map((id, i) => (
             <button
               key={id} type="button" role="option" aria-selected={sel === id} className="dx-item" data-item={id}
+              tabIndex={(sel ? sel === id : i === 0) ? 0 : -1}
               data-dragging={drag?.moved && drag.id === id ? '' : undefined}
               onClick={() => { folderSelection.set(id); setQuip(null); }}
               onDoubleClick={() => setQuip(t.items[id].quip)}

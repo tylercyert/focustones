@@ -11,13 +11,12 @@ const m = strings.delights.menu;
 interface Args {
   selected: readonly string[];
   active: string | null;
-  volume: number;
   openWindow: (id: string) => void;
   closeWindow: (id: string) => void;
 }
 
 /** What the desktop shell needs from the delights: hidden icons, the Trash's look, menu items, icon positions, the pattern. */
-export function useDesktopExtras({ selected, active, volume, openWindow, closeWindow }: Args) {
+export function useDesktopExtras({ selected, active, openWindow, closeWindow }: Args) {
   const trash = useTrash();
   const settings = useSettings();
   const folderItem = useFolderSelection();
@@ -40,7 +39,7 @@ export function useDesktopExtras({ selected, active, volume, openWindow, closeWi
   ];
   const specialMenu: MenuDef = {
     id: 'special', label: m.special, items: [
-      { kind: 'item', label: m.emptyTrash, disabled: trash.trashed.length === 0, onSelect: () => emptyTrash(volume, strings.delights.trash.emptied) },
+      { kind: 'item', label: m.emptyTrash, disabled: trash.trashed.length === 0, onSelect: () => emptyTrash(strings.delights.trash.emptied) },
       { kind: 'sep' },
       { kind: 'item', label: m.startSaver, onSelect: startSaver },
     ],

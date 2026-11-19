@@ -1,5 +1,4 @@
 import { strings } from '../../content/strings.ts';
-import { useDesktop } from '../../desktop/context.ts';
 import { playChord } from '../../engine/toy.ts';
 import { RadioGroup } from '../shared/RadioGroup.tsx';
 import { PATTERNS, patternStyle } from './patterns.ts';
@@ -11,7 +10,6 @@ const t = strings.delights.patterns;
 /** The Desktop Patterns control panel: eight patterns (the desktop's default and seven originals), and the startup chord. */
 export function PatternsPanel() {
   const { pattern, chord } = useSettings();
-  const { volume } = useDesktop();
   const band = useBand();
   const ids = ['default', ...PATTERNS.map((p) => p.id)] as const;
   return (
@@ -40,7 +38,7 @@ export function PatternsPanel() {
           <span>{t.chord}</span>
         </label>
         <div className="dx-buttons dx-buttons-start">
-          <button type="button" className="dx-btn" onClick={() => playChord(volume)}>{t.preview}</button>
+          <button type="button" className="dx-btn" onClick={() => playChord()}>{t.preview}</button>
         </div>
       </fieldset>
     </div>

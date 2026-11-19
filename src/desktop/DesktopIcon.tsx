@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
 import { Icon } from './icons.tsx';
 
 export interface IconOffset { dx: number; dy: number }
@@ -20,11 +20,35 @@ export function DesktopIcon({ id, label, icon, selected, phone, className, onSel
   const drag = useRef<{ px: number; py: number; from: IconOffset; min: IconOffset; max: IconOffset; moved: boolean; at: IconOffset } | null>(null);
   const dragged = useRef(false);
   const [live, setLive] = useState<IconOffset | null>(null);
-  const shown = live ?? offset;
+  const el = useRef<HTMLButtonElement>(null);
+  // A saved offset is kept as saved, but shown clamped to the surface: a smaller window must not strand an icon off-screen.
+  // Phones lay icons out in a grid and ignore offsets entirely.
+  const saved = phone ? undefined : offset;
+  const [fit, setFit] = useState<IconOffset | null>(null);
+  const applied = useRef<IconOffset>({ dx: 0, dy: 0 });
+  useLayoutEffect(() => {
+    const b = el.current;
+    const surface = b?.closest('.surface');
+    if (!b || !surface || !saved) { setFit(null); return; }
+    const place = () => {
+      const s = surface.getBoundingClientRect();
+      const r = b.getBoundingClientRect();
+      const left = r.left - applied.current.dx, top = r.top - applied.current.dy; // where the column puts the icon
+      const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, Math.ceil(lo)), Math.max(Math.ceil(lo), Math.floor(hi))); // whole pixels, rounded inward
+      const next = { dx: clamp(saved.dx, s.left - left, s.right - left - r.width), dy: clamp(saved.dy, s.top - top, s.bottom - top - r.height) };
+      setFit((f) => (next.dx === saved.dx && next.dy === saved.dy ? null : f && f.dx === next.dx && f.dy === next.dy ? f : next));
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(surface);
+    return () => ro.disconnect();
+  }, [saved?.dx, saved?.dy]); // eslint-disable-line react-hooks/exhaustive-deps -- re-run on the saved numbers, not the object
+  const shown = live ?? fit ?? saved;
+  applied.current = shown ?? { dx: 0, dy: 0 };
 
   const begin = (e: PointerEvent<HTMLButtonElement>) => {
     if (!draggable || phone || e.button !== 0 || e.pointerType === 'touch') return;
-    const from = offset ?? { dx: 0, dy: 0 };
+    const from = shown ?? { dx: 0, dy: 0 };
     const r = e.currentTarget.getBoundingClientRect();
     const s = (e.currentTarget.closest('.surface') ?? document.body).getBoundingClientRect();
     // Keep the whole icon on the desktop surface.
@@ -54,7 +78,7 @@ export function DesktopIcon({ id, label, icon, selected, phone, className, onSel
 
   return (
     <button
-      type="button" className={`dicon${className ? ` ${className}` : ''}`} data-selected={selected || undefined} data-icon={id}
+      ref={el} type="button" className={`dicon${className ? ` ${className}` : ''}`} data-selected={selected || undefined} data-icon={id}
       data-dragging={live ? '' : undefined}
       style={shown && (shown.dx || shown.dy) ? { transform: `translate(${shown.dx}px, ${shown.dy}px)` } : undefined}
       onPointerDown={(e) => { pointer.current = e.pointerType; begin(e); }}

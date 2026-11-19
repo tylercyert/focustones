@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { strings } from '../../content/strings.ts';
-import { useDesktop } from '../../desktop/context.ts';
 import { playBeat, TOY_LIMITS, toyBeat, type ToyHandle } from '../../engine/toy.ts';
 import { listenEngine } from '../listen/engineAdapter.ts';
 import { bandColor, bandFor } from './beat.ts';
@@ -9,7 +8,6 @@ const t = strings.delights.calculator;
 
 /** A desk accessory: two ears' frequencies in, the beat and its band out, and Hear It plays the pair for 8 s. */
 export function BeatCalculator() {
-  const { volume } = useDesktop();
   const [left, setLeft] = useState('220');
   const [right, setRight] = useState('230');
   const [playing, setPlaying] = useState(false);
@@ -30,7 +28,7 @@ export function BeatCalculator() {
     if (playing) { stop(); return; }
     const engine = listenEngine();
     if (engine.state === 'playing' || engine.state === 'starting') engine.pause(); // one sound at a time
-    const h = playBeat(l, r, volume);
+    const h = playBeat(l, r);
     if (!h) return;
     handle.current = h;
     setPlaying(true);

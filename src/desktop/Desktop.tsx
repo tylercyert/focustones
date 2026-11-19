@@ -53,7 +53,7 @@ export default function Desktop() {
   );
 
   // The desktop delights (issue #14): hidden icons, the Trash's look, extra menu items, icon positions and the pattern.
-  const extras = useDesktopExtras({ selected, active: state.active, volume: state.volume, openWindow, closeWindow });
+  const extras = useDesktopExtras({ selected, active: state.active, openWindow, closeWindow });
 
   const byId = useMemo(() => new Map(specs.map((s) => [s.id, s])), []);
   const active = state.active;
@@ -143,7 +143,7 @@ export default function Desktop() {
     <DesktopIcon
       key={s.id} id={s.id} label={s.iconLabel ?? s.title} icon={s.id === 'trash' && extras.trashFull ? 'trash-full' : s.icon} selected={selected.includes(s.id)} phone={phone} className={className}
       onSelect={(id) => setSelected([id])} onOpen={openWindow}
-      offset={extras.offsets[s.id]} draggable={!phone} onDrag={extras.onIconDrag} onDrop={extras.onIconDrop}
+      offset={phone ? undefined : extras.offsets[s.id]} draggable={!phone} onDrag={extras.onIconDrag} onDrop={extras.onIconDrop}
     />
   );
 
