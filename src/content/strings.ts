@@ -1,5 +1,5 @@
 // Every visible string on the site lives here, so the owner approves one file (docs/product.md, public words).
-// Later issues add their keys here. The sections `listen`, `get`, `features`, `aboutSound` and `aboutApp` (issue #6)
+// Later issues add their keys here. The sections `listen`, `get`, `features`, `aboutSound`, `aboutApp` (issue #6) and `meta` (#8)
 // carry their source in `provenance` below: `approved: <source>` (verbatim approved app copy) or `new` (the owner's batch approval). Banned words are checked over src/ (scripts/check.sh).
 export const strings = {
   siteName: 'FocusTones',
@@ -234,6 +234,12 @@ export const strings = {
     termsLink: 'Terms of Use',
     trademarks: 'Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. iPhone is a trademark of Apple Inc. FocusTones is not affiliated with or endorsed by Apple.',
   },
+  /** The page's head (issue #8): the tab title, search snippet and link-preview card. Written into index.html at build time. */
+  meta: {
+    title: 'FocusTones: binaural beats, free in your browser',
+    description: 'Press play and a binaural or isochronic beat fades in, right in your browser. Five bands, any timer, no account. More in FocusTones for iPhone.',
+    imageAlt: 'The FocusTones desktop: a classic Mac-style window with a glowing orb, the five bands and a Play button, beside a window to get the iPhone app.',
+  },
 } as const;
 
 
@@ -367,5 +373,8 @@ export const provenance: Readonly<Record<string, string>> = {
   'aboutApp.privacyLink': `${APPROVED_COPY} Description (Privacy Policy)`,
   'aboutApp.supportLink': NEW,
   'aboutApp.termsLink': `${APPROVED_COPY} Description (Terms of Use)`,
+  'meta.title': NEW,
+  'meta.description': 'new (built from the approved feature-1 and feature-3 lines, page.md)',
+  'meta.imageAlt': NEW,
   'aboutApp.trademarks': 'new (Apple’s required credit for the App Store badge and the Apple name, plus iPhone and a no-affiliation line)',
 };

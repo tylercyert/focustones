@@ -9,7 +9,7 @@ function leaves(value: unknown, path = ''): [string, string][] {
 
 describe('strings', () => {
   const all = leaves(strings);
-  const mine = leaves({ listen: strings.listen, get: strings.get, features: strings.features, aboutSound: strings.aboutSound, aboutApp: strings.aboutApp });
+  const mine = leaves({ listen: strings.listen, get: strings.get, features: strings.features, aboutSound: strings.aboutSound, aboutApp: strings.aboutApp, meta: strings.meta });
 
   it('has no empty string', () => {
     for (const [, s] of all) expect(s.trim()).not.toBe('');

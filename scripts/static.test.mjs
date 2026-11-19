@@ -83,5 +83,11 @@ describe('outside requests', () => {
     expect(urls('x.js', 'https://apps.apple.com.evil.example/x')).toHaveLength(1);
     expect(urls('x.js', 'https://tyl.sh/focustones/privacy-evil')).toHaveLength(1);
     expect(urls('x.js', 'http://apps.apple.com/x')).toHaveLength(1);
+    expect(urls('x.html', 'https://focustones.co.evil.example/og.png')).toHaveLength(1);
+    expect(urls('x.html', 'http://focustones.co/')).toHaveLength(1);
+  });
+  it('allows the site\'s own origin and the sitemap namespace (#8)', () => {
+    expect(urls('index.html', 'https://focustones.co/ https://focustones.co/og.png https://focustones.co/sitemap.xml')).toEqual([]);
+    expect(urls('sitemap.xml', 'http://www.sitemaps.org/schemas/sitemap/0.9')).toEqual([]);
   });
 });
