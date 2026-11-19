@@ -21,16 +21,17 @@ const STATUS: Record<EngineState, string> = {
 const rgb = (c: readonly number[]) => `rgb(${c.map((v) => Math.round(v * 255)).join(' ')})`;
 
 
+/** Square-cornered transport glyphs, drawn on the pixel grid like a period media player's buttons. */
 function PlayGlyph({ playing }: { readonly playing: boolean }) {
   return playing ? (
-    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2" /><rect x="13.5" y="5" width="4.5" height="14" rx="1.2" /></svg>
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" shapeRendering="crispEdges"><rect x="3" y="2" width="4" height="12" /><rect x="9" y="2" width="4" height="12" /></svg>
   ) : (
-    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8c.6-.4.6-1.2 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2Z" /></svg>
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 2v12l10-6z" /></svg>
   );
 }
 
 const Lock = () => (
-  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5 7V5.2a3 3 0 1 1 6 0V7h.5c.8 0 1.5.7 1.5 1.5v4c0 .8-.7 1.5-1.5 1.5h-7C3.7 14 3 13.3 3 12.5v-4C3 7.7 3.7 7 4.5 7H5Zm1.5 0h3V5.2a1.5 1.5 0 0 0-3 0V7Z" /></svg>
+  <svg viewBox="0 0 10 12" width="10" height="12" aria-hidden="true" shapeRendering="crispEdges"><path d="M3 1h4v1h1v3H7V2H3v3H2V2h1z" /><rect x="1" y="5" width="8" height="7" /></svg>
 );
 
 /** The window that plays sound: the orb, the preset, Play, the five bands, Timer and Headphones/Speaker. */
@@ -46,19 +47,22 @@ export function ListenWindow() {
 
   return (
     <section className="ft-win ft-listen" style={style} aria-label={L.title} data-state={m.state} data-engine-mode={m.engineMode}>
-      <div className="ft-stage">
-        <Orb band={m.preset.band} playing={m.playing} size={176} />
-      </div>
-      <div className="ft-now">
-        <h2 className="ft-name" data-testid="preset-name">{NAME[m.preset.id]}</h2>
-        <p className="ft-line" data-testid="preset-line">{GOAL[m.preset.band]} · {LETTER[m.preset.band]} {beat} {L.hz}</p>
-        <p className="ft-status" role="status" aria-live="polite" data-testid="status">
-          {m.playing && m.left !== null ? `${clock(m.left)} ${L.timerLeft}` : STATUS[m.state]}
-        </p>
+      {/* The display: a dark inset screen, the one place the orb's modern glow lives (like a period media player's). */}
+      <div className="ft-display">
+        <div className="ft-stage">
+          <Orb band={m.preset.band} playing={m.playing} size={176} />
+        </div>
+        <div className="ft-now">
+          <h2 className="ft-name" data-testid="preset-name">{NAME[m.preset.id]}</h2>
+          <p className="ft-line" data-testid="preset-line">{GOAL[m.preset.band]} · {LETTER[m.preset.band]} {beat} {L.hz}</p>
+          <p className="ft-status" role="status" aria-live="polite" data-testid="status">
+            {m.playing && m.left !== null ? `${clock(m.left)} ${L.timerLeft}` : STATUS[m.state]}
+          </p>
+        </div>
       </div>
 
       <button type="button" className="ft-play" onClick={m.toggle} aria-label={label} data-testid="play">
-        <PlayGlyph playing={m.playing} />
+        <PlayGlyph playing={m.playing} /><span aria-hidden="true">{label}</span>
       </button>
 
       <RadioGroup
@@ -67,6 +71,7 @@ export function ListenWindow() {
           value: p.id, testId: `band-${p.band}`, style: { '--chip': rgb(BAND_HUES[p.band].base) } as React.CSSProperties,
           children: (
             <>
+              <span className="ft-band-swatch" aria-hidden="true" />
               <span className="ft-band-letter" aria-hidden="true">{LETTER[p.band]}</span>
               <span className="ft-band-name">{BAND_NAME[p.band]}</span>
               <span className="ft-sr">{NAME[p.id]}</span>
@@ -78,7 +83,7 @@ export function ListenWindow() {
       <div className="ft-row">
         <span className="ft-label" id="ft-timer-label">{L.timer}</span>
         <RadioGroup
-          className="ft-seg" labelledBy="ft-timer-label" value={m.timerMinutes} onChange={m.setTimerMinutes}
+          className="ft-radios" itemClassName="ft-radio" labelledBy="ft-timer-label" value={m.timerMinutes} onChange={m.setTimerMinutes}
           items={TIMERS.map((t) => ({ value: t, testId: `timer-${t ?? 'off'}`, children: t === null ? L.timerOff : t }))}
         />
         <span className="ft-unit" aria-hidden="true">{L.timerMinutes}</span>
@@ -87,14 +92,14 @@ export function ListenWindow() {
       <div className="ft-row">
         <span className="ft-label" id="ft-output-label">{L.output}</span>
         <RadioGroup
-          className="ft-seg ft-seg-wide" labelledBy="ft-output-label" value={m.output} onChange={m.setOutput}
+          className="ft-radios" itemClassName="ft-radio" labelledBy="ft-output-label" value={m.output} onChange={m.setOutput}
           items={(['headphones', 'speaker'] as Output[]).map((o) => ({ value: o, testId: `output-${o}`, children: o === 'headphones' ? L.headphones : L.speaker }))}
         />
       </div>
       <p className="ft-note" data-testid="output-note">{m.output === 'headphones' ? L.headphonesNote : L.speakerNote}</p>
 
-      <div className="ft-pro">
-        <span className="ft-pro-eyebrow">{L.proEyebrow}</span>
+      <div className="ft-pro ft-groupbox" role="group" aria-labelledby="ft-pro-label">
+        <span className="ft-pro-eyebrow ft-groupbox-label" id="ft-pro-label">{L.proEyebrow}</span>
         <div className="ft-pro-row">
           {[
             [L.proTune, 'tune'],

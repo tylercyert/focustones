@@ -1,5 +1,5 @@
 // Every visible string on the site lives here, so the owner approves one file (docs/product.md, public words).
-// Later issues add their keys here. The sections `listen`, `get`, `features`, `aboutSound` and `aboutApp` (issue #6)
+// Later issues add their keys here. The sections `listen`, `get`, `features`, `aboutSound`, `aboutApp` (issue #6) and `meta` (#8)
 // carry their source in `provenance` below: `approved: <source>` (verbatim approved app copy) or `new` (the owner's batch approval). Banned words are checked over src/ (scripts/check.sh).
 export const strings = {
   siteName: 'FocusTones',
@@ -226,13 +226,128 @@ export const strings = {
     name: 'FocusTones',
     version: 'Web trial 1.0',
     credits: 'The free web trial of FocusTones: Binaural Beats. The sound and the orb are made in your browser.',
-    madeBy: 'Made by Tyl Softworks.',
+    madeBy: 'Made by Tyler Cyert.',
     privacyHeading: 'Privacy',
     privacyBody: 'This site sets no cookies and sends nothing anywhere.',
     privacyLink: 'Privacy Policy',
     supportLink: 'Support',
     termsLink: 'Terms of Use',
     trademarks: 'Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. iPhone is a trademark of Apple Inc. FocusTones is not affiliated with or endorsed by Apple.',
+  },
+  delights: {
+    menu: {
+      aboutDesktop: 'About This Desktop…',
+      beatCalculator: 'Beat Calculator',
+      note: 'Today’s One Thing',
+      patterns: 'Desktop Patterns',
+      screenSaver: 'Screen Saver',
+      moveToTrash: 'Move to Trash',
+      special: 'Special',
+      emptyTrash: 'Empty Trash',
+      startSaver: 'Start Screen Saver',
+    },
+    distractions: {
+      title: 'Distractions',
+      count: '{n} items, none of them urgent',
+      countOne: '1 item, not urgent',
+      empty: 'This folder is empty. Nice.',
+      itemsLabel: 'Items in Distractions',
+      moveToTrash: 'Move to Trash',
+      trashFolder: 'Move Folder to Trash',
+      hint: 'Drag anything here to the Trash, or select it and press Move to Trash.',
+      items: {
+        notifications: { name: 'Notifications', quip: 'They can wait.' },
+        video: { name: 'Just one more video', quip: 'It is never just one.' },
+        inbox: { name: 'Inbox (99+)', quip: 'Still 99+ after lunch.' },
+        chat: { name: 'Group chat', quip: '312 unread. None of them urgent.' },
+        tabs: { name: '47 open tabs', quip: 'You will read them someday.' },
+      },
+    },
+    trash: {
+      holds: 'The Trash holds {n} items.',
+      holdsOne: 'The Trash holds 1 item.',
+      listLabel: 'In the Trash',
+      emptyTrash: 'Empty Trash',
+      emptied: 'Distractions emptied. Enjoy the quiet.',
+      ok: 'OK',
+    },
+    note: {
+      title: 'Today’s One Thing',
+      short: 'One Thing',
+      label: 'Today’s one thing',
+      placeholder: 'What is the one thing for today?',
+      saved: 'Kept on this device.',
+    },
+    calculator: {
+      title: 'Beat Calculator',
+      short: 'Beats',
+      left: 'Left ear',
+      right: 'Right ear',
+      hz: 'Hz',
+      beat: 'Beat',
+      outOfRange: 'Out of range: the bands run from 0.5 to 45 Hz.',
+      invalid: 'Enter two frequencies from 80 to 1000 Hz.',
+      hear: 'Hear It',
+      stop: 'Stop',
+      headphones: 'Headphones on: each ear hears its own tone.',
+    },
+    saver: {
+      title: 'Screen Saver',
+      short: 'Saver',
+      label: 'Screen saver',
+      on: 'On',
+      off: 'Off',
+      when: 'Starts after 2 minutes without input, while this page is in front.',
+      test: 'Test',
+      motion: 'With Reduce Motion on, the scene holds still.',
+      wake: 'Move the mouse, tap or press a key to come back.',
+    },
+    patterns: {
+      title: 'Desktop Patterns',
+      short: 'Patterns',
+      heading: 'Pattern',
+      tinted: 'Patterns take the color of the band you last chose in Listen.',
+      names: {
+        default: 'Default',
+        waveform: 'Waveform',
+        ripple: 'Ripple',
+        dots: 'Quiet Dots',
+        weave: 'Weave',
+        tilt: 'Tilt',
+        lattice: 'Lattice',
+        drizzle: 'Drizzle',
+      },
+      sound: 'Sound',
+      chord: 'Play a startup chord on the first Play',
+      preview: 'Preview Chord',
+    },
+    about: {
+      title: 'About This Desktop',
+      short: 'This Desktop',
+      name: 'FocusTones Desktop',
+      version: 'Web trial 1.0',
+      memory: 'Built-in memory: room for one thing at a time',
+      summary: 'Focus: {focus}% · Distractions: {distractions}%',
+      focus: 'Focus',
+      distractions: 'Distractions',
+      percent: '{n}%',
+    },
+    credits: {
+      title: 'Credits',
+      heading: 'You found the credits',
+      lines: [
+        'Made by Tyler Cyert.',
+        'Every pixel, pattern and chord on this desktop was made from scratch.',
+        'Special thanks: you, for poking around.',
+        'No distractions were harmed. Some were emptied.',
+      ],
+    },
+  },
+  /** The page's head (issue #8): the tab title, search snippet and link-preview card. Written into index.html at build time. */
+  meta: {
+    title: 'FocusTones: binaural beats, free in your browser',
+    description: 'Press play and a binaural or isochronic beat fades in, right in your browser. Five bands, any timer, no account. More in FocusTones for iPhone.',
+    imageAlt: 'The FocusTones desktop: a classic Mac-style window with a glowing orb, the five bands and a Play button, beside a window to get the iPhone app.',
   },
 } as const;
 
@@ -242,6 +357,10 @@ const APPROVED_COPY = 'approved: focustones-ios docs/marketing/store/1.0/copy.md
 const APPROVED_SHOTS = 'approved: focustones-ios docs/marketing/store/1.0/shots.md';
 const APPROVED_ABOUT = 'approved: focustones-ios App/AboutSoundView.swift (shipped in the app)';
 const NEW = 'new';
+
+function leafPaths(value: unknown, path: string): string[] {
+  return typeof value === 'string' ? [path] : Object.entries(value as object).flatMap(([k, v]) => leafPaths(v, `${path}.${k}`));
+}
 
 /** Where each string came from, keyed by its path in `strings`. A key with no entry here fails strings.test.ts. */
 export const provenance: Readonly<Record<string, string>> = {
@@ -367,5 +486,10 @@ export const provenance: Readonly<Record<string, string>> = {
   'aboutApp.privacyLink': `${APPROVED_COPY} Description (Privacy Policy)`,
   'aboutApp.supportLink': NEW,
   'aboutApp.termsLink': `${APPROVED_COPY} Description (Terms of Use)`,
+  // Desktop delights (issue #14): every string in `delights` is new, for the owner's batch approval.
+  ...Object.fromEntries(leafPaths(strings.delights, 'delights').map((path) => [path, NEW])),
+  'meta.title': NEW,
+  'meta.description': 'new (built from the approved feature-1 and feature-3 lines, page.md)',
+  'meta.imageAlt': NEW,
   'aboutApp.trademarks': 'new (Apple’s required credit for the App Store badge and the Apple name, plus iPhone and a no-affiliation line)',
 };

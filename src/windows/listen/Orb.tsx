@@ -10,12 +10,12 @@ interface OrbProps {
 }
 
 const GLOW_REACH = 0.92; // × size, the halo's radius (matches OrbView.swift)
-const MESH = 72; // the mesh is computed on a 72×72 grid and drawn smoothed
+const MESH = 48; // the mesh is computed on a 48×48 grid and drawn smoothed (it is a soft blend: more cells add nothing visible)
 const SIGMA = 0.21;
 
 const css = (c: RGB, a = 1) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`;
 
-/** Shades the 72×72 mesh: a smooth blend of the nine colours, each weighted by distance to its (moving) mesh point. */
+/** Shades the mesh: a smooth blend of the nine colours, each weighted by distance to its (moving) mesh point. */
 function paintMesh(img: ImageData, pts: { x: number; y: number }[], cols: RGB[]): void {
   const data = img.data;
   const k = -1 / (2 * SIGMA * SIGMA);
@@ -43,30 +43,78 @@ function paintMesh(img: ImageData, pts: { x: number; y: number }[], cols: RGB[])
 export function Orb({ band, playing, size }: OrbProps) {
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
   const state = useRef({ playback: new OrbPlayback(playing), morph: new OrbMorph(BAND_HUES[band]), wake: () => {}, still: false, band });
 
   useEffect(() => {
     const s = state.current;
     const el = canvas.current!;
     const hostEl = host.current!;
-    const ctx = el.getContext('2d')!;
+    // CPU-backed canvases: a small canvas fed by putImageData each frame costs less there than a GPU round trip.
+    const cpu: CanvasRenderingContext2DSettings = { willReadFrequently: true };
+    const ctx = el.getContext('2d', cpu)!;
     const mesh = document.createElement('canvas');
     mesh.width = mesh.height = MESH;
-    const mctx = mesh.getContext('2d')!;
+    const mctx = mesh.getContext('2d', cpu)!;
     const image = mctx.createImageData(MESH, MESH);
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let visible = true, raf = 0, last = -Infinity;
     s.still = motionQuery.matches;
 
-    const span = Math.ceil(size * (GLOW_REACH * 2 + 0.04));
+    // The canvas holds the sphere only (with room for the breath's swell); the glow is a CSS gradient behind it, so the
+    // browser composites it and a frame never repaints the halo's pixels.
+    const span = Math.ceil(size * 1.1);
     // Device pixels, at most 3× (2× on a phone, to keep the fill cheap).
     const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), window.innerWidth < 700 ? 2 : 3);
     el.width = el.height = Math.round(span * dpr);
-    // The sphere is drawn on its own canvas, then masked with a soft one-pixel edge: a canvas clip() is not anti-aliased.
-    const S = Math.round(size * dpr);
-    const sphere = document.createElement('canvas');
-    sphere.width = sphere.height = S;
-    const sctx = sphere.getContext('2d')!;
+    // The still layers are drawn once, supersampled (at least 2×), and scaled into place each frame with smoothing.
+    const S = Math.round(size * Math.max(dpr, 2));
+    const layer = (w: number) => { const c = document.createElement('canvas'); c.width = c.height = w; return [c, c.getContext('2d', cpu)!] as const; };
+    const R = S / 2;
+    // Highlight and shade: they never change.
+    const [still, stillCtx] = layer(S);
+    stillCtx.save();
+    stillCtx.translate(S * 0.38, S * 0.22);
+    stillCtx.scale(1, 0.9);
+    const spec = stillCtx.createRadialGradient(0, 0, 0, 0, 0, S * 0.36);
+    spec.addColorStop(0, 'rgba(255,255,255,0.38)');
+    spec.addColorStop(1, 'rgba(255,255,255,0)');
+    stillCtx.fillStyle = spec;
+    stillCtx.fillRect(-S, -S, S * 2, S * 2);
+    stillCtx.restore();
+    const shade = stillCtx.createRadialGradient(S * 0.46, S * 0.4, 0, S * 0.46, S * 0.4, S * 0.81);
+    shade.addColorStop(0.58, css(INK, 0));
+    shade.addColorStop(0.9, css(INK, 0.12));
+    shade.addColorStop(1, css(INK, 0.22));
+    stillCtx.fillStyle = shade;
+    stillCtx.fillRect(0, 0, S, S);
+    // The soft edge: a canvas clip() is not anti-aliased, so the sphere is masked with about 1.2 CSS px of falloff.
+    const [mask, maskCtx] = layer(S);
+    const edge = (1.2 * S) / size / R;
+    const maskFill = maskCtx.createRadialGradient(R, R, 0, R, R, R);
+    maskFill.addColorStop(0, '#000');
+    maskFill.addColorStop(Math.max(0, 1 - edge * 1.2), '#000');
+    maskFill.addColorStop(1, 'rgba(0,0,0,0)');
+    maskCtx.fillStyle = maskFill;
+    maskCtx.fillRect(0, 0, S, S);
+    // Highlight, shade and the band-coloured rim in one layer, redrawn only when the band's colours change.
+    const [dress, dressCtx] = layer(S);
+    const glowEl = glow.current!;
+    let huesKey = '';
+    let glowOpacity = '';
+    const paintColours = (hues: ReturnType<typeof s.morph.hues>) => {
+      const key = `${hues.base}|${hues.light}|${hues.cross}`;
+      if (key === huesKey) return;
+      huesKey = key;
+      dressCtx.clearRect(0, 0, S, S);
+      dressCtx.drawImage(still, 0, 0);
+      const rim = dressCtx.createRadialGradient(R, R, R * 0.84, R, R, R);
+      rim.addColorStop(0, css(hues.light, 0));
+      rim.addColorStop(1, css(mix(hues.light, hues.base, 0.2), 0.5));
+      dressCtx.fillStyle = rim;
+      dressCtx.fillRect(0, 0, S, S);
+      glowEl.style.background = `radial-gradient(closest-side, ${css(hues.base, 0.6)} 46%, ${css(hues.base, 0.42)} 56%, ${css(hues.cross, 0.18)} 74%, ${css(hues.cross, 0)})`;
+    };
 
     const draw = (t: number) => {
       const level = s.playback.level(t);
@@ -74,60 +122,24 @@ export function Orb({ band, playing, size }: OrbProps) {
       const hues = s.morph.hues(t);
       paintMesh(image, points(t, s.still), colors(hues, b.brightness));
       mctx.putImageData(image, 0, 0);
+      paintColours(hues);
+      const opacity = b.glow.toFixed(3);
+      if (opacity !== glowOpacity) glowEl.style.opacity = glowOpacity = opacity;
 
-      // The sphere, in its own pixels: mesh, highlight, shade, rim, then the soft edge mask.
-      sctx.globalCompositeOperation = 'source-over';
-      sctx.setTransform(1, 0, 0, 1, 0, 0);
-      sctx.clearRect(0, 0, S, S);
-      sctx.imageSmoothingEnabled = true;
-      sctx.imageSmoothingQuality = 'high';
-      sctx.drawImage(mesh, 0, 0, S, S);
-      sctx.save();
-      sctx.translate(S * 0.38, S * 0.22);
-      sctx.scale(1, 0.9);
-      const spec = sctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.36);
-      spec.addColorStop(0, 'rgba(255,255,255,0.38)');
-      spec.addColorStop(1, 'rgba(255,255,255,0)');
-      sctx.fillStyle = spec;
-      sctx.fillRect(-S, -S, S * 2, S * 2);
-      sctx.restore();
-      const shade = sctx.createRadialGradient(S * 0.46, S * 0.4, 0, S * 0.46, S * 0.4, S * 0.81);
-      shade.addColorStop(0.58, css(INK, 0));
-      shade.addColorStop(0.9, css(INK, 0.12));
-      shade.addColorStop(1, css(INK, 0.22));
-      sctx.fillStyle = shade;
-      sctx.fillRect(0, 0, S, S);
-      const R = S / 2;
-      const rim = sctx.createRadialGradient(R, R, R * 0.84, R, R, R);
-      rim.addColorStop(0, css(hues.light, 0));
-      rim.addColorStop(1, css(mix(hues.light, hues.base, 0.2), 0.5));
-      sctx.fillStyle = rim;
-      sctx.fillRect(0, 0, S, S);
-      sctx.globalCompositeOperation = 'destination-in';
-      const edge = Math.max(1.5, dpr * 1.2) / R; // about 1.2 CSS px of falloff
-      const mask = sctx.createRadialGradient(R, R, 0, R, R, R);
-      mask.addColorStop(0, '#000');
-      mask.addColorStop(Math.max(0, 1 - edge * 1.2), '#000');
-      mask.addColorStop(1, 'rgba(0,0,0,0)');
-      sctx.fillStyle = mask;
-      sctx.fillRect(0, 0, S, S);
-
-      ctx.setTransform(el.width / span, 0, 0, el.height / span, 0, 0);
+      // The sphere, straight into the canvas: mesh, then highlight, shade and rim, then the soft edge mask.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalCompositeOperation = 'source-over';
       ctx.clearRect(0, 0, span, span);
-      const c = span / 2;
-      const halo = ctx.createRadialGradient(c, c, 0, c, c, size * GLOW_REACH);
-      halo.addColorStop(0.46, css(hues.base, 0.6));
-      halo.addColorStop(0.56, css(hues.base, 0.42));
-      halo.addColorStop(0.74, css(hues.cross, 0.18));
-      halo.addColorStop(1, css(hues.cross, 0));
-      ctx.globalAlpha = b.glow;
-      ctx.fillStyle = halo;
-      ctx.fillRect(0, 0, span, span);
-      ctx.globalAlpha = 1;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingQuality = 'medium';
+      const c = span / 2;
       const d = size * b.scale;
-      ctx.drawImage(sphere, c - d / 2, c - d / 2, d, d);
+      const x = c - d / 2;
+      ctx.drawImage(mesh, x, x, d, d);
+      ctx.drawImage(dress, x, x, d, d);
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(mask, x, x, d, d);
+      ctx.globalCompositeOperation = 'source-over';
       ctx.beginPath();
       ctx.arc(c, c, d / 2 - 0.4, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(255,255,255,0.13)';
@@ -140,7 +152,8 @@ export function Orb({ band, playing, size }: OrbProps) {
       raf = 0;
       const t = now();
       const transitioning = s.playback.remaining(t) > 0 || s.morph.remaining(t) > 0;
-      if (t - last >= 1 / MOTION.framesPerSecond - 0.002) {
+      const fps = transitioning || s.playback.level(t) > 0 ? MOTION.framesPerSecond : MOTION.idleFramesPerSecond;
+      if (t - last >= 1 / fps - 0.002) {
         draw(t);
         last = t;
       }
@@ -181,7 +194,8 @@ export function Orb({ band, playing, size }: OrbProps) {
 
   return (
     <div ref={host} className="ft-orb" style={{ width: size, height: size }} data-testid="orb" data-band={band} data-playing={playing} aria-hidden="true">
-      <canvas ref={canvas} style={{ width: Math.ceil(size * (GLOW_REACH * 2 + 0.04)), height: Math.ceil(size * (GLOW_REACH * 2 + 0.04)) }} />
+      <div ref={glow} className="ft-orb-glow" style={{ width: Math.round(size * GLOW_REACH * 2), height: Math.round(size * GLOW_REACH * 2) }} />
+      <canvas ref={canvas} style={{ width: Math.ceil(size * 1.1), height: Math.ceil(size * 1.1) }} />
     </div>
   );
 }

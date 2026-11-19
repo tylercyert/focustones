@@ -8,6 +8,10 @@ export const ALLOWED = [
   /^https:\/\/apps\.apple\.com\//,
   /^https:\/\/tyl\.sh\/focustones\/(?:privacy|support)\/?$/,
   /^https:\/\/www\.apple\.com\/legal\/internet-services\/itunes\/dev\/stdeula\/?$/,
+  // The site's own origin (canonical link, link-preview image, sitemap): first-party, not a third party.
+  /^https:\/\/focustones\.co\/[\w./-]*$/,
+  // The sitemap's XML namespace, never fetched.
+  /^http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9$/,
   // Strings inside React that are never fetched: SVG/MathML namespaces and the error-decoder text.
   /^http:\/\/www\.w3\.org\/(?:1998\/Math\/MathML|1999\/xhtml|1999\/xlink|2000\/svg|XML\/1998\/namespace)$/,
   /^https:\/\/react\.dev\/errors\//,

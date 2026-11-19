@@ -10,7 +10,9 @@ import { Startup } from './Startup.tsx';
 import { Clock, Speaker } from './StatusItems.tsx';
 import { initialState, loadSaved, reduce, save, type Size, type WindowDef } from './store.ts';
 import { Switcher } from './Switcher.tsx';
+import { Delights, useDesktopExtras } from '../windows/extras/index.ts';
 import { WindowFrame } from './Window.tsx';
+import './theme.css';
 import './desktop.css';
 
 const specs = [...windowRegistry, ...shellWindows];
@@ -21,7 +23,7 @@ const m = strings.menuBar;
 export default function Desktop() {
   const phone = usePhone();
   const reduced = useReducedMotion();
-  const [state, dispatch] = useReducer(reduce, undefined, () => initialState(defs, loadSaved()));
+  const [state, dispatch] = useReducer(reduce, undefined, () => initialState(defs, loadSaved(), { width: window.innerWidth, height: window.innerHeight - 24 }));
   const [selected, setSelected] = useState<string[]>([]);
   const [showDate, setShowDate] = useState(false);
   const [starting, setStarting] = useState(() => { try { return localStorage.getItem(SEEN) !== '1'; } catch { return true; } });
@@ -51,6 +53,9 @@ export default function Desktop() {
     [state.volume, openWindow, closeWindow, phone],
   );
 
+  // The desktop delights (issue #14): hidden icons, the Trash's look, extra menu items, icon positions and the pattern.
+  const extras = useDesktopExtras({ selected, active: state.active, openWindow, closeWindow });
+
   const byId = useMemo(() => new Map(specs.map((s) => [s.id, s])), []);
   const active = state.active;
   const activeState = active ? state.rects[active] : null;
@@ -79,7 +84,7 @@ export default function Desktop() {
 
   const openNames = state.order.map((id) => byId.get(id)!).filter(Boolean);
   const cycle = () => { if (state.order.length > 1) dispatch({ type: 'focus', id: state.order[0] }); };
-  const desktopSpecs = specs.filter((s) => s.showOnDesktop !== false);
+  const desktopSpecs = specs.filter((s) => s.showOnDesktop !== false && !extras.hidden.includes(s.id));
   const trash = desktopSpecs.find((s) => s.id === 'trash');
   const others = desktopSpecs.filter((s) => s.id !== 'trash');
   const canResize = active ? byId.get(active)?.resizable !== false : false;
@@ -87,12 +92,14 @@ export default function Desktop() {
   const menus: MenuDef[] = [
     { id: 'app', label: m.appMenu, ariaLabel: m.appMenuLabel, icon: 'app', items: [
       { kind: 'item', label: m.about, onSelect: () => openWindow('about') },
+      ...extras.appItems,
       { kind: 'sep' },
       { kind: 'item', label: m.replayStartup, onSelect: () => setStarting(true) },
     ] },
     { id: 'file', label: m.file, items: [
-      ...specs.filter((s) => s.showOnDesktop !== false && s.id !== 'trash').map((s) => ({ kind: 'item' as const, label: `${m.open} ${s.title}`, onSelect: () => openWindow(s.id) })),
+      ...desktopSpecs.filter((s) => s.id !== 'trash').map((s) => ({ kind: 'item' as const, label: `${m.open} ${s.title}`, onSelect: () => openWindow(s.id) })),
       { kind: 'sep' },
+      ...extras.fileItems,
       { kind: 'item', label: m.closeWindow, shortcut: 'W', disabled: !active, onSelect: () => active && dispatch({ type: 'close', id: active }) },
       { kind: 'item', label: m.closeAll, disabled: state.order.length === 0, onSelect: () => dispatch({ type: 'closeAll' }) },
     ] },
@@ -101,9 +108,10 @@ export default function Desktop() {
       { kind: 'item', label: m.deselectAll, disabled: selected.length === 0, onSelect: () => setSelected([]) },
     ] },
     { id: 'view', label: m.view, items: [
-      { kind: 'item', label: m.cleanUp, onSelect: () => dispatch({ type: 'cleanUp', defs }) },
+      { kind: 'item', label: m.cleanUp, onSelect: () => { dispatch({ type: 'cleanUp', defs, surface }); extras.cleanUpIcons(); } },
       { kind: 'item', label: m.showDate, checked: showDate, onSelect: () => setShowDate(!showDate) },
     ] },
+    extras.specialMenu,
     { id: 'window', label: m.window, items: [
       ...(phone ? [] : ([
         { kind: 'item', label: m.zoom, disabled: !active || !canResize, onSelect: () => active && dispatch({ type: 'toggleZoom', id: active }) },
@@ -119,7 +127,7 @@ export default function Desktop() {
     ] },
     { id: 'help', label: m.help, items: [{ kind: 'item', label: m.desktopHelp, onSelect: () => openWindow('help') }] },
   ];
-  const shownMenus = phone ? menus.filter((x) => x.id !== 'edit' && x.id !== 'view') : menus;
+  const shownMenus = phone ? menus.filter((x) => x.id !== 'edit' && x.id !== 'view' && x.id !== 'special') : menus;
 
   const iconKeys = (e: KeyboardEvent) => {
     const keys = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 } as const;
@@ -133,7 +141,11 @@ export default function Desktop() {
   };
 
   const icon = (s: (typeof specs)[number], className?: string) => (
-    <DesktopIcon key={s.id} id={s.id} label={s.iconLabel ?? s.title} icon={s.icon} selected={selected.includes(s.id)} phone={phone} className={className} onSelect={(id) => setSelected([id])} onOpen={openWindow} />
+    <DesktopIcon
+      key={s.id} id={s.id} label={s.iconLabel ?? s.title} icon={s.id === 'trash' && extras.trashFull ? 'trash-full' : s.icon} selected={selected.includes(s.id)} phone={phone} className={className}
+      onSelect={(id) => setSelected([id])} onOpen={openWindow}
+      offset={phone ? undefined : extras.offsets[s.id]} draggable={!phone} onDrag={extras.onIconDrag} onDrop={extras.onIconDrop}
+    />
   );
 
   return (
@@ -143,7 +155,7 @@ export default function Desktop() {
           <Speaker volume={state.volume} onChange={api.setVolume} />
           <Clock showDate={showDate && !phone} onToggle={() => setShowDate(!showDate)} />
         </MenuBar>
-        <main className="surface" ref={surfaceEl} tabIndex={-1} aria-label={strings.desktop.surfaceLabel} onPointerDown={(e) => { if (e.target === e.currentTarget) setSelected([]); }}>
+        <main className="surface" {...extras.surface} ref={surfaceEl} tabIndex={-1} aria-label={strings.desktop.surfaceLabel} onPointerDown={(e) => { if (e.target === e.currentTarget) setSelected([]); }}>
           <nav className="icons" aria-label={strings.desktop.iconsLabel} onKeyDown={iconKeys} hidden={phone && active !== null}>
             {others.map((s) => icon(s))}
             {trash && icon(trash, 'dicon-trash')}
@@ -162,6 +174,7 @@ export default function Desktop() {
             active={active} onPick={(id) => dispatch({ type: 'focus', id })} onDesktop={() => dispatch({ type: 'showDesktop' })}
           />
         )}
+        <Delights selected={selected} />
         {showStartup && <Startup onDone={endStartup} />}
       </div>
     </DesktopContext.Provider>

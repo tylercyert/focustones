@@ -1,4 +1,6 @@
 import { strings } from '../content/strings.ts';
+import { TrashContents } from '../windows/extras/index.ts';
+import { useTrash } from '../windows/extras/store.ts';
 import { Icon } from './icons.tsx';
 
 const t = strings.windows;
@@ -13,6 +15,8 @@ export function Help() {
 }
 
 export function Trash() {
+  const { trashed } = useTrash(); // the desktop delights (issue #14) can put the Distractions folder here
+  if (trashed.length) return <TrashContents />;
   return (
     <div className="pane pane-center">
       <Icon name="trash" size={48} />
