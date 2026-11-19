@@ -1,2 +1,2 @@
-# Reviewed exemptions from the banned-words check, one `path: phrase` per line (path from the repo root, phrase lowercase).
-# Each row needs the owner's yes in review. Empty is the goal.
+# The only exemptions from the banned-words check: one `path: phrase` per line (exact repo-relative path, exact phrase,
+# lowercase). Nothing written in a source file can exempt itself. Each row needs the owner's yes in review. Empty is the goal.

@@ -22,24 +22,47 @@ describe('banned words', () => {
     expect(words('A.tsx', '<p>clinically&nbsp;proven</p>')).toHaveLength(1);
     expect(words('A.tsx', '<p>clinically{" "}proven</p>')).toHaveLength(1);
   });
-  it('reports the line a phrase starts on', () => {
-    expect(words('a.ts', 'ok\nok\ncures')[0]).toMatch(/^a\.ts:3:/);
+  it('catches numeric, hex and named HTML space entities, even double-encoded', () => {
+    for (const sp of ['&#32;', '&#x20;', '&#160;', '&#xA0;', '&nbsp;', '&NewLine;', '&Tab;', '&ensp;', '&#8201;', '&amp;#32;'])
+      expect(words('index.html', `<p>clinically${sp}proven</p>`), sp).toHaveLength(1);
   });
-  it('lets a code comment on its own line exempt the next line only', () => {
-    expect(words('a.ts', '// claims-exempt: a test word\nconst w = "adhd";')).toEqual([]);
-    expect(words('a.ts', '/* claims-exempt: a test word */\nconst w = "adhd";')).toEqual([]);
-    expect(words('a.ts', '<!-- claims-exempt: quoted -->\n<p>adhd</p>')).toEqual([]);
-    expect(words('a.ts', '// claims-exempt: a test word\nconst a = "x";\nconst w = "adhd";')).toHaveLength(1);
+  it('decodes entities inside the words themselves', () => {
+    expect(words('index.html', '<p>anx&#105;ety, &#x63;ures</p>')).toHaveLength(2);
   });
-  it('does not let a marker inside or beside copy exempt it', () => {
+  it('decodes JS and Unicode escapes', () => {
+    expect(words('a.ts', 'const s = "clinically\\u0020proven";')).toHaveLength(1);
+    expect(words('a.ts', 'const s = "clinically\\u{20}proven";')).toHaveLength(1);
+    expect(words('a.ts', 'const s = "clinically\\x20proven";')).toHaveLength(1);
+    expect(words('a.ts', 'const s = "anx\\u0069ety";')).toHaveLength(1);
+  });
+  it('ignores zero-width, soft-hyphen and exotic-space characters', () => {
+    expect(words('a.ts', 'anx​iety')).toHaveLength(1);
+    expect(words('a.ts', 'anx­iety')).toHaveLength(1);
+    expect(words('a.ts', 'anx﻿iety')).toHaveLength(1);
+    expect(words('a.ts', 'clinically proven')).toHaveLength(1);
+    expect(words('a.ts', 'clinically proven')).toHaveLength(1);
+    expect(words('a.ts', 'clinically​ 　proven')).toHaveLength(1);
+  });
+  it('sees through tags and JSX expressions that split a phrase', () => {
+    expect(words('A.tsx', '<p>clinically <b>proven</b></p>')).toHaveLength(1);
+    expect(words('A.tsx', '<p>{"clinically"} {"proven"}</p>')).toHaveLength(1);
+  });
+  it('lets honest copy through, with entities and tags', () => {
+    expect(words('A.tsx', '<p>Press play &amp; sink into focus&#33;</p>')).toEqual([]);
+  });
+  it('has no in-source exemption: markers in any context exempt nothing', () => {
+    expect(words('a.ts', '// claims-exempt: a test word\nconst w = "adhd";')).toHaveLength(1);
+    expect(words('a.ts', '/* claims-exempt: x */\nconst w = "adhd";')).toHaveLength(1);
+    expect(words('index.html', '<!-- claims-exempt: x -->\n<p>adhd</p>')).toHaveLength(1);
+    expect(words('index.html', '<p>\n// claims-exempt: visible text\nanxiety\n</p>')).toHaveLength(1);
+    expect(words('a.ts', 'const t = `\n// claims-exempt: visible text\nanxiety\n`;')).toHaveLength(1);
     expect(words('a.ts', 'const copy = "anxiety claims-exempt: why";')).toHaveLength(1);
     expect(words('a.ts', 'const w = "adhd"; // claims-exempt: a test word')).toHaveLength(1);
-    expect(words('A.tsx', '<p>cures // claims-exempt: x</p>')).toHaveLength(1);
-    expect(words('a.ts', '// claims-exempt:\nconst w = "adhd";')).toHaveLength(1);
   });
   it('honours the reviewed allowlist, per file and phrase', () => {
     const allowed = new Set(['a.ts: adhd']);
     expect(words('a.ts', 'adhd', allowed)).toEqual([]);
+    expect(words('a.ts', 'ADHD', allowed)).toEqual([]);
     expect(words('b.ts', 'adhd', allowed)).toHaveLength(1);
     expect(words('a.ts', 'anxiety', allowed)).toHaveLength(1);
   });
