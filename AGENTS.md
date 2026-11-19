@@ -29,7 +29,7 @@ Run `scripts/check.sh` on the exact head before every push and paste its output 
 
 ## Rules (from `docs/product.md`)
 
-- No medical claims; the banned-word list (`scripts/words.mjs`) runs over `src/` and `index.html`. See focustones-ios ADR 0006.
+- No medical claims; the banned-word list (`scripts/words.mjs`) runs over the text a reader sees in `src/` and `index.html`, including phrases split across lines. Exempt a line only with a `claims-exempt: <why>` comment on its own line above it, or a row in `scripts/claims-allowlist.txt`. See focustones-ios ADR 0006.
 - No analytics, trackers, cookies, accounts or third-party requests; fonts, scripts and images are self-hosted. Outbound links are only the App Store, the privacy policy, support and Apple's EULA. See ADR 0004.
 - The orb never flashes at the beat rate and stills with Reduce Motion.
 - Public words are the owner's: reuse approved copy, and list every new visible string for the owner's batch approval.
