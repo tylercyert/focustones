@@ -1,20 +1,22 @@
-/* Desktop delights (issue #14): classic Platinum controls drawn from the desktop's theme tokens (src/desktop), so a
-   theme change restyles them. Square bevels, 1 px black outlines, no blur, soft shadows or gradient chrome (ADR 0002).
-   The fallbacks after each token are the Platinum greys, for any token a theme leaves out. */
+/* Desktop delights (issue #14): classic Platinum controls drawn from the desktop's theme tokens (src/desktop/theme.css),
+   so a theme change restyles them. Square bevels, 1 px black outlines, no blur, soft shadows or gradient chrome (ADR 0002). */
 .desktop {
-  --dx-face: var(--plat, #dddddd);
-  --dx-hi: var(--plat-hi, #ffffff);
-  --dx-mid: var(--plat-mid, #bbbbbb);
-  --dx-lo: var(--plat-lo, #808080);
-  --dx-ink: var(--ink, #000000);
-  --dx-select: var(--select, #000000);
-  --dx-paper: #ffffff;
+  --dx-face: var(--plat);
+  --dx-hi: var(--plat-hi);
+  --dx-mid: var(--plat-mid);
+  --dx-lo: var(--plat-lo);
+  --dx-dark: var(--plat-dark);
+  --dx-ink: var(--plat-ink);
+  --dx-ink-2: var(--plat-ink-2);
+  --dx-select: var(--select);
+  --dx-select-ink: var(--select-ink);
+  --dx-paper: var(--plat-well);
 }
 
 .dx { padding: 12px 14px 14px; font: 400 13px/1.4 var(--body, system-ui, sans-serif); color: var(--dx-ink); }
 .dx p { margin: 0; }
 .dx-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.dx-small { font-size: 12px; color: #333333; margin-top: 6px !important; }
+.dx-small { font-size: 12px; color: var(--dx-ink-2); margin-top: 6px !important; }
 .dx-title { margin: 0; font: 700 15px/1.25 var(--body, system-ui, sans-serif); }
 
 /* Push button: rounded Platinum face, black outline, bevel; the default button carries the thick outer ring. */
@@ -23,7 +25,7 @@
   font: 400 13px/1.2 var(--body, system-ui, sans-serif); color: var(--dx-ink); background: var(--dx-face);
   border: 1px solid var(--dx-ink); border-radius: 4px; box-shadow: inset 1px 1px var(--dx-hi), inset -1px -1px var(--dx-mid);
 }
-.dx-btn:active:not(:disabled), .dx-btn[aria-pressed='true'] { background: var(--dx-lo); color: var(--dx-hi); box-shadow: inset 1px 1px #555555, inset -1px -1px var(--dx-mid); }
+.dx-btn:active:not(:disabled), .dx-btn[aria-pressed='true'] { background: var(--dx-lo); color: var(--dx-hi); box-shadow: inset 1px 1px var(--dx-dark), inset -1px -1px var(--dx-mid); }
 .dx-btn:disabled { color: var(--dx-lo); border-color: var(--dx-lo); box-shadow: none; }
 .dx-btn-default { box-shadow: inset 1px 1px var(--dx-hi), inset -1px -1px var(--dx-mid), 0 0 0 2px var(--dx-face), 0 0 0 3px var(--dx-lo), 0 0 0 4px var(--dx-ink); margin: 4px; }
 .dx-btn-default:disabled { box-shadow: 0 0 0 2px var(--dx-face), 0 0 0 3px var(--dx-mid), 0 0 0 4px var(--dx-lo); }
@@ -70,7 +72,7 @@
 /* Desktop icons: dragging, the Trash lighting up under a drag, and the Konami wave. */
 .dicon[data-dragging] { z-index: 900; opacity: .8; position: relative; }
 .dicon[data-drop] .dicon-art { filter: brightness(.45); }
-.dicon[data-drop] .dicon-label { color: #000; background: #fff; text-shadow: none; }
+.dicon[data-drop] .dicon-label { color: var(--dx-select-ink); background: #000; }
 @media (prefers-reduced-motion: no-preference) {
   .desktop[data-wave] .dicon { animation: dx-wave 1.2s ease-in-out 2; }
   .desktop[data-wave] .dicon:nth-child(2n) { animation-delay: .08s; }
@@ -80,11 +82,11 @@
   @keyframes dx-wave { 0%, 100% { translate: 0 0; } 30% { translate: 0 -6px; } 60% { translate: 0 2px; } }
 }
 
-/* Desktop pattern: the tile masks a layer painted in the band's color mixed into the desktop's own tone. */
-.surface[data-pattern] { background-color: var(--desk-b, #40392f); }
+/* Desktop pattern: on the theme's desktop colour, the tile masks a layer painted in the band's colour mixed into it. */
+.surface[data-pattern] { background: var(--desk-base); }
 .surface[data-pattern]::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: color-mix(in srgb, var(--dx-band) 55%, var(--desk-a, #4d463b));
+  background: color-mix(in srgb, var(--dx-band) 60%, var(--desk-b));
   -webkit-mask: var(--dx-pattern) 0 0 / 8px 8px repeat; mask: var(--dx-pattern) 0 0 / 8px 8px repeat;
 }
 
@@ -92,15 +94,15 @@
 .dx-folder { display: flex; flex-direction: column; min-height: 100%; padding: 0; }
 .dx-folder-bar { flex: none; padding: 3px 10px; font-size: 12px; text-align: center; background: var(--dx-face); border-bottom: 1px solid var(--dx-lo); box-shadow: inset 0 -1px var(--dx-hi); }
 .dx-folder-items { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); align-content: start; gap: 6px; padding: 12px 10px; background: var(--dx-paper); border-bottom: 1px solid var(--dx-lo); }
-.dx-folder-empty { flex: 1; display: grid; place-items: center; padding: 20px; background: var(--dx-paper); border-bottom: 1px solid var(--dx-lo); color: #444444; }
+.dx-folder-empty { flex: 1; display: grid; place-items: center; padding: 20px; background: var(--dx-paper); border-bottom: 1px solid var(--dx-lo); color: var(--dx-ink-2); }
 .dx-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border: 0; background: none; font: inherit; color: inherit; }
 .desktop:not(.is-phone) .dx-item { touch-action: none; } /* a mouse, pen or tablet finger drags items to the Trash; phones keep native scrolling (no item drag there) */
 .dx-item-label { max-width: 100%; padding: 0 3px; font-size: 12px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
-.dx-item[aria-selected='true'] .dx-item-label { background: var(--dx-select); color: #ffffff; }
+.dx-item[aria-selected='true'] .dx-item-label { background: var(--dx-select); color: var(--dx-select-ink); }
 .dx-item[aria-selected='true'] svg { filter: brightness(.55); }
 .dx-item[data-dragging] { opacity: .35; }
 .dx-item:focus-visible { outline: 1px dotted var(--dx-ink); outline-offset: 0; }
-.dx-quip { padding: 8px 12px 0; min-height: 2.8em; font-size: 12px; color: #333333; }
+.dx-quip { padding: 8px 12px 0; min-height: 2.8em; font-size: 12px; color: var(--dx-ink-2); }
 .dx-folder .dx-buttons { padding: 0 12px 12px; margin-top: 6px; }
 .dx-ghost { position: fixed; z-index: 2500; pointer-events: none; opacity: .7; }
 .dx-ghost[data-over] { opacity: .45; }
@@ -150,15 +152,15 @@
 /* Columns sized in em: at default text four fit a phone, and as text grows the grid drops to fewer, wider columns. */
 .dx-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.6em), 1fr)); gap: 8px; }
 .dx-swatch { display: grid; justify-items: center; gap: 4px; padding: 4px 2px; border: 0; background: none; font: inherit; color: inherit; min-width: 0; }
-.dx-swatch-art { position: relative; display: block; width: 100%; max-width: 72px; aspect-ratio: 4 / 3; border: 1px solid var(--dx-ink); background-color: var(--desk-b, #40392f); box-shadow: 1px 1px 0 var(--dx-hi); }
+.dx-swatch-art { position: relative; display: block; width: 100%; max-width: 72px; aspect-ratio: 4 / 3; border: 1px solid var(--dx-ink); background: var(--desk-base); box-shadow: 1px 1px 0 var(--dx-hi); }
 .dx-swatch-art[data-pattern]::before {
-  content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--dx-band) 55%, var(--desk-a, #4d463b));
+  content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--dx-band) 60%, var(--desk-b));
   -webkit-mask: var(--dx-pattern) 0 0 / 8px 8px repeat; mask: var(--dx-pattern) 0 0 / 8px 8px repeat;
 }
-.dx-swatch-default { background-image: conic-gradient(var(--desk-a, #4d463b) 25%, var(--desk-b, #40392f) 0 50%, var(--desk-a, #4d463b) 0 75%, var(--desk-b, #40392f) 0); background-size: 4px 4px; }
+.dx-swatch-default { background: var(--desk-pattern); } /* the theme's own desktop */
 .dx-swatch-name { max-width: 100%; font-size: 11.5px; line-height: 1.15; text-align: center; padding: 0 3px; overflow-wrap: anywhere; } /* wraps inside its cell, never into a neighbor */
 .dx-swatch[aria-checked='true'] .dx-swatch-art { outline: 2px solid var(--dx-ink); outline-offset: 2px; }
-.dx-swatch[aria-checked='true'] .dx-swatch-name { background: var(--dx-select); color: #ffffff; }
+.dx-swatch[aria-checked='true'] .dx-swatch-name { background: var(--dx-select); color: var(--dx-select-ink); }
 .dx-swatch:focus-visible { outline: 1px dotted var(--dx-ink); }
 .dx-monitor { justify-self: center; width: 150px; margin-bottom: 12px; padding: 8px 8px 14px; background: var(--dx-face); border: 1px solid var(--dx-ink); box-shadow: inset 1px 1px var(--dx-hi), inset -1px -1px var(--dx-lo); }
 .dx-monitor-screen { position: relative; height: 92px; background: #000000; border: 1px solid; border-color: var(--dx-lo) var(--dx-hi) var(--dx-hi) var(--dx-lo); overflow: hidden; }
@@ -176,7 +178,7 @@
 .dx-about-rows li { display: grid; grid-template-columns: 16px 7em 1fr 3.6em; align-items: center; gap: 8px; }
 .dx-about-bar { height: 12px; background: var(--dx-paper); border: 1px solid var(--dx-ink); }
 .dx-about-bar i { display: block; height: 100%; background: var(--dx-lo); }
-.dx-about-rows li:first-child .dx-about-bar i { background: #6d75c4; }
+.dx-about-rows li:first-child .dx-about-bar i { background: var(--dx-select); }
 .dx-about-value { text-align: right; font-variant-numeric: tabular-nums; }
 .dx-credits { display: grid; justify-items: center; gap: 8px; text-align: center; padding-top: 18px; }
 

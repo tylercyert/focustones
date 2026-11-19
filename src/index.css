@@ -5,6 +5,7 @@
 html, body, #root { height: 100%; margin: 0; }
 body {
   overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%;
-  font: 400 15px/1.35 "Pixelify Sans", "Courier New", monospace; color: #000; background: #8f8b84;
+  font: 400 15px/1.35 "Pixelify Sans", "Courier New", monospace; color: #000; background: #6767c8;
 }
 button { font: inherit; color: inherit; }
+.pic { display: contents; }

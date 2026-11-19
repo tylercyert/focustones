@@ -1,3 +1,4 @@
+import { AppIconImage } from '../../desktop/icons.tsx';
 import qr from 'virtual:campaign-qr';
 import { strings } from '../../content/strings.ts';
 import { AppStoreBadge } from '../shared/AppStoreBadge.tsx';
@@ -22,7 +23,7 @@ export function GetWindow() {
   return (
     <section className="ft-win ft-get" aria-label={G.title}>
       <header className="ft-get-head">
-        <img className="ft-icon" src="/icons/app-256.png" alt="" width="72" height="72" />
+        <AppIconImage className="ft-icon" size={72} />
         <div>
           <h2 className="ft-get-name">{G.appName}</h2>
           <p className="ft-get-sub">{G.subtitle}</p>
@@ -32,7 +33,7 @@ export function GetWindow() {
 
       <div className="ft-get-cta">
         <div className="ft-get-badge"><AppStoreBadge placement="get-window" height={44} /></div>
-        <div className="ft-get-qr">
+        <div className="ft-get-qr ft-well">
           <Qr />
           <div>
             <p className="ft-get-qr-title">{G.qrHeading}</p>
@@ -46,14 +47,16 @@ export function GetWindow() {
         <li>{G.noAccount}</li>
       </ul>
 
-      <h3 className="ft-h3">{G.proHeading}</h3>
-      <p className="ft-p">{G.proBody}</p>
-      <p className="ft-small">{G.plansHeading}</p>
-      <ul className="ft-prices">
-        <li>{G.monthly}</li>
-        <li>{G.annual}</li>
-        <li>{G.lifetime}</li>
-      </ul>
+      <div className="ft-groupbox" role="group" aria-labelledby="ft-get-pro">
+        <h3 className="ft-h3 ft-groupbox-label" id="ft-get-pro">{G.proHeading}</h3>
+        <p className="ft-p">{G.proBody}</p>
+        <p className="ft-small">{G.plansHeading}</p>
+        <ul className="ft-prices ft-well">
+          <li>{G.monthly}</li>
+          <li>{G.annual}</li>
+          <li>{G.lifetime}</li>
+        </ul>
+      </div>
     </section>
   );
 }
@@ -62,7 +65,7 @@ export function GetWindow() {
 export function GetBar() {
   return (
     <aside className="ft-getbar" aria-label={G.barLabel}>
-      <img src="/icons/app-256.png" alt="" width="36" height="36" />
+      <AppIconImage size={36} />
       <div className="ft-getbar-text"><strong>{strings.aboutApp.name}</strong><span>{G.barLabel}</span></div>
       <a className="ft-getbar-btn" href={appStoreUrl('bar')} target="_blank" rel="noopener" data-placement="bar">{G.barAction}</a>
     </aside>

@@ -14,6 +14,7 @@ async function settle(page: Page) {
   await page.waitForTimeout(150);
 }
 const shot = async (page: Page, name: string) => {
+  if (!test.info().project.name.startsWith('delights-')) return; // evidence comes from the Chromium delights projects only
   await settle(page);
   await page.screenshot({ path: `docs/evidence/14-delights/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` });
 };
@@ -383,7 +384,8 @@ test.describe('small eggs', () => {
     await closeAll(page);
     await expect(page.getByRole('menuitem', { name: /Credits/ })).toHaveCount(0); // hidden until found
     if (phone(page)) expect((await page.locator('.menubar').boundingBox())!.height).toBeLessThanOrEqual(46); // the menu bar stays one row
-    if (phone(page)) {
+    const chromium = page.context().browser()?.browserType().name() === 'chromium';
+    if (phone(page) && chromium) {
       // Native touch through Chromium's input pipeline (not synthetic events): the browser may take a swipe as a pan and
       // cancel its pointer events, so this checks the egg still hears it. Swipes ↑↑↓↓←→←→ on bare desktop, then two taps.
       const cdp = await page.context().newCDPSession(page);
@@ -397,6 +399,7 @@ test.describe('small eggs', () => {
         await touch('touchEnd', x0 + dx, y0 + dy);
       }
     } else {
+      // Keys (and, on WebKit's iPhone, where native touch cannot be driven from a test, the same egg by keyboard).
       for (const k of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']) await page.keyboard.press(k);
       await expect(page.locator('.desktop')).toHaveAttribute('data-wave', '');
     }
@@ -471,6 +474,7 @@ test.describe('touch tablet', () => {
 
   test('a native finger drag carries a Distractions item to the Trash without the browser cancelling it as a pan', async ({ page }) => {
     test.skip(phone(page), 'Phones select and press Move to Trash; item dragging is for the desktop layout.');
+    test.skip(page.context().browser()?.browserType().name() !== 'chromium', 'Native touch is driven through Chromium’s DevTools protocol.');
     await page.goto('/');
     await closeAll(page);
     await openIcon(page, 'Distractions');
@@ -528,4 +532,16 @@ test.describe('enlarged text', () => {
       if (width === 375) await shot(page, 'patterns-200-percent-text');
     });
   }
+});
+
+test('on a short phone every File menu item can be reached (the menu scrolls inside itself)', async ({ page }) => {
+  test.skip(!phone(page), 'Phone layout.');
+  await page.setViewportSize({ width: 375, height: 560 });
+  await page.goto('/');
+  await press(page, page.getByRole('menuitem', { name: 'File', exact: true }));
+  const list = page.getByRole('menu');
+  const b = (await list.boundingBox())!;
+  expect(b.y + b.height).toBeLessThanOrEqual(560);
+  await press(page, list.getByRole('menuitem', { name: 'Close All Windows' }));
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });

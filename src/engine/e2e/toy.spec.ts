@@ -19,7 +19,8 @@ test.beforeEach(async ({ page }) => {
   await page.waitForFunction(() => document.title === "ready");
 });
 
-test("repeated chords replace each other and everything at once stays under full scale", async ({ page }) => {
+test("repeated chords replace each other and everything at once stays under full scale", async ({ page, browserName }) => {
+  test.skip(browserName === "firefox", "Firefox's OfflineAudioContext has no suspend(), which schedules the mid-render steps; Chromium and WebKit run it.");
   const p = await toy(page).peaks();
   expect(p.one).toBeGreaterThan(0.05); // it is audible
   expect(p.five).toBeLessThan(p.one * 1.5); // five quick previews do not stack
@@ -27,7 +28,8 @@ test("repeated chords replace each other and everything at once stays under full
   expect(p.all).toBeLessThan(0.95); // an overload of ~2.6 before the bus comes out under full scale (the limiter)
 });
 
-test("setting the volume to 0 silences a sound that is already playing", async ({ page }) => {
+test("setting the volume to 0 silences a sound that is already playing", async ({ page, browserName }) => {
+  test.skip(browserName === "firefox", "Firefox's OfflineAudioContext has no suspend(), which schedules the mid-render steps; Chromium and WebKit run it.");
   const m = await toy(page).mute();
   expect(m.before).toBeGreaterThan(0.01);
   expect(m.after).toBeLessThan(1e-4);

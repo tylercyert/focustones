@@ -20,6 +20,16 @@ export interface EngineEvents {
 
 type Listener<K extends keyof EngineEvents> = (value: EngineEvents[K]) => void;
 
+/** What one gesture started: the context's resume and, on iOS, the media element's play (null elsewhere). */
+interface Unlock {
+  resumed: Promise<void>;
+  /** Settles true when the element plays, false when the browser refused it. Never rejects. */
+  played: Promise<boolean> | null;
+}
+
+/** How long a start waits for the iOS media element before calling the start done anyway. */
+const ELEMENT_PLAY_WAIT_MS = 1500;
+
 /** Headphones play binaural beats; speakers play isochronic pulses (the app's two modes). */
 export const modeForOutput = (output: "headphones" | "speaker"): Mode => (output === "headphones" ? "binaural" : "isochronic");
 
@@ -127,7 +137,7 @@ export class FocusEngine {
     return this.run(unlocked);
   }
 
-  private async run(unlocked: Promise<unknown>): Promise<void> {
+  private async run(unlocked: Unlock): Promise<void> {
     try {
       while (this.wantsPlaying && this.state !== "playing") {
         if (this.pending) {
@@ -146,7 +156,7 @@ export class FocusEngine {
   }
 
   /** Creates and resumes the context and starts the media element (iOS), all synchronously inside the gesture. */
-  private unlock(): Promise<unknown> {
+  private unlock(): Unlock {
     if (!this.ctx) {
       const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new Ctor({ latencyHint: "playback" });
@@ -161,13 +171,28 @@ export class FocusEngine {
         this.element = el;
       }
     }
-    return Promise.all([this.ctx.resume(), this.element?.play()]);
+    const resumed = this.ctx.resume();
+    const played = this.element ? this.element.play().then(() => true, () => false) : null;
+    return { resumed, played };
   }
 
-  private async begin(unlocked: Promise<unknown>) {
+  private async begin(unlocked: Unlock) {
     const ctx = this.ctx!;
-    await unlocked;
+    await unlocked.resumed;
+    // The node must feed the stream before the element's play() can settle: WebKit holds play() on a MediaStream
+    // until the stream carries audio, so awaiting it before building the node would never finish.
     if (!this.node) await this.build(ctx);
+    if (unlocked.played) {
+      const played = await Promise.race([unlocked.played, new Promise<null>((r) => setTimeout(() => r(null), ELEMENT_PLAY_WAIT_MS))]);
+      // Refused (no gesture, or a policy): play straight to the speakers rather than not at all.
+      if (played === false && this.node && this.stream) {
+        this.node.disconnect();
+        this.node.connect(ctx.destination);
+        this.element?.pause();
+        this.element = null;
+        this.stream = null;
+      }
+    }
     if (!this.wantsPlaying) {
       this.suspendOutput();
       return;

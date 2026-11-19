@@ -5,12 +5,15 @@ Everything in `public/` is self-hosted and has a known licence (ADR 0004). The o
 | File | What | Source | Licence |
 | --- | --- | --- | --- |
 | `public/fonts/pixelify-sans-latin-400-normal.woff2`, `…-700-normal.woff2` | Pixelify Sans, Latin subset, regular and bold: the bitmap-style interface font | Pixelify Sans Project Authors, via the `@fontsource/pixelify-sans` 5.3.0 package | SIL OFL 1.1 (`docs/licenses/PixelifySans-OFL.txt`) |
-| `public/icons/app-64.png`, `app-128.png`, `app-256.png` | The FocusTones app icon (gold orb on ink), downscaled from the approved marketing icon (`focustones-ios` `docs/marketing/web/icon.png`) for the menu bar, icons and startup | Own work (the app's icon) | Own work |
-| `public/frames/*.webp` | The app's App Store frames (`focustones-ios` `docs/marketing/kit/frames/01…05`: Listen, Tune, Timer, Mixes, Progress), resized to 640 px wide and converted to WebP (ImageMagick) | Own work (the app's marketing) | Own work |
+| `public/icons/app-64.png`, `app-128.png`, `app-256.png` (and `.avif`, `.webp` of each) | The FocusTones app icon (gold orb on ink), downscaled from the approved marketing icon (`focustones-ios` `docs/marketing/web/icon.png`) for the menu bar, icons, windows and startup; PNGs by `scripts/make-icons.sh`, AVIF/WebP by `scripts/make-images.sh` (ImageMagick) | Own work (the app's icon) | Own work |
+| `public/favicon.ico` (16, 32, 48), `public/icons/favicon-32.png`, `public/apple-touch-icon.png` (180) | Favicons and the home-screen icon, from the same app icon (`scripts/make-icons.sh`) | Own work (the app's icon) | Own work |
+| `public/og.png` | The 1200×630 link-preview image: a screenshot of this site's own desktop with Listen open, rendered by `scripts/og-image.mjs` | Own work | Own work |
+| `public/frames/*.webp` (and `*-320`, `*-640` `.avif`/`.webp`) | The app's App Store frames (`focustones-ios` `docs/marketing/kit/frames/01…05`: Listen, Tune, Timer, Mixes, Progress), resized to 640 px wide and converted to WebP (ImageMagick); the 320 and 640 px AVIF/WebP sizes the windows serve are made from these by `scripts/make-images.sh` | Own work (the app's marketing) | Own work |
 | `public/frames/layers.webp` | Crop (layer, layer level, brightness) of the app's Tune capture (`focustones-ios` `docs/marketing/store/1.0/captures/05-tune-layer.png`), resized to 640 px wide (ImageMagick); no caption | Own work (the app's marketing) | Own work |
 | `public/badges/app-store-black.svg` | Apple's official "Download on the App Store" black badge, US-UK, as already self-hosted by `apps-tyl-sh` (`public/badges/app-store-black.svg`; Apple App Store Marketing Tools, 2026-10-27), used unaltered and linking to the app's App Store page | Apple's App Store Marketing Artwork License Agreement and App Store marketing guidelines | Apple Inc. |
-| `public/favicon.svg` | Site icon | Existing in this repo | Own work |
 
 Body text inside windows uses the system UI font stack (nothing is downloaded); Pixelify Sans is used only for the menu bar, window titles, icon labels and the phone window tabs.
+
+The desktop pattern is not a file either: it is drawn in CSS (`src/desktop/theme.css`), an original dither, not an Apple pattern.
 
 The QR code on the Get FocusTones window is not a file: `vite-plugin-qr.ts` generates it at build time (`qrcode-generator`, MIT) from the campaign link.

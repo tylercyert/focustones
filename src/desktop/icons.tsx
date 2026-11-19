@@ -191,13 +191,27 @@ function rectsFor(name: string) {
 
 function hasIcon(name: string): boolean { return name in drawers; }
 
+const ICON_WIDTHS = [64, 128, 256] as const;
+const iconSet = (ext: string) => ICON_WIDTHS.map((w) => `/icons/app-${w}.${ext} ${w}w`).join(', ');
+
+/**
+ * The real app icon (gold orb on ink), downscaled from the approved marketing icon (ASSETS.md): AVIF, then WebP, then
+ * PNG, each at 64, 128 and 256 px, so the browser fetches the smallest file that is sharp at `size` on this screen.
+ */
+export function AppIconImage({ size, className, style }: { size: number; className?: string; style?: CSSProperties }) {
+  const sizes = `${size}px`;
+  return (
+    <picture className="pic">
+      <source type="image/avif" srcSet={iconSet('avif')} sizes={sizes} />
+      <source type="image/webp" srcSet={iconSet('webp')} sizes={sizes} />
+      <img className={className} style={style} src="/icons/app-128.png" srcSet={iconSet('png')} sizes={sizes} width={size} height={size} alt="" aria-hidden="true" draggable={false} />
+    </picture>
+  );
+}
+
 /** A named pixel icon, or a glyph when `name` is not one of ours. Decorative: callers label the control. */
 export function Icon({ name, size = 32, className, style }: { name: string; size?: number; className?: string; style?: CSSProperties }) {
-  if (name === 'app') {
-    // The real app icon (gold orb on ink), downscaled from the approved marketing icon; see ASSETS.md.
-    const file = size <= 32 ? 64 : size <= 64 ? 128 : 256;
-    return <img className={`app-icon${className ? ` ${className}` : ''}`} style={style} src={`/icons/app-${file}.png`} width={size} height={size} alt="" aria-hidden="true" draggable={false} />;
-  }
+  if (name === 'app') return <AppIconImage size={size} className={`app-icon${className ? ` ${className}` : ''}`} style={style} />;
   if (!hasIcon(name)) {
     return <span className={className} style={{ fontSize: size * 0.8, lineHeight: `${size}px`, width: size, height: size, display: 'inline-block', textAlign: 'center', ...style }} aria-hidden="true">{name}</span>;
   }

@@ -12,6 +12,7 @@ import { initialState, loadSaved, reduce, save, type Size, type WindowDef } from
 import { Switcher } from './Switcher.tsx';
 import { Delights, useDesktopExtras } from '../windows/extras/index.ts';
 import { WindowFrame } from './Window.tsx';
+import './theme.css';
 import './desktop.css';
 
 const specs = [...windowRegistry, ...shellWindows];
@@ -22,7 +23,7 @@ const m = strings.menuBar;
 export default function Desktop() {
   const phone = usePhone();
   const reduced = useReducedMotion();
-  const [state, dispatch] = useReducer(reduce, undefined, () => initialState(defs, loadSaved()));
+  const [state, dispatch] = useReducer(reduce, undefined, () => initialState(defs, loadSaved(), { width: window.innerWidth, height: window.innerHeight - 24 }));
   const [selected, setSelected] = useState<string[]>([]);
   const [showDate, setShowDate] = useState(false);
   const [starting, setStarting] = useState(() => { try { return localStorage.getItem(SEEN) !== '1'; } catch { return true; } });
@@ -107,7 +108,7 @@ export default function Desktop() {
       { kind: 'item', label: m.deselectAll, disabled: selected.length === 0, onSelect: () => setSelected([]) },
     ] },
     { id: 'view', label: m.view, items: [
-      { kind: 'item', label: m.cleanUp, onSelect: () => { dispatch({ type: 'cleanUp', defs }); extras.cleanUpIcons(); } },
+      { kind: 'item', label: m.cleanUp, onSelect: () => { dispatch({ type: 'cleanUp', defs, surface }); extras.cleanUpIcons(); } },
       { kind: 'item', label: m.showDate, checked: showDate, onSelect: () => setShowDate(!showDate) },
     ] },
     extras.specialMenu,

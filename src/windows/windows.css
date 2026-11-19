@@ -1,168 +1,224 @@
-/* The windows' insides: FocusTones' own palette (focustones-ios docs/design/DESIGN.md, "Night instrument"), not the
-   desktop chrome. Everything is scoped to .ft-win so the shell's classic Mac look is untouched. */
+/* The windows' insides, in period Platinum (owner, #8: "mac inspired", "period correct"): grey faces, black text, bevelled
+   push buttons, bevel-button palettes, radio buttons and etched group boxes. FocusTones' own palette
+   (focustones-ios docs/design/DESIGN.md) survives in two places: the Listen display, a dark inset screen where the
+   orb glows, and the band colours as accents. Tokens come from src/desktop/theme.css. */
 .ft-win {
-  --ink: #0a0c12; --surface: #141823; --elevated: #1c2130; --fill: #262c3d; --sep: #262b38;
-  --text: #f2f4f8; --text2: #a3aabb; --text3: #828a9c; --pro: #e9c866;
   --band: #d9b44a; --band-light: #f4de8e; --band-deep: #a8721a;
   container-type: inline-size;
   box-sizing: border-box; min-height: 100%;
-  background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--band) 9%, var(--ink)) 0%, var(--ink) 62%);
-  color: var(--text);
-  font: 400 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--plat);
+  color: var(--plat-ink);
+  font: 400 13.5px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-feature-settings: 'tnum' 1;
-  -webkit-font-smoothing: antialiased;
-  padding: 20px;
+  padding: 16px 18px 18px;
 }
 .ft-win *, .ft-win *::before, .ft-win *::after { box-sizing: border-box; }
 .ft-win h2, .ft-win h3, .ft-win p, .ft-win ul, .ft-win figure { margin: 0; padding: 0; }
 .ft-win ul { list-style: none; }
-.ft-win button { font: inherit; color: inherit; cursor: pointer; }
-.ft-win a { color: var(--band-light); }
-.ft-win :focus-visible { outline: 2px solid var(--band-light); outline-offset: 2px; }
+.ft-win button { font: inherit; color: inherit; }
+.ft-win a { color: #1a1aa6; } /* period link blue on platinum: 7.3:1 */
 .ft-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .ft-center { text-align: center; }
 
-.ft-h2 { font-size: 20px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
-.ft-h3 { font-size: 15px; font-weight: 650; margin: 18px 0 6px; }
-.ft-p { color: var(--text2); font-size: 14px; line-height: 1.5; margin-top: 8px; }
-.ft-small { color: var(--text3); font-size: 12.5px; line-height: 1.4; }
-.ft-tag { color: var(--text3); font-size: 12.5px; }
+.ft-h2 { font-size: 18px; line-height: 1.25; font-weight: 700; }
+.ft-h3 { font-size: 13.5px; font-weight: 700; margin: 16px 0 4px; }
+.ft-p { color: var(--plat-ink-2); font-size: 13.5px; line-height: 1.5; margin-top: 6px; }
+.ft-small { color: var(--plat-ink-3); font-size: 12.5px; line-height: 1.4; }
+.ft-tag { color: var(--plat-ink-3); font-size: 12.5px; }
+
+/* ---------- Shared period controls ---------- */
+/* Bevel: raised face. Well: sunken field or list. Group box: an etched frame with its label sitting on the line. */
+.ft-well { background: var(--plat-well); border: 1px solid var(--plat-lo); border-right-color: var(--plat-hi); border-bottom-color: var(--plat-hi); box-shadow: inset 1px 1px #000; }
+.ft-groupbox { position: relative; margin-top: 18px; padding: 14px 12px 12px; border: 1px solid var(--plat-lo); box-shadow: 1px 1px 0 var(--plat-hi), inset 1px 1px 0 var(--plat-hi); text-align: left; }
+.ft-win .ft-groupbox-label {
+  position: absolute; top: -0.75em; left: 8px; margin: 0; padding: 0 4px; background: var(--plat);
+  color: var(--plat-ink); font-size: 12.5px; font-weight: 700; letter-spacing: 0; text-transform: none; line-height: 1.4;
+}
+/* Push button: a rounded-rectangle bevel with a black outline; it inverts while pressed. */
+.ft-push, .ft-locked, .ft-getbar-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 26px; padding: 3px 14px;
+  border: 1px solid #000; border-radius: 4px; background: var(--plat); color: #000;
+  box-shadow: inset 1px 1px var(--plat-hi), inset -1px -1px var(--plat-lo); font-size: 13px; font-weight: 600; text-decoration: none;
+}
+.ft-push:active, .ft-locked:active, .ft-getbar-btn:active { background: var(--plat-dark); color: #fff; box-shadow: inset 1px 1px #000; }
+.ft-push:active svg, .ft-locked:active svg { fill: #fff; }
+.ft-win :focus-visible { outline: 2px solid #000; outline-offset: 1px; box-shadow: 0 0 0 4px #fff; }
 
 /* ---------- Listen ---------- */
-.ft-listen { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 8px; }
-.ft-stage { height: 182px; display: grid; place-items: center; margin-bottom: 4px; position: relative; z-index: 0; }
-.ft-orb { position: relative; flex: none; transform: scale(var(--orb-scale, 1)); }
-.ft-orb canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; max-width: none; }
-.ft-now { margin-top: 2px; position: relative; z-index: 1; }
-.ft-name { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; }
-.ft-line { color: var(--band-light); font-size: 14px; font-weight: 550; margin-top: 3px; letter-spacing: 0.01em; transition: color 0.6s; }
-.ft-status { color: var(--text3); font-size: 12.5px; margin-top: 2px; min-height: 18px; font-variant-numeric: tabular-nums; }
-
-.ft-play {
-  width: 76px; height: 76px; border-radius: 50%; border: 0; margin: 8px 0 12px; display: grid; place-items: center;
-  color: var(--ink); fill: var(--ink);
-  background: radial-gradient(circle at 35% 28%, var(--band-light), var(--band) 58%, var(--band-deep));
-  box-shadow: 0 6px 28px color-mix(in srgb, var(--band) 45%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.35);
-  transition: transform 0.15s, box-shadow 0.4s; position: relative; z-index: 1;
+.ft-listen { display: flex; flex-direction: column; align-items: center; text-align: center; }
+/* The display: a sunken dark screen. Its insides keep FocusTones' night palette and the orb's glow. */
+.ft-display {
+  width: 100%; padding: 6px 12px 12px; position: relative; overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--band) 14%, var(--display)) 0%, var(--display) 65%);
+  color: var(--display-ink);
+  border: 1px solid var(--plat-lo); border-right-color: var(--plat-hi); border-bottom-color: var(--plat-hi);
+  box-shadow: inset 1px 1px #000, inset -1px -1px #000;
+  -webkit-font-smoothing: antialiased;
 }
-.ft-play:hover { transform: scale(1.04); }
-.ft-play:active { transform: scale(0.97); }
+.ft-stage { height: 190px; display: grid; place-items: center; position: relative; z-index: 0; }
+.ft-orb { position: relative; flex: none; transform: scale(var(--orb-scale, 1)); }
+/* The glow and the sphere each get their own compositor layer, so a frame repaints the sphere's pixels and nothing
+   around it (the display's gradient and text stay painted). */
+.ft-orb-glow { will-change: opacity; opacity: 0; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+.ft-orb canvas { will-change: transform; image-rendering: auto; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; max-width: none; }
+.ft-now { position: relative; z-index: 1; }
+.ft-name { font-size: 26px; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; }
+.ft-line { color: var(--band-light); font-size: 14px; font-weight: 550; margin-top: 3px; letter-spacing: 0.01em; transition: color 0.6s; }
+.ft-status { color: var(--display-ink-2); font-size: 12.5px; margin-top: 2px; min-height: 18px; font-variant-numeric: tabular-nums; }
 
-.ft-group { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; padding: 4px; border-radius: 16px; background: var(--surface); border: 0.5px solid var(--sep); }
-.ft-band { flex: 1 1 56px; min-width: 0; border: 0; background: transparent; border-radius: 12px; padding: 7px 0 6px; display: grid; justify-items: center; gap: 0; color: var(--text2); transition: background 0.2s, color 0.2s; min-height: 44px; }
-.ft-band-letter { font-size: 16px; line-height: 1.1; font-weight: 600; }
-.ft-band-name { font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.85; }
-.ft-band[aria-checked='true'] { background: var(--chip); color: var(--ink); }
-.ft-band:not([aria-checked='true']):hover { background: var(--fill); }
+/* Play: the default button (a thick black ring round a push button), as on a period dialog. */
+.ft-play {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 132px; height: 34px; margin: 14px 0 12px; padding: 0 18px;
+  border: 1px solid #000; border-radius: 6px; background: var(--plat); color: #000; fill: #000; font-size: 15px; font-weight: 700;
+  box-shadow: inset 1px 1px var(--plat-hi), inset -1px -1px var(--plat-lo), 0 0 0 2px var(--plat), 0 0 0 3px #000, 0 0 0 4px var(--plat-dark);
+  position: relative; z-index: 1;
+}
+.ft-play:active { background: var(--plat-dark); color: #fff; fill: #fff; box-shadow: inset 1px 1px #000, 0 0 0 2px var(--plat), 0 0 0 3px #000, 0 0 0 4px var(--plat-dark); }
+.ft-win .ft-play:focus-visible { outline-offset: 5px; box-shadow: inset 1px 1px var(--plat-hi), inset -1px -1px var(--plat-lo), 0 0 0 2px var(--plat), 0 0 0 3px #000; }
 
-.ft-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; width: 100%; margin-top: 10px; }
-.ft-label { flex: none; width: 74px; text-align: left; color: var(--text2); font-size: 13px; font-weight: 550; }
-.ft-unit { color: var(--text3); font-size: 12px; flex: none; }
-.ft-seg { display: flex; flex: 1 1 12em; flex-wrap: wrap; min-width: 0; padding: 3px; gap: 2px; border-radius: 11px; background: var(--fill); }
-.ft-seg button { flex: 1 1 auto; min-width: 2.2em; border: 0; background: transparent; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: 550; color: var(--text2); min-height: 32px; font-variant-numeric: tabular-nums; }
-.ft-seg button[aria-checked='true'] { background: var(--text); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
-.ft-seg button:not([aria-checked='true']):hover { color: var(--text); }
-.ft-note { color: var(--text3); font-size: 12.5px; line-height: 1.4; margin-top: 8px; text-align: left; width: 100%; min-height: 34px; }
+/* Bands: a palette of bevel buttons. The chosen one is pressed in, with its band colour on the swatch. */
+.ft-group { display: flex; width: 100%; border: 1px solid #000; background: #000; gap: 1px; }
+.ft-band {
+  flex: 1 1 56px; min-width: 0; min-height: 50px; padding: 5px 0 4px; display: grid; justify-items: center; align-content: center; gap: 1px;
+  border: 0; background: var(--plat); color: #000; box-shadow: inset 1px 1px var(--plat-hi), inset -1px -1px var(--plat-lo);
+}
+.ft-band-swatch { width: 18px; height: 5px; background: var(--chip); border: 1px solid #000; margin-bottom: 2px; }
+.ft-band-letter { font-size: 15px; line-height: 1.1; font-weight: 700; }
+.ft-band-name { font-size: 11px; font-weight: 600; color: var(--plat-ink-2); }
+.ft-band[aria-checked='true'] { background: var(--plat-mid); box-shadow: inset 1px 1px var(--plat-dark), inset -1px -1px var(--plat-hi); }
+.ft-band[aria-checked='true'] .ft-band-swatch { height: 7px; margin-bottom: 0; }
+.ft-band[aria-checked='true'] .ft-band-name { color: #000; }
+.ft-band:active { background: var(--plat-lo); }
+.ft-win .ft-band:focus-visible { outline-offset: -4px; box-shadow: none; position: relative; z-index: 1; }
 
-.ft-pro { width: 100%; margin-top: 10px; padding: 10px 12px 12px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); text-align: left; }
-.ft-pro-eyebrow { display: block; color: var(--pro); font-size: 11px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
-.ft-pro-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.ft-locked { flex: 1 1 auto; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border: 0.5px solid var(--sep); background: var(--elevated); border-radius: 10px; padding: 7px 8px; font-size: 13px; font-weight: 550; min-height: 34px; color: var(--text); }
-.ft-locked svg { fill: var(--pro); }
-.ft-locked:hover { border-color: color-mix(in srgb, var(--pro) 50%, var(--sep)); }
+/* Timer and Mode: period radio buttons (a sunken white circle; the choice gets a black dot). */
+.ft-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; width: 100%; margin-top: 12px; }
+.ft-label { flex: none; width: 52px; text-align: left; font-size: 13px; font-weight: 700; }
+.ft-label::after { content: ':'; }
+.ft-unit { color: var(--plat-ink-3); font-size: 12.5px; flex: none; }
+.ft-radios { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
+.ft-radio { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 2px; border: 0; background: none; font-size: 13px; font-variant-numeric: tabular-nums; color: #000; }
+.ft-radio::before {
+  content: ''; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--plat-well);
+  border: 1px solid #000; box-shadow: inset 1px 1px var(--plat-lo);
+}
+.ft-radio[aria-checked='true']::before { background: radial-gradient(circle, #000 0 2.5px, var(--plat-well) 3px); }
+.ft-radio:active::before { background: var(--plat-lo); }
+.ft-win .ft-radio:focus-visible { outline-offset: 0; box-shadow: none; }
+.ft-note { color: var(--plat-ink-3); font-size: 12.5px; line-height: 1.4; margin-top: 6px; text-align: left; width: 100%; min-height: 34px; }
 
-.ft-foot { color: var(--text2); font-size: 12.5px; line-height: 1.4; margin-top: 10px; }
-.ft-foot-dim { color: var(--text3); margin-top: 4px; }
+.ft-pro { width: 100%; }
+.ft-pro-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ft-locked { flex: 1 1 auto; }
+.ft-locked svg { fill: #000; flex: none; }
+
+.ft-foot { color: var(--plat-ink-3); font-size: 12.5px; line-height: 1.4; margin-top: 10px; }
 
 /* ---------- Get FocusTones ---------- */
 .ft-get-head { display: flex; gap: 14px; align-items: center; }
-.ft-icon { border-radius: 22.4%; box-shadow: 0 6px 20px rgb(0 0 0 / 0.5), 0 0 0 0.5px rgb(255 255 255 / 0.1); flex: none; display: block; }
+.ft-icon { border-radius: 22.4%; box-shadow: 1px 1px 0 rgb(0 0 0 / 0.55); flex: none; display: block; }
 .ft-icon-lg { margin: 6px auto 12px; }
-.ft-get-name { font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
-.ft-get-sub { color: var(--text2); font-size: 13.5px; margin-top: 2px; }
-.ft-get-pitch { margin-top: 14px; font-size: 16px; line-height: 1.4; font-weight: 550; letter-spacing: -0.005em; }
-.ft-get-cta { margin-top: 16px; display: grid; gap: 12px; }
+.ft-get-name { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.ft-get-sub { color: var(--plat-ink-3); font-size: 13px; margin-top: 2px; }
+.ft-get-pitch { margin-top: 16px; font-size: 15px; line-height: 1.4; font-weight: 600; }
+.ft-get-cta { margin-top: 14px; display: grid; gap: 12px; }
 .ft-badge { display: inline-block; line-height: 0; border-radius: 8px; }
 .ft-badge img { display: block; }
-.ft-get-qr { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); }
-.ft-qr { flex: none; width: 96px; height: 96px; border-radius: 8px; overflow: hidden; display: block; line-height: 0; }
+.ft-get-qr { display: flex; gap: 12px; align-items: center; padding: 10px; }
+.ft-qr { flex: none; width: 96px; height: 96px; overflow: hidden; display: block; line-height: 0; border: 1px solid #000; }
 .ft-qr svg { width: 100%; height: 100%; }
-.ft-get-qr-title { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
-.ft-get-qr-note { color: var(--text3); font-size: 12.5px; margin-top: 2px; }
-.ft-ticks { margin-top: 14px; display: grid; gap: 6px; }
-.ft-ticks li { position: relative; padding-left: 22px; color: var(--text); font-size: 13.5px; }
-.ft-ticks li::before { content: ''; position: absolute; left: 3px; top: 0.35em; width: 5px; height: 9px; border: solid #4fd18b; border-width: 0 2px 2px 0; transform: rotate(40deg); }
-.ft-prices { margin-top: 8px; display: grid; gap: 1px; border-radius: 12px; overflow: hidden; background: var(--sep); }
-.ft-prices li { background: var(--surface); padding: 9px 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
-.ft-get .ft-h3 { margin-top: 20px; color: var(--pro); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 650; }
-.ft-get .ft-small { margin-top: 12px; }
+.ft-get-qr-title { font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.ft-get-qr-note { color: var(--plat-ink-3); font-size: 12.5px; margin-top: 2px; }
+.ft-ticks { margin-top: 18px; display: grid; gap: 4px; }
+.ft-ticks li { position: relative; padding-left: 20px; font-size: 13.5px; }
+.ft-ticks li::before { content: ''; position: absolute; left: 4px; top: 0.3em; width: 5px; height: 9px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(40deg); }
+.ft-prices { margin-top: 6px; display: grid; }
+.ft-prices li { padding: 5px 8px; font-size: 13px; font-variant-numeric: tabular-nums; border-bottom: 1px solid #e4e4e4; }
+.ft-prices li:last-child { border-bottom: 0; }
+.ft-get .ft-groupbox .ft-p { margin-top: 0; }
+.ft-get .ft-small { margin-top: 10px; }
 
-.ft-getbar { --elevated: #1c2130; --sep: #262b38; --text: #f2f4f8; --text2: #a3aabb; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--elevated); color: var(--text); font: 400 13px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif; border-top: 0.5px solid var(--sep); }
+.ft-getbar {
+  display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--plat); color: #000;
+  font: 400 13px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif; border-top: 1px solid #000; box-shadow: inset 0 1px var(--plat-hi);
+}
 .ft-getbar img { border-radius: 8px; }
 .ft-getbar-text { flex: 1; display: grid; min-width: 0; }
-.ft-getbar-text span { color: var(--text2); font-size: 12px; }
-.ft-getbar-btn { background: #f2f4f8; color: #0a0c12 !important; text-decoration: none; font-weight: 650; border-radius: 999px; padding: 6px 16px; }
+.ft-getbar-text span { color: var(--plat-ink-3); font-size: 12px; }
+.ft-win .ft-getbar-btn, .ft-getbar-btn { min-width: 64px; color: #000; }
+.ft-win .ft-getbar-btn:active { color: #fff; }
 
 /* ---------- Feature windows ---------- */
 .ft-flush { padding: 0; }
-.ft-feature { display: grid; gap: 20px; align-content: start; }
-.ft-frame { background: #05060a; display: grid; place-items: center; padding: 20px 20px 0; overflow: hidden; }
-.ft-frame.ft-frame-crop { padding: 20px; align-items: center; }
-.ft-frame.ft-frame-crop img { border-radius: 18px; box-shadow: 0 8px 32px rgb(0 0 0 / 0.55); width: min(280px, 100%); }
-.ft-frame img { width: min(260px, 100%); height: auto; display: block; border-radius: 22px 22px 0 0; box-shadow: 0 -8px 40px rgb(0 0 0 / 0.6); }
-.ft-feature-text { padding: 0 20px 22px; }
-.ft-eyebrow { color: var(--text3); font-size: 11px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; }
-.ft-eyebrow-pro { color: var(--pro); }
-.ft-feature .ft-h2 { margin-top: 4px; font-size: 22px; }
+.ft-feature { display: grid; gap: 18px; align-content: start; }
+/* The real app frame on a darker platinum backdrop, sunk into the window. */
+.ft-frame {
+  display: grid; place-items: center; padding: 18px 18px 0; overflow: hidden; background: var(--plat-mid);
+  border-bottom: 1px solid var(--plat-lo); box-shadow: inset 0 -1px var(--plat-hi);
+}
+.ft-frame.ft-frame-crop { padding: 18px; align-items: center; }
+.ft-frame.ft-frame-crop img { border-radius: 18px; width: min(280px, 100%); box-shadow: 1px 1px 0 rgb(0 0 0 / 0.55); }
+.ft-frame img { width: min(250px, 100%); height: auto; display: block; border-radius: 22px 22px 0 0; }
+.ft-feature-text { padding: 0 20px 20px; }
+.ft-eyebrow { color: var(--plat-ink-3); font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.ft-eyebrow-pro { color: #6b4500; } /* deep gold on platinum: 6.0:1 */
+.ft-feature .ft-h2 { margin-top: 4px; font-size: 20px; }
 .ft-feature-cta { margin-top: 16px; }
 .ft-surfaces-label { margin-top: 16px; }
 .ft-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.ft-chips li { background: var(--fill); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; font-weight: 550; }
+.ft-chips li { padding: 2px 8px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--plat-lo); background: var(--plat-well); }
 @container (min-width: 520px) {
+  .ft-feature { grid-template-columns: 290px 1fr; gap: 0; align-items: stretch; align-content: stretch; min-height: 400px; }
+  .ft-frame { max-height: 420px; padding: 26px 20px 0; align-items: end; border-bottom: 0; border-right: 1px solid var(--plat-lo); box-shadow: inset -1px 0 var(--plat-hi); }
   .ft-frame.ft-frame-crop { padding: 20px; align-items: center; }
-  .ft-feature { grid-template-columns: 300px 1fr; gap: 0; align-items: stretch; align-content: stretch; min-height: 400px; }
-  .ft-frame { max-height: 400px; }
-  .ft-frame { padding: 28px 20px 0; align-items: end; }
-  .ft-feature-text { padding: 28px 24px 24px 8px; align-self: center; }
+  .ft-feature-text { padding: 24px 24px 24px 22px; align-self: center; }
 }
 
 /* ---------- About ---------- */
-.ft-about { display: grid; gap: 22px; align-content: start; }
-.ft-sec-head { display: flex; justify-content: space-between; align-items: baseline; }
-.ft-sound-card { margin-top: 10px; padding: 14px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); display: grid; gap: 6px; }
-.ft-ear { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); }
+.ft-about { display: grid; gap: 20px; align-content: start; }
+.ft-sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ft-sound-card { margin-top: 10px; padding: 10px 12px; display: grid; gap: 4px; }
+.ft-ear { display: flex; justify-content: space-between; font-size: 13px; color: var(--plat-ink-2); }
+.ft-ear-left { color: #00756e; font-weight: 600; }
+.ft-ear-right { color: #7a4f00; font-weight: 600; }
 .ft-wave { width: 100%; height: 28px; margin: 4px 0 2px; }
-.ft-pulses { display: flex; gap: 6px; height: 28px; margin-top: 10px; }
-.ft-pulses span { flex: 1; background: var(--pro); border-radius: 99px; }
+.ft-pulses { display: flex; gap: 4px; height: 24px; margin-top: 10px; padding: 4px; }
+.ft-pulses span { flex: 1; background: #7a4f00; }
 .ft-plain { display: grid; gap: 6px; margin-top: 8px; }
-.ft-plain li { color: var(--text2); font-size: 14px; line-height: 1.5; padding-left: 14px; position: relative; }
-.ft-plain li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
+.ft-plain li { color: var(--plat-ink-2); font-size: 13.5px; line-height: 1.5; padding-left: 14px; position: relative; }
+.ft-plain li::before { content: ''; position: absolute; left: 2px; top: 0.6em; width: 5px; height: 5px; background: #000; }
 
 .ft-about-app { text-align: center; display: grid; align-content: start; justify-items: center; gap: 4px; }
 .ft-about-app .ft-p { max-width: 34ch; }
-.ft-privacy { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); width: 100%; }
-.ft-privacy .ft-h3 { margin: 0; color: var(--pro); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
-.ft-privacy .ft-p { color: var(--text); font-weight: 550; max-width: none; }
+.ft-privacy { width: 100%; }
+.ft-privacy .ft-p { color: #000; font-weight: 600; max-width: none; margin-top: 0; }
 .ft-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 10px !important; font-size: 13.5px; }
 .ft-about-app > .ft-center { margin-top: 14px; }
 .ft-fine { max-width: 36ch; margin-top: 10px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ft-play, .ft-band, .ft-line { transition: none; }
+  .ft-line { transition: none; }
 }
 
 /* Phones: Listen is the first card and must show Play without scrolling, with the Get bar under it. */
 @container (max-width: 420px) {
-  .ft-win { padding: 14px 16px; }
-  .ft-listen { padding-top: 4px; }
-  .ft-stage { height: 142px; margin-bottom: 0; --orb-scale: 0.8; }
-  .ft-name { font-size: 25px; }
-  .ft-play { width: 68px; height: 68px; margin: 6px 0 10px; }
+  .ft-win { padding: 12px 14px; }
+  .ft-display { padding: 2px 10px 10px; }
+  .ft-stage { height: 150px; --orb-scale: 0.78; }
+  .ft-name { font-size: 23px; }
+  .ft-play { margin: 12px 0 10px; height: 36px; }
+  .ft-band { min-height: 48px; }
   .ft-row { margin-top: 8px; }
-  .ft-note { margin-top: 6px; min-height: 0; }
-  .ft-pro { margin-top: 8px; padding: 8px 10px 10px; }
-  .ft-pro-eyebrow { margin-bottom: 6px; }
+  .ft-radios { gap: 0 10px; }
+  .ft-note { margin-top: 4px; min-height: 0; }
+  .ft-groupbox { margin-top: 16px; padding: 12px 10px 10px; }
   .ft-foot { margin-top: 8px; }
+}
+
+/* The narrowest phones put each row's label above its radio buttons, so Timer's six choices stay on one line. */
+@container (max-width: 400px) {
+  .ft-row { column-gap: 6px; }
+  .ft-label { width: 100%; }
 }
 
 /* A phone has the badge; the QR code is for a computer: only a fine pointer on a desktop-sized screen shows it. */
@@ -170,4 +226,4 @@
 @media (pointer: fine) and (min-width: 700px) { .ft-get-qr { display: flex; } }
 
 /* On a phone the Get bar sits at the foot of Listen, so the App Store link is always in reach. */
-.ft-bar-dock { position: sticky; bottom: 0; margin: 10px -16px -14px; width: calc(100% + 32px); z-index: 2; }
+.ft-bar-dock { position: sticky; bottom: 0; margin: auto -14px -12px; padding-top: 10px; width: calc(100% + 28px); z-index: 2; }
