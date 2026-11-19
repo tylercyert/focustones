@@ -14,8 +14,8 @@ const feature = (id: string, title: string, icon: string, n: number, component: 
 
 /** Every window this folder provides; `src/desktop/registry.ts` lists them. The About FocusTones window is the shell's `about`. */
 export const windowSpecs: readonly WindowSpec[] = [
-  { id: 'get', title: strings.get.title, shortTitle: strings.get.title, icon: 'app', defaultSize: { width: 400, height: 700 }, defaultPosition: { x: 540, y: 28 }, minSize: { width: 340, height: 420 }, component: GetWindow, openOnLaunch: true },
-  { id: 'listen', title: strings.listen.title, icon: 'speaker', defaultSize: { width: 440, height: 650 }, defaultPosition: { x: 64, y: 16 }, minSize: { width: 340, height: 420 }, component: ListenWindow, openOnLaunch: true },
+  { id: 'get', title: strings.get.title, shortTitle: strings.get.title, icon: 'app', defaultSize: { width: 400, height: 676 }, defaultPosition: { x: 532, y: 30 }, minSize: { width: 340, height: 420 }, component: GetWindow, openOnLaunch: true },
+  { id: 'listen', title: strings.listen.title, icon: 'speaker', defaultSize: { width: 440, height: 604 }, defaultPosition: { x: 64, y: 18 }, minSize: { width: 340, height: 420 }, component: ListenWindow, openOnLaunch: true },
   feature('tune', F.tune.title, 'tune', 0, TuneWindow),
   feature('layers', F.layers.title, 'layers', 1, LayersWindow),
   feature('programs', F.programs.title, 'programs', 2, ProgramsWindow),

@@ -226,6 +226,10 @@ async function returnToForeground(page: import("@playwright/test").Page, timerSe
       await internals.ctx.suspend(); // the interruption
       Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
       document.dispatchEvent(new Event("visibilitychange"));
+      // A resume can take longer than a moment (Firefox on a null audio sink): while the engine still means to play,
+      // wait for the context to run, up to 3 s; then settle for 300 ms either way.
+      const deadline = performance.now() + 3000;
+      while (e.currentState === "playing" && internals.ctx.state !== "running" && performance.now() < deadline) await new Promise((r) => setTimeout(r, 50));
       await new Promise((r) => setTimeout(r, 300));
       return {
         state: e.currentState,

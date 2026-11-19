@@ -13,8 +13,8 @@ export function AboutAppWindow() {
       <p className="ft-small ft-center">{A.version}</p>
       <p className="ft-p ft-center">{A.credits}</p>
       <p className="ft-p ft-center">{A.madeBy}</p>
-      <div className="ft-privacy">
-        <h3 className="ft-h3">{A.privacyHeading}</h3>
+      <div className="ft-privacy ft-groupbox" role="group" aria-labelledby="ft-privacy-label">
+        <h3 className="ft-h3 ft-groupbox-label" id="ft-privacy-label">{A.privacyHeading}</h3>
         <p className="ft-p" data-testid="privacy-line">{A.privacyBody}</p>
         <p className="ft-links">
           <a href={PRIVACY_URL} target="_blank" rel="noopener">{A.privacyLink}</a>

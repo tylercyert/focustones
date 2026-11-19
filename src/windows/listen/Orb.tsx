@@ -63,7 +63,8 @@ export function Orb({ band, playing, size }: OrbProps) {
     const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), window.innerWidth < 700 ? 2 : 3);
     el.width = el.height = Math.round(span * dpr);
     // The sphere is drawn on its own canvas, then masked with a soft one-pixel edge: a canvas clip() is not anti-aliased.
-    const S = Math.round(size * dpr);
+    // Supersampled: at least 2× even on a 1× screen, then drawn down with smoothing, so the edge is clean at any DPR.
+    const S = Math.round(size * Math.max(dpr, 2));
     const sphere = document.createElement('canvas');
     sphere.width = sphere.height = S;
     const sctx = sphere.getContext('2d')!;
@@ -104,7 +105,7 @@ export function Orb({ band, playing, size }: OrbProps) {
       sctx.fillStyle = rim;
       sctx.fillRect(0, 0, S, S);
       sctx.globalCompositeOperation = 'destination-in';
-      const edge = Math.max(1.5, dpr * 1.2) / R; // about 1.2 CSS px of falloff
+      const edge = (1.2 * S) / size / R; // about 1.2 CSS px of falloff, whatever the supersampling
       const mask = sctx.createRadialGradient(R, R, 0, R, R, R);
       mask.addColorStop(0, '#000');
       mask.addColorStop(Math.max(0, 1 - edge * 1.2), '#000');

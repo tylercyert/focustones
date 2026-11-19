@@ -203,6 +203,12 @@ test.describe('the orb', () => {
     expect(await frame(page)).not.toBe(a);
   });
 
+  test('is drawn smooth, never pixelated, at 1× (#8: the edge was stair-stepped on a 1× screen)', async ({ page }) => {
+    await page.goto('/');
+    const canvas = page.getByTestId('orb').locator('canvas');
+    expect(await canvas.evaluate((c) => getComputedStyle(c).imageRendering)).toBe('auto');
+  });
+
   test.describe('with Reduce Motion', () => {
     test.use({ reducedMotion: 'reduce' });
     test('holds still, playing or not', async ({ page }) => {

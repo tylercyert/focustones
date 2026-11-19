@@ -32,7 +32,7 @@ export function GetWindow() {
 
       <div className="ft-get-cta">
         <div className="ft-get-badge"><AppStoreBadge placement="get-window" height={44} /></div>
-        <div className="ft-get-qr">
+        <div className="ft-get-qr ft-well">
           <Qr />
           <div>
             <p className="ft-get-qr-title">{G.qrHeading}</p>
@@ -46,14 +46,16 @@ export function GetWindow() {
         <li>{G.noAccount}</li>
       </ul>
 
-      <h3 className="ft-h3">{G.proHeading}</h3>
-      <p className="ft-p">{G.proBody}</p>
-      <p className="ft-small">{G.plansHeading}</p>
-      <ul className="ft-prices">
-        <li>{G.monthly}</li>
-        <li>{G.annual}</li>
-        <li>{G.lifetime}</li>
-      </ul>
+      <div className="ft-groupbox" role="group" aria-labelledby="ft-get-pro">
+        <h3 className="ft-h3 ft-groupbox-label" id="ft-get-pro">{G.proHeading}</h3>
+        <p className="ft-p">{G.proBody}</p>
+        <p className="ft-small">{G.plansHeading}</p>
+        <ul className="ft-prices ft-well">
+          <li>{G.monthly}</li>
+          <li>{G.annual}</li>
+          <li>{G.lifetime}</li>
+        </ul>
+      </div>
     </section>
   );
 }
