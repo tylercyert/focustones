@@ -5,9 +5,12 @@ focustones.co: the free web trial and promotion site for the iOS app FocusTones:
 ## Check
 
 ```sh
-scripts/check.sh    # typecheck, ESLint, Vitest, vite build, banned words, outside requests
-npm run test:e2e    # Playwright (Chromium) smoke test against `vite preview`; run after a build
+scripts/check.sh    # typecheck, ESLint, Vitest, vite build, banned words, outside requests, Playwright (Chromium, WebKit, Firefox)
 ```
+
+Once per machine: `npx playwright install --with-deps chromium webkit firefox`. On a Linux box with no sound card the check starts a silent PulseAudio sink (`scripts/audio-sink.sh`; `apt install pulseaudio`), because headless Firefox cannot start audio without one. WebKit stands in for Safari: the `webkit-iphone` project is iOS Safari's touch, layout and audio route.
+
+Other scripts: `scripts/shots.mjs <dir>` (design-pass screenshots at every evidence size), `scripts/lighthouse.sh [dir]` (Lighthouse mobile and desktop on the build), `scripts/og-image.mjs` (the link-preview image), `scripts/make-icons.sh` and `scripts/make-images.sh` (icons and AVIF/WebP sizes).
 
 Run `scripts/check.sh` on the exact head before every push and paste its output in the PR. There is no CI.
 
@@ -21,9 +24,9 @@ Run `scripts/check.sh` on the exact head before every push and paste its output 
 ## Layout
 
 - `src/engine/`: audio, framework-free (no React, no DOM beyond Web Audio).
-- `src/desktop/`: the shell (menu bar, windows, icons). `types.ts` holds `WindowSpec`; `registry.ts` lists every window.
+- `src/desktop/`: the shell (menu bar, windows, icons). `types.ts` holds `WindowSpec`; `registry.ts` lists every window. `theme.css` holds the look's tokens: the desktop pattern and colours, platinum greys, highlight and the Listen display.
 - `src/windows/<id>/`: one folder per window; add its spec to the registry.
-- `src/content/strings.ts`: every visible string, so the owner approves one file.
+- `src/content/strings.ts`: every visible string, so the owner approves one file. The page's head (title, description, preview card) comes from its `meta` section, written into `index.html` at build time by `vite-plugin-head.ts`.
 - `public/`: self-hosted assets only. Everything in it needs a known licence.
 - `scripts/`: the check. `docs/decisions/`: ADRs.
 
