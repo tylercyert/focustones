@@ -41,6 +41,7 @@ export const strings = {
     resize: 'Resize window',
     switcherLabel: 'Open windows',
     switcherDesktop: 'Desktop',
+    closeWindow: 'Close window',
     startupTitle: 'FocusTones',
     startupStatus: 'Starting up…',
     startupSkip: 'Click or press any key to skip',
@@ -57,12 +58,14 @@ export const strings = {
     },
     about: {
       title: 'About FocusTones',
+      short: 'About',
       name: 'FocusTones',
       tagline: 'Binaural beats for focus, free in your browser.',
       detail: 'Everything runs on this page, on your device. Nothing is tracked and there is no account.',
     },
     help: {
       title: 'Desktop Help',
+      short: 'Help',
       iconLabel: 'Desktop Help',
       heading: 'Getting around',
       items: [

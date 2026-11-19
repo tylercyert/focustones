@@ -19,8 +19,8 @@ function roundRect(g: Grid, x: number, y: number, w: number, h: number, edge: st
   for (const [dx, dy] of [[1, 1], [w - 2, 1], [1, h - 2], [w - 2, h - 2]]) set(g, x + dx, y + dy, edge);
 }
 
-const INK = '#0A0C12', K = '#000000', W = '#FFFFFF', G1 = '#F2F2F2', G2 = '#DDDDDD', G3 = '#B8B8B8', G4 = '#808080', G5 = '#555555';
-const ORB = ['#0E6F78', '#138A6E', '#26C3A8', '#7BBE62', '#C2E89A'];
+const K = '#000000', W = '#FFFFFF', G1 = '#F2F2F2', G2 = '#DDDDDD', G3 = '#B8B8B8', G4 = '#808080', G5 = '#555555';
+const ORB = ['#A9701A', '#C98F2A', '#DDAA3E', '#EBC45E', '#F4E0A0'];
 
 /** A shaded sphere: five band-colored tones with an ordered dither between them and a highlight. */
 function orb(g: Grid, cx: number, cy: number, r: number) {
@@ -38,14 +38,6 @@ function orb(g: Grid, cx: number, cy: number, r: number) {
 }
 
 const drawers: Record<string, () => Grid> = {
-  app() {
-    const g = blank();
-    roundRect(g, 1, 1, 30, 30, K, INK);
-    frame(g, 2, 2, 28, 28, '#1C2130');
-    set(g, 2, 2, K); set(g, 29, 2, K); set(g, 2, 29, K); set(g, 29, 29, K);
-    orb(g, 16, 16, 9);
-    return g;
-  },
   note() {
     const g = blank();
     fill(g, 6, 2, 20, 28, W); frame(g, 6, 2, 20, 28, K);
@@ -135,6 +127,11 @@ function hasIcon(name: string): boolean { return name in drawers; }
 
 /** A named pixel icon, or a glyph when `name` is not one of ours. Decorative: callers label the control. */
 export function Icon({ name, size = 32, className, style }: { name: string; size?: number; className?: string; style?: CSSProperties }) {
+  if (name === 'app') {
+    // The real app icon (gold orb on ink), downscaled from the approved marketing icon; see ASSETS.md.
+    const file = size <= 32 ? 64 : size <= 64 ? 128 : 256;
+    return <img className={`app-icon${className ? ` ${className}` : ''}`} style={style} src={`/icons/app-${file}.png`} width={size} height={size} alt="" aria-hidden="true" draggable={false} />;
+  }
   if (!hasIcon(name)) {
     return <span className={className} style={{ fontSize: size * 0.8, lineHeight: `${size}px`, width: size, height: size, display: 'inline-block', textAlign: 'center', ...style }} aria-hidden="true">{name}</span>;
   }

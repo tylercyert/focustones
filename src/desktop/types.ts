@@ -11,7 +11,9 @@ export interface WindowSpec {
   readonly component: ComponentType;
   /** True for windows that are open when the desktop first loads. */
   readonly openOnLaunch: boolean;
-  /** Optional, added by the shell (backward compatible). A desktop icon label; defaults to `title`. */
+  /** Optional, added by the shell (backward compatible). A short name for the phone's window tabs; defaults to `title`. */
+  readonly shortTitle?: string;
+  /** Optional. A desktop icon label; defaults to `title`. */
   readonly iconLabel?: string;
   /** Optional. False hides the window's desktop icon (it stays reachable from the menus). Defaults to true. */
   readonly showOnDesktop?: boolean;

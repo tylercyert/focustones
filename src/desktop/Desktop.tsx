@@ -3,7 +3,7 @@ import { strings } from '../content/strings.ts';
 import { DesktopContext, type DesktopApi } from './context.ts';
 import { DesktopIcon } from './DesktopIcon.tsx';
 import { usePhone, useReducedMotion } from './hooks.ts';
-import { MenuBar, type MenuDef } from './MenuBar.tsx';
+import { MenuBar, type MenuDef, type MenuItem } from './MenuBar.tsx';
 import { windowRegistry } from './registry.ts';
 import { shellWindows } from './shellWindows.ts';
 import { Startup } from './Startup.tsx';
@@ -15,7 +15,7 @@ import './desktop.css';
 
 const specs = [...windowRegistry, ...shellWindows];
 const defs: WindowDef[] = specs.map((s) => ({ id: s.id, size: s.defaultSize, position: s.defaultPosition, openOnLaunch: s.openOnLaunch }));
-const SEEN = 'focustones.startup.seen';
+const SEEN = 'focustones.startup.seen'; // set on the first visit; return visits skip the startup moment
 const m = strings.menuBar;
 
 export default function Desktop() {
@@ -24,7 +24,7 @@ export default function Desktop() {
   const [state, dispatch] = useReducer(reduce, undefined, () => initialState(defs, loadSaved()));
   const [selected, setSelected] = useState<string[]>([]);
   const [showDate, setShowDate] = useState(false);
-  const [starting, setStarting] = useState(() => { try { return sessionStorage.getItem(SEEN) !== '1'; } catch { return true; } });
+  const [starting, setStarting] = useState(() => { try { return localStorage.getItem(SEEN) !== '1'; } catch { return true; } });
   const [surface, setSurface] = useState<Size>({ width: window.innerWidth, height: window.innerHeight - 24 });
   const surfaceEl = useRef<HTMLElement>(null);
   const booted = useRef(false);
@@ -41,7 +41,7 @@ export default function Desktop() {
     return () => ro.disconnect();
   }, []);
 
-  const endStartup = useCallback(() => { setStarting(false); try { sessionStorage.setItem(SEEN, '1'); } catch { /* ignore */ } }, []);
+  const endStartup = useCallback(() => { setStarting(false); try { localStorage.setItem(SEEN, '1'); } catch { /* ignore */ } }, []);
   const showStartup = starting && !reduced;
 
   const openWindow = useCallback((id: string) => dispatch({ type: 'open', id }), []);
@@ -84,7 +84,7 @@ export default function Desktop() {
     { id: 'app', label: m.appMenu, ariaLabel: m.appMenuLabel, icon: 'app', items: [
       { kind: 'item', label: m.about, onSelect: () => openWindow('about') },
       { kind: 'sep' },
-      { kind: 'item', label: m.replayStartup, onSelect: () => { try { sessionStorage.removeItem(SEEN); } catch { /* ignore */ } setStarting(true); } },
+      { kind: 'item', label: m.replayStartup, onSelect: () => setStarting(true) },
     ] },
     { id: 'file', label: m.file, items: [
       ...specs.filter((s) => s.showOnDesktop !== false && s.id !== 'trash').map((s) => ({ kind: 'item' as const, label: `${m.open} ${s.title}`, onSelect: () => openWindow(s.id) })),
@@ -101,8 +101,10 @@ export default function Desktop() {
       { kind: 'item', label: m.showDate, checked: showDate, onSelect: () => setShowDate(!showDate) },
     ] },
     { id: 'window', label: m.window, items: [
-      { kind: 'item', label: m.zoom, disabled: !active || !canResize, onSelect: () => active && dispatch({ type: 'toggleZoom', id: active }) },
-      { kind: 'item', label: activeState?.collapsed ? m.expand : m.collapse, disabled: !active, onSelect: () => active && dispatch({ type: 'toggleCollapse', id: active }) },
+      ...(phone ? [] : ([
+        { kind: 'item', label: m.zoom, disabled: !active || !canResize, onSelect: () => active && dispatch({ type: 'toggleZoom', id: active }) },
+        { kind: 'item', label: activeState?.collapsed ? m.expand : m.collapse, disabled: !active, onSelect: () => active && dispatch({ type: 'toggleCollapse', id: active }) },
+      ] as MenuItem[])),
       { kind: 'item', label: m.nextWindow, disabled: state.order.length < 2, onSelect: cycle },
       { kind: 'item', label: m.showDesktop, disabled: !active, onSelect: () => dispatch({ type: 'showDesktop' }) },
       { kind: 'sep' },
@@ -151,7 +153,7 @@ export default function Desktop() {
         {phone && (
           <Switcher
             label={strings.desktop.switcherLabel} desktopLabel={strings.desktop.switcherDesktop}
-            items={state.order.map((id) => byId.get(id)!).filter(Boolean).map((s) => ({ id: s.id, title: s.title, icon: s.icon }))}
+            items={state.order.map((id) => byId.get(id)!).filter(Boolean).map((s) => ({ id: s.id, title: s.title, short: s.shortTitle ?? s.title, icon: s.icon }))}
             active={active} onPick={(id) => dispatch({ type: 'focus', id })} onDesktop={() => dispatch({ type: 'showDesktop' })}
           />
         )}

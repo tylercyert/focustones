@@ -13,6 +13,8 @@ function watch(page: Page) {
   return problems;
 }
 const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
+const openWelcome = (page: Page) => page.getByRole('button', { name: 'Welcome', exact: true }).first().dblclick();
+const openHelp = async (page: Page) => { await page.getByRole('menuitem', { name: 'Help', exact: true }).click(); await page.getByRole('menuitem', { name: 'Desktop Help' }).click(); };
 const box = async (page: Page, name: string) => (await win(page, name).boundingBox())!;
 
 test.describe('desktop', () => {
@@ -21,7 +23,9 @@ test.describe('desktop', () => {
     await page.goto('/');
     await expect(page.getByRole('menubar', { name: 'Menu bar' })).toBeVisible();
     for (const m of ['FocusTones menu', 'File', 'Edit', 'View', 'Window', 'Help']) await expect(page.getByRole('menuitem', { name: m })).toBeVisible();
-    await expect(win(page, 'Welcome')).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0); // nothing opens on launch until the real windows register openOnLaunch
+    await expect(page.getByRole('button', { name: 'Welcome' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Desktop Help' })).toHaveCount(0); // Help is in the Help menu only
     await expect(page.getByRole('button', { name: 'Trash' })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Clock/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -30,17 +34,19 @@ test.describe('desktop', () => {
 
   test('double-click opens a window from its icon; the close box closes it; Ctrl+W closes the front window', async ({ page }) => {
     await page.goto('/');
-    const help = page.getByRole('button', { name: 'Desktop Help' });
-    await help.click();
-    await expect(win(page, 'Desktop Help')).toHaveCount(0); // one click only selects
-    await expect(help).toHaveAttribute('data-selected', 'true');
-    await help.dblclick();
+    const icon = page.getByRole('button', { name: 'Welcome', exact: true });
+    await icon.click();
+    await expect(win(page, 'Welcome')).toHaveCount(0); // one click only selects
+    await expect(icon).toHaveAttribute('data-selected', 'true');
+    await icon.dblclick();
+    await expect(win(page, 'Welcome')).toBeVisible();
+    await win(page, 'Welcome').getByRole('button', { name: 'Close' }).click();
+    await expect(win(page, 'Welcome')).toHaveCount(0);
+    await icon.dblclick();
+    await icon.dblclick();
+    await expect(win(page, 'Welcome')).toHaveCount(1);
+    await openHelp(page);
     await expect(win(page, 'Desktop Help')).toBeVisible();
-    await win(page, 'Desktop Help').getByRole('button', { name: 'Close' }).click();
-    await expect(win(page, 'Desktop Help')).toHaveCount(0);
-    await help.dblclick();
-    await help.dblclick();
-    await expect(win(page, 'Desktop Help')).toHaveCount(1);
     await page.keyboard.press('Control+w');
     await expect(win(page, 'Desktop Help')).toHaveCount(0);
     await expect(win(page, 'Welcome')).toBeVisible();
@@ -51,6 +57,7 @@ test.describe('desktop', () => {
 
   test('collapses on title double-click and from the collapse box, twice', async ({ page }) => {
     await page.goto('/');
+    await openWelcome(page);
     const w = win(page, 'Welcome');
     const full = (await box(page, 'Welcome')).height;
     const title = w.locator('.win-title');
@@ -68,6 +75,7 @@ test.describe('desktop', () => {
 
   test('zooms to fill the desktop and back', async ({ page }) => {
     await page.goto('/');
+    await openWelcome(page);
     const before = await box(page, 'Welcome');
     await win(page, 'Welcome').getByRole('button', { name: 'Zoom' }).click();
     await expect.poll(async () => (await box(page, 'Welcome')).width).toBeGreaterThan(1200);
@@ -77,6 +85,7 @@ test.describe('desktop', () => {
 
   test('drags by the title bar, resizes by the corner, and remembers both after a reload', async ({ page }) => {
     await page.goto('/');
+    await openWelcome(page);
     const before = await box(page, 'Welcome');
     await page.mouse.move(before.x + 200, before.y + 12);
     await page.mouse.down();
@@ -93,12 +102,14 @@ test.describe('desktop', () => {
     expect(Math.round(sized.width - moved.width)).toBe(100);
     expect(Math.round(sized.height - moved.height)).toBe(60);
     await page.reload();
+    await openWelcome(page);
     const again = await box(page, 'Welcome');
     expect([again.x, again.y, again.width, again.height].map(Math.round)).toEqual([sized.x, sized.y, sized.width, sized.height].map(Math.round));
   });
 
   test('keeps the title bar on the desktop when dragged far away', async ({ page }) => {
     await page.goto('/');
+    await openWelcome(page);
     const b = await box(page, 'Welcome');
     await page.mouse.move(b.x + 200, b.y + 12);
     await page.mouse.down();
@@ -111,7 +122,8 @@ test.describe('desktop', () => {
 
   test('clicking a window brings it to the front', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Desktop Help' }).dblclick();
+    await openWelcome(page);
+    await openHelp(page);
     const z = (n: string) => win(page, n).evaluate((e) => Number(getComputedStyle(e).zIndex));
     expect(await z('Desktop Help')).toBeGreaterThan(await z('Welcome'));
     await win(page, 'Welcome').locator('.win-title').click({ position: { x: 60, y: 10 } });
@@ -121,6 +133,7 @@ test.describe('desktop', () => {
 
   test('menus open windows and list them, by mouse and keyboard', async ({ page }) => {
     await page.goto('/');
+    await openWelcome(page);
     await page.getByRole('menuitem', { name: 'FocusTones menu' }).click();
     await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
     await expect(win(page, 'About FocusTones')).toBeVisible();
@@ -129,7 +142,7 @@ test.describe('desktop', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0);
     // Keyboard only: focus the Help menu, open it, choose its item.
-    await page.getByRole('menuitem', { name: 'Help' }).focus();
+    await page.getByRole('menuitem', { name: 'Help', exact: true }).focus();
     await page.keyboard.press('ArrowDown');
     await expect(page.getByRole('menuitem', { name: 'Desktop Help' })).toBeFocused();
     await page.keyboard.press('Enter');
@@ -156,11 +169,15 @@ test.describe('desktop', () => {
       await page.keyboard.press('Tab');
       seen.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim() ?? ''));
     }
-    expect(seen.indexOf('Close')).toBeGreaterThan(seen.findIndex((s) => s === 'Help'));
+    await openWelcome(page);
+    await page.getByRole('menuitem', { name: 'FocusTones menu' }).focus();
+    const order: string[] = [];
+    for (let i = 0; i < 14; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim() ?? '')); }
+    expect(order.indexOf('Close')).toBeGreaterThan(order.findIndex((s) => s === 'Help'));
     expect(seen.some((s) => s.includes('Welcome'))).toBe(true);
   });
 
-  test('the startup moment shows once, can be skipped, and does not show again in the session', async ({ browser }) => {
+  test('the startup moment shows on the first visit only, is under 1.2 s, and can be skipped', async ({ browser }) => {
     const ctx = await browser.newContext({ reducedMotion: 'no-preference' });
     const page = await ctx.newPage();
     await page.goto(ORIGIN);
@@ -170,6 +187,15 @@ test.describe('desktop', () => {
     await page.reload();
     await expect(page.getByRole('status', { name: 'Starting up…' })).toHaveCount(0);
     await ctx.close();
+    // A fresh first visit that is left alone ends by itself in under 1.2 s.
+    const ctx2 = await browser.newContext({ reducedMotion: 'no-preference' });
+    const page2 = await ctx2.newPage();
+    const t0 = Date.now();
+    await page2.goto(ORIGIN);
+    await expect(page2.getByRole('status', { name: 'Starting up…' })).toBeVisible();
+    await expect(page2.getByRole('status', { name: 'Starting up…' })).toHaveCount(0, { timeout: 2000 });
+    expect(Date.now() - t0).toBeLessThan(1200 + 300); // + page load allowance
+    await ctx2.close();
   });
 
   test('Reduce Motion skips the startup moment entirely', async ({ page }) => {
@@ -181,30 +207,38 @@ test.describe('desktop', () => {
 test.describe('phone', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
 
-  test('one window fills the screen, nothing scrolls sideways, the strip switches windows', async ({ page }) => {
+  test('one window fills the screen, nothing scrolls sideways, labeled tabs switch windows', async ({ page }) => {
     const problems = watch(page);
     await page.goto('/');
     const noOverflow = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth && document.body.scrollWidth <= window.innerWidth);
     expect(await noOverflow()).toBe(true);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Welcome', exact: true }).tap(); // one tap opens
     const w = win(page, 'Welcome');
     const b = (await w.boundingBox())!;
     expect(Math.round(b.width)).toBe(375);
     expect(b.height).toBeGreaterThan(600);
-    await page.getByRole('button', { name: 'Desktop', exact: true }).tap();
-    await expect(page.getByRole('dialog')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Desktop Help' }).tap(); // one tap opens
+    await page.getByRole('menuitem', { name: 'Help', exact: true }).tap();
+    await page.getByRole('menuitem', { name: 'Desktop Help' }).tap();
     await expect(win(page, 'Desktop Help')).toBeVisible();
     await expect(w).toBeHidden(); // still open, but only one shows
     expect(await noOverflow()).toBe(true);
-    await page.getByRole('navigation', { name: 'Open windows' }).getByRole('button', { name: 'Welcome' }).tap();
+    const strip = page.getByRole('navigation', { name: 'Open windows' });
+    await expect(strip.getByRole('button')).toHaveText(['Desktop', 'Welcome', 'Help']); // icon + short name tabs
+    await strip.getByRole('button', { name: 'Welcome' }).tap();
     await expect(w).toBeVisible();
     await expect(win(page, 'Desktop Help')).toBeHidden();
+    await strip.getByRole('button', { name: 'Desktop', exact: true }).tap();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await strip.getByRole('button', { name: 'Welcome' }).tap();
     await w.getByRole('button', { name: 'Close' }).tap();
     await expect(win(page, 'Desktop Help')).toBeVisible();
-    // Targets are at least 44 px.
-    for (const name of ['Close']) { const t = (await win(page, 'Desktop Help').getByRole('button', { name }).boundingBox())!; expect(t.width).toBeGreaterThanOrEqual(44); expect(t.height).toBeGreaterThanOrEqual(44); }
+    const close = (await win(page, 'Desktop Help').getByRole('button', { name: 'Close' }).boundingBox())!;
+    expect(close.width).toBeGreaterThanOrEqual(44);
+    expect(close.height).toBeGreaterThanOrEqual(44);
     const bar = (await page.getByRole('menuitem', { name: 'File' }).boundingBox())!;
     expect(bar.height).toBeGreaterThanOrEqual(44);
+    for (const t of await strip.getByRole('button').all()) expect((await t.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     expect(problems).toEqual([]);
   });
 
