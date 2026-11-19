@@ -279,6 +279,7 @@ export class FocusEngine {
   private onVisible = () => {
     if (document.visibilityState !== "visible" || !this.wantsPlaying || !this.ctx) return;
     this.checkEnded();
+    if (!this.wantsPlaying) return; // the timer ran out while the tab was away: stay ended and silent
     if ((this.ctx.state as string) !== "running") void this.ctx.resume();
     if (this.element?.paused) void this.element.play();
   };

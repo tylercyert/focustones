@@ -198,3 +198,56 @@ test.describe("cold iOS start", () => {
     expect(out.state).toBe("playing");
   });
 });
+
+// The tab was in the background past the timer's end: the page's interval never ran, and the context was suspended.
+const IOS_UA =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1";
+
+async function returnToForeground(page: import("@playwright/test").Page, timerSeconds: number, waitMs: number) {
+  return page.evaluate(
+    async ([timer, wait]) => {
+      window.setInterval = (() => 0) as unknown as typeof window.setInterval; // background: no ticker callbacks
+      const e = new window.FocusEngine();
+      const internals = e as unknown as { ctx: AudioContext; element: HTMLAudioElement | null };
+      await e.start();
+      e.setTimer(timer);
+      await new Promise((r) => setTimeout(r, wait));
+      await internals.ctx.suspend(); // the interruption
+      Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+      document.dispatchEvent(new Event("visibilitychange"));
+      await new Promise((r) => setTimeout(r, 300));
+      return {
+        state: e.currentState,
+        ctx: internals.ctx.state as string,
+        elementPaused: internals.element ? internals.element.paused : null,
+      };
+    },
+    [timerSeconds, waitMs] as const,
+  );
+}
+
+test.describe("returning to the foreground", () => {
+  test("after the timer expired: stays ended, context suspended (Web Audio route)", async ({ page }) => {
+    const out = await returnToForeground(page, 0.3, 700);
+    expect(out).toEqual({ state: "ended", ctx: "suspended", elementPaused: null });
+  });
+
+  test("before the timer expired: resumes and keeps playing (Web Audio route)", async ({ page }) => {
+    const out = await returnToForeground(page, 600, 300);
+    expect(out).toEqual({ state: "playing", ctx: "running", elementPaused: null });
+  });
+
+  test.describe("iOS media-element route", () => {
+    test.use({ userAgent: IOS_UA });
+
+    test("after the timer expired: stays ended, context suspended, element paused", async ({ page }) => {
+      const out = await returnToForeground(page, 0.3, 700);
+      expect(out).toEqual({ state: "ended", ctx: "suspended", elementPaused: true });
+    });
+
+    test("before the timer expired: resumes the context and the element", async ({ page }) => {
+      const out = await returnToForeground(page, 600, 300);
+      expect(out).toEqual({ state: "playing", ctx: "running", elementPaused: false });
+    });
+  });
+});

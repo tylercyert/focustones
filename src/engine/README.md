@@ -66,4 +66,4 @@ quantum size, and timer edits during the final fade. `npm run test:e2e` runs Pla
 `OfflineAudioContext` for both modes at 44.1 and 48 kHz, plus `FocusEngine` start, preset change, pause and timer end
 in real time, and control-lifecycle specs (`e2e/lifecycle.spec.ts`): start/pause/start, repeated and concurrent
 starts, `start(preset)` while playing and paused, mode and preset switches, timer set/changed/cleared, and the cold iOS
-unlock order.
+unlock order, and returning to the foreground after a timer expired (both output routes).
