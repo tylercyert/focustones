@@ -64,9 +64,13 @@ export default function Desktop() {
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'w' && active && !e.defaultPrevented) {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'w' && !e.defaultPrevented) {
+        // The window that holds keyboard focus, else the frontmost one.
+        const focused = (document.activeElement as HTMLElement | null)?.closest?.('[data-window]')?.getAttribute('data-window');
+        const target = focused ?? active;
+        if (!target) return;
         e.preventDefault();
-        dispatch({ type: 'close', id: active });
+        dispatch({ type: 'close', id: target });
       }
     };
     window.addEventListener('keydown', onKey);
@@ -105,6 +109,7 @@ export default function Desktop() {
         { kind: 'item', label: m.zoom, disabled: !active || !canResize, onSelect: () => active && dispatch({ type: 'toggleZoom', id: active }) },
         { kind: 'item', label: activeState?.collapsed ? m.expand : m.collapse, disabled: !active, onSelect: () => active && dispatch({ type: 'toggleCollapse', id: active }) },
       ] as MenuItem[])),
+      ...(phone ? [] : [{ kind: 'item', label: m.moveResize, disabled: !active, onSelect: () => requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-window="${active}"] .win-title`)?.focus()) } as MenuItem]),
       { kind: 'item', label: m.nextWindow, disabled: state.order.length < 2, onSelect: cycle },
       { kind: 'item', label: m.showDesktop, disabled: !active, onSelect: () => dispatch({ type: 'showDesktop' }) },
       { kind: 'sep' },

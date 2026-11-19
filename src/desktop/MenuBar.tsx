@@ -30,6 +30,9 @@ export function MenuBar({ label, menus, children }: Props) {
     bar.current?.querySelector<HTMLElement>('[role="menu"] [role^="menuitem"]:not([aria-disabled="true"])')?.focus();
   }, [open]);
 
+  const focusFirst = () => bar.current?.querySelector<HTMLElement>('[role="menu"] [role^="menuitem"]:not([aria-disabled="true"])')?.focus();
+  // Keyboard open: a closed menu opens and the effect focuses its first item; an open one gets focus at once.
+  const openFromKeyboard = (id: string) => { if (open === id) focusFirst(); else { keyboardOpen.current = true; setOpen(id); } };
   const triggers = () => [...(bar.current?.querySelectorAll<HTMLElement>('[data-trigger]') ?? [])];
   const shift = (from: number, dir: 1 | -1, keepOpen: boolean) => {
     const t = triggers();
@@ -38,7 +41,7 @@ export function MenuBar({ label, menus, children }: Props) {
   };
 
   const onTriggerKey = (e: KeyboardEvent<HTMLButtonElement>, id: string, index: number) => {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); keyboardOpen.current = true; setOpen(id); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); openFromKeyboard(id); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); shift(index, 1, false); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); shift(index, -1, false); }
     else if (e.key === 'Escape') setOpen(null);
@@ -69,7 +72,7 @@ export function MenuBar({ label, menus, children }: Props) {
                 type="button" role="menuitem" data-trigger={m.id} aria-haspopup="menu" aria-expanded={isOpen}
                 aria-controls={isOpen ? `${base}-${m.id}` : undefined} aria-label={m.ariaLabel}
                 className={`menu-trigger${m.icon ? ' menu-trigger-app' : ''}`} data-open={isOpen || undefined}
-                onClick={() => setOpen(isOpen ? null : m.id)}
+                onClick={(e) => { if (e.detail === 0) openFromKeyboard(m.id); else setOpen(isOpen ? null : m.id); }}
                 onPointerEnter={() => { if (open && open !== m.id) setOpen(m.id); }}
                 onKeyDown={(e) => onTriggerKey(e, m.id, index)}
               >

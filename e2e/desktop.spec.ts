@@ -153,6 +153,109 @@ test.describe('desktop', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
+  test('Ctrl/Cmd+W closes the window that holds keyboard focus, never another', async ({ page }) => {
+    await page.goto('/');
+    await openWelcome(page);
+    await page.getByRole('menuitem', { name: 'FocusTones menu' }).click();
+    await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
+    await expect(win(page, 'About FocusTones')).toHaveAttribute('data-active', 'true');
+    // Tab from the menu bar into Welcome (behind About): focus and the front window must agree.
+    await page.getByRole('menuitem', { name: 'Help', exact: true }).focus();
+    const welcome = win(page, 'Welcome');
+    for (let i = 0; i < 12 && !(await welcome.evaluate((e) => e.contains(document.activeElement))); i++) await page.keyboard.press('Tab');
+    expect(await welcome.evaluate((e) => e.contains(document.activeElement))).toBe(true);
+    await expect(welcome).toHaveAttribute('data-active', 'true');
+    await expect(win(page, 'About FocusTones')).not.toHaveAttribute('data-active', 'true');
+    await page.keyboard.press('Control+w');
+    await expect(welcome).toHaveCount(0);
+    await expect(win(page, 'About FocusTones')).toBeVisible();
+    await page.keyboard.press('Control+w'); // focus moved to the front window: it is the one that closes
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test('Enter and Space open a menu onto its first item; arrows then move through it, even when it was already open', async ({ page }) => {
+    await page.goto('/');
+    const help = page.getByRole('menuitem', { name: 'Help', exact: true });
+    await help.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('menuitem', { name: 'Desktop Help' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(help).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect(page.getByRole('menuitem', { name: 'Desktop Help' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    // Opened with the pointer, focus back on the trigger, then ArrowDown reaches the items.
+    const view = page.getByRole('menuitem', { name: 'View', exact: true });
+    await view.click();
+    await view.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem', { name: 'Clean Up Desktop' })).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitemcheckbox', { name: 'Show Date in Menu Bar' })).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.getByRole('menuitem', { name: 'Select All Icons' })).toBeFocused();
+  });
+
+  test('keyboard alternatives: move, resize, zoom and collapse without a pointer', async ({ page }) => {
+    await page.goto('/');
+    await openWelcome(page);
+    const w = win(page, 'Welcome');
+    const before = await box(page, 'Welcome');
+    await page.getByRole('menuitem', { name: 'Window', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitem', { name: 'Move or Resize Window' }).press('Enter');
+    await expect(w.getByRole('group', { name: 'Welcome title bar' })).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    let b = await box(page, 'Welcome');
+    expect([Math.round(b.x - before.x), Math.round(b.y - before.y)]).toEqual([16, 32]);
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowDown');
+    b = await box(page, 'Welcome');
+    expect([Math.round(b.width - before.width), Math.round(b.height - before.height)]).toEqual([16, 16]);
+    await page.keyboard.press('Shift+ArrowLeft');
+    await page.keyboard.press('Shift+ArrowLeft'); // the minimum size holds
+    for (let i = 0; i < 30; i++) await page.keyboard.press('Shift+ArrowLeft');
+    expect((await box(page, 'Welcome')).width).toBeGreaterThanOrEqual(219);
+    // Zoom and collapse from the Window menu.
+    await page.getByRole('menuitem', { name: 'Window', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitem', { name: 'Zoom Window' }).press('Enter');
+    await expect.poll(async () => (await box(page, 'Welcome')).width).toBeGreaterThan(1200);
+    await page.getByRole('menuitem', { name: 'Window', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitem', { name: 'Collapse Window' }).press('Enter');
+    await expect(w.locator('.win-body')).toBeHidden();
+  });
+
+  test('keyboard focus rings reach 3:1 on the platinum chrome and on both desktop tones', async ({ page }) => {
+    await page.goto('/');
+    await openWelcome(page);
+    const ratio = (a: [number, number, number], b: [number, number, number]) => {
+      const lum = (c: [number, number, number]) => { const [r, g, bl] = c.map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl; };
+      const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const rgb = (c: string) => c.match(/\d+/g)!.slice(0, 3).map(Number) as [number, number, number];
+    const desk = await page.locator('.desktop').evaluate((e) => ({ a: getComputedStyle(e).getPropertyValue('--desk-a').trim(), b: getComputedStyle(e).getPropertyValue('--desk-b').trim() }));
+    const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
+    await page.getByRole('button', { name: 'Trash' }).focus();
+    await page.keyboard.press('Shift+Tab'); // keyboard modality, so :focus-visible applies
+    await page.keyboard.press('Tab');
+    const ring = await page.getByRole('button', { name: 'Trash' }).evaluate((e) => { const c = getComputedStyle(e); return { outline: c.outlineColor, shadow: c.boxShadow }; });
+    const outer = rgb(ring.shadow);
+    expect(ratio(outer, hex(desk.a))).toBeGreaterThanOrEqual(3);
+    expect(ratio(outer, hex(desk.b))).toBeGreaterThanOrEqual(3);
+    expect(ratio(rgb(ring.outline), outer)).toBeGreaterThanOrEqual(3);
+    // On platinum: the inner black ring against #ddd.
+    await win(page, 'Welcome').getByRole('button', { name: 'Zoom' }).focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    const inner = await win(page, 'Welcome').getByRole('button', { name: 'Zoom' }).evaluate((e) => getComputedStyle(e).outlineColor);
+    expect(ratio(rgb(inner), [221, 221, 221])).toBeGreaterThanOrEqual(3);
+  });
+
   test('the volume item keeps its value on this device', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /^Volume/ }).click();
@@ -240,6 +343,25 @@ test.describe('phone', () => {
     expect(bar.height).toBeGreaterThanOrEqual(44);
     for (const t of await strip.getByRole('button').all()) expect((await t.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     expect(problems).toEqual([]);
+  });
+
+  test('at doubled text every menu-bar control stays on screen and reachable', async ({ page }) => {
+    await page.goto('/');
+    await page.addStyleTag({ content: '.menubar, .menubar * { font-size: 30px !important; }' });
+    const controls = page.locator('.menubar button, .menubar time');
+    const n = await controls.count();
+    expect(n).toBeGreaterThanOrEqual(6);
+    for (let i = 0; i < n; i++) {
+      const b = (await controls.nth(i).boundingBox())!;
+      expect(b.x).toBeGreaterThanOrEqual(0);
+      expect(b.x + b.width).toBeLessThanOrEqual(375);
+    }
+    await page.getByRole('button', { name: /^Clock/ }).tap(); // the clock is still operable
+    await page.getByRole('menuitem', { name: 'Help', exact: true }).tap();
+    const m = (await page.getByRole('menu').boundingBox())!;
+    expect(m.x).toBeGreaterThanOrEqual(0);
+    expect(m.x + m.width).toBeLessThanOrEqual(375);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 
   test('menus stay inside a 375 px screen', async ({ page }) => {

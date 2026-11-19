@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type MutableRefObject, type PointerEvent as RPointerEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MutableRefObject, type PointerEvent as RPointerEvent } from 'react';
 import { strings } from '../content/strings.ts';
 import { Icon } from './icons.tsx';
 import { clampRect, type Action, type Rect, type Size, type WinState } from './store.ts';
@@ -14,6 +14,7 @@ interface Props {
 
 export function WindowFrame({ spec, st, z, active, phone, hidden, surface, booted, dispatch }: Props) {
   const titleId = useId();
+  const hintId = useId();
   const frame = useRef<HTMLElement>(null);
   const [live, setLive] = useState<Rect | null>(null);
   const gesture = useRef<{ kind: 'move' | 'size'; px: number; py: number; from: Rect; last: Rect | null } | null>(null);
@@ -64,6 +65,24 @@ export function WindowFrame({ spec, st, z, active, phone, hidden, surface, boote
     setLive(null);
   };
 
+  // Keyboard geometry: with the title bar focused, arrows move the window and Shift+arrows resize it.
+  const titleKeys = (e: ReactKeyboardEvent) => {
+    const d = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, [number, number]>)[e.key];
+    if (phone || !d || e.target !== e.currentTarget) return;
+    e.preventDefault();
+    const step = 16;
+    if (e.shiftKey) {
+      if (!resizable || st.collapsed) return;
+      const width = Math.min(Math.max(min.width, base.width + d[0] * step), Math.max(min.width, surface.width - base.x));
+      const height = Math.min(Math.max(min.height, base.height + d[1] * step), Math.max(min.height, surface.height - base.y));
+      dispatch({ type: 'move', id: spec.id, x: base.x, y: base.y });
+      dispatch({ type: 'resize', id: spec.id, width, height, min });
+    } else {
+      const next = clampRect({ ...base, x: base.x + d[0] * step, y: base.y + d[1] * step }, surface);
+      dispatch({ type: 'move', id: spec.id, x: next.x, y: next.y });
+    }
+  };
+
   const style = phone
     ? { zIndex: z }
     : { zIndex: z, left: rect.x, top: rect.y, width: rect.width, height: st.collapsed ? TITLE_H + 2 : rect.height };
@@ -74,12 +93,15 @@ export function WindowFrame({ spec, st, z, active, phone, hidden, surface, boote
       data-window={spec.id} data-active={active || undefined} data-collapsed={st.collapsed || undefined} data-moving={live ? '' : undefined}
       style={style}
       onPointerDownCapture={() => { if (!active) dispatch({ type: 'focus', id: spec.id }); }}
+      onFocusCapture={() => { if (!active) dispatch({ type: 'focus', id: spec.id }); }}
     >
       <div
-        className="win-title" onPointerDown={(e) => { if (!(e.target as HTMLElement).closest('button')) begin(e, 'move'); }}
+        className="win-title" tabIndex={phone ? undefined : 0} role="group" aria-label={`${spec.title} ${strings.desktop.titleBar}`} aria-describedby={phone ? undefined : hintId} onKeyDown={titleKeys}
+        onPointerDown={(e) => { if (!(e.target as HTMLElement).closest('button')) begin(e, 'move'); }}
         onPointerMove={track} onPointerUp={end} onPointerCancel={end}
         onDoubleClick={(e) => { if (!phone && !(e.target as HTMLElement).closest('button')) dispatch({ type: 'toggleCollapse', id: spec.id }); }}
       >
+        {!phone && <span id={hintId} className="sr-only">{strings.desktop.moveHint}</span>}
         <button type="button" className="win-box win-close" aria-label={strings.desktop.close} onClick={() => dispatch({ type: 'close', id: spec.id })}><i /></button>
         <h2 className="win-name" id={titleId}><span><Icon name={spec.icon} size={16} />{spec.title}</span></h2>
         {resizable && !phone && (
