@@ -1,7 +1,10 @@
-/* Placeholder desktop. The classic Mac look (menu bar, windows, icons) arrives with the shell issue. */
+@font-face { font-family: 'Pixelify Sans'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/pixelify-sans-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Pixelify Sans'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/pixelify-sans-latin-700-normal.woff2') format('woff2'); }
+
+*, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-body { font: 13px/1.4 system-ui, sans-serif; background: #b8b8b8; color: #111; }
-.desktop { display: flex; flex-direction: column; height: 100%; }
-.menu-bar { padding: 2px 12px; background: #e8e8e8; border-bottom: 1px solid #000; font-weight: 600; }
-.desktop-surface { flex: 1; position: relative; padding: 24px; }
-.placeholder { margin: 0; }
+body {
+  overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%;
+  font: 400 15px/1.35 "Pixelify Sans", "Courier New", monospace; color: #000; background: #8f8b84;
+}
+button { font: inherit; color: inherit; }

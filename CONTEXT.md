@@ -31,3 +31,9 @@ The words this site uses. Terms below are shared with the iOS app (`focustones-i
 **Window**: a movable, closable panel on the desktop, one per `WindowSpec`. Listen is the window that plays sound. _Avoid_: modal, popup, dialog.
 
 **Menu bar**: the strip across the top of the desktop.
+
+**Switcher strip**: on phones, the bar along the bottom with one button per open window and one for the desktop. _Avoid_: dock, taskbar.
+
+**Collapse**: rolling a window up to its title bar (the classic windowshade); double-click the title bar or press its right-hand box. _Avoid_: minimize.
+
+**Zoom**: toggling a window between its size and the full desktop.

@@ -8,7 +8,7 @@ const A = strings.aboutApp;
 export function AboutAppWindow() {
   return (
     <section className="ft-win ft-about-app" aria-label={A.title}>
-      <img className="ft-icon ft-icon-lg" src="/app-icon.png" alt="" width="96" height="96" />
+      <img className="ft-icon ft-icon-lg" src="/icons/app-256.png" alt="" width="96" height="96" />
       <h2 className="ft-h2 ft-center">{A.name}</h2>
       <p className="ft-small ft-center">{A.version}</p>
       <p className="ft-p ft-center">{A.credits}</p>

@@ -22,7 +22,7 @@ export function GetWindow() {
   return (
     <section className="ft-win ft-get" aria-label={G.title}>
       <header className="ft-get-head">
-        <img className="ft-icon" src="/app-icon.png" alt="" width="72" height="72" />
+        <img className="ft-icon" src="/icons/app-256.png" alt="" width="72" height="72" />
         <div>
           <h2 className="ft-get-name">{G.appName}</h2>
           <p className="ft-get-sub">{G.subtitle}</p>
@@ -62,7 +62,7 @@ export function GetWindow() {
 export function GetBar() {
   return (
     <aside className="ft-getbar" aria-label={G.barLabel}>
-      <img src="/app-icon.png" alt="" width="36" height="36" />
+      <img src="/icons/app-256.png" alt="" width="36" height="36" />
       <div className="ft-getbar-text"><strong>{strings.aboutApp.name}</strong><span>{G.barLabel}</span></div>
       <a className="ft-getbar-btn" href={appStoreUrl('bar')} target="_blank" rel="noopener" data-placement="bar">{G.barAction}</a>
     </aside>

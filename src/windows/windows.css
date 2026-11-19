@@ -1,12 +1,5 @@
 /* The windows' insides: FocusTones' own palette (focustones-ios docs/design/DESIGN.md, "Night instrument"), not the
    desktop chrome. Everything is scoped to .ft-win so the shell's classic Mac look is untouched. */
-@font-face {
-  font-family: 'Instrument Sans';
-  src: url('/fonts/InstrumentSansVariable.ttf') format('truetype');
-  font-weight: 400 700;
-  font-display: swap;
-}
-
 .ft-win {
   --ink: #0a0c12; --surface: #141823; --elevated: #1c2130; --fill: #262c3d; --sep: #262b38;
   --text: #f2f4f8; --text2: #a3aabb; --text3: #828a9c; --pro: #e9c866;
@@ -15,7 +8,7 @@
   box-sizing: border-box; min-height: 100%;
   background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--band) 9%, var(--ink)) 0%, var(--ink) 62%);
   color: var(--text);
-  font: 400 14px/1.45 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font: 400 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-feature-settings: 'tnum' 1;
   -webkit-font-smoothing: antialiased;
   padding: 20px;
@@ -104,7 +97,7 @@
 .ft-get .ft-h3 { margin-top: 20px; color: var(--pro); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 650; }
 .ft-get .ft-small { margin-top: 12px; }
 
-.ft-getbar { --elevated: #1c2130; --sep: #262b38; --text: #f2f4f8; --text2: #a3aabb; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--elevated); color: var(--text); font: 400 13px/1.2 'Instrument Sans', system-ui, sans-serif; border-top: 0.5px solid var(--sep); }
+.ft-getbar { --elevated: #1c2130; --sep: #262b38; --text: #f2f4f8; --text2: #a3aabb; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--elevated); color: var(--text); font: 400 13px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif; border-top: 0.5px solid var(--sep); }
 .ft-getbar img { border-radius: 8px; }
 .ft-getbar-text { flex: 1; display: grid; min-width: 0; }
 .ft-getbar-text span { color: var(--text2); font-size: 12px; }
@@ -175,3 +168,6 @@
 /* A phone has the badge; the QR code is for a computer: only a fine pointer on a desktop-sized screen shows it. */
 .ft-get-qr { display: none; }
 @media (pointer: fine) and (min-width: 700px) { .ft-get-qr { display: flex; } }
+
+/* On a phone the Get bar sits at the foot of Listen, so the App Store link is always in reach. */
+.ft-bar-dock { position: sticky; bottom: 0; margin: 10px -16px -14px; width: calc(100% + 32px); z-index: 2; }

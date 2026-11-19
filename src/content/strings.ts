@@ -1,136 +1,93 @@
 // Every visible string on the site lives here, so the owner approves one file (docs/product.md, public words).
-// `provenance` marks each string `approved: <source>` (reused verbatim from approved app copy) or `new` (the owner's
-// batch approval); strings.test.ts fails on a string without a mark. Banned words are checked over src/ (scripts/check.sh).
-export interface Strings {
-  readonly siteName: string;
-  readonly menuBar: { readonly appMenu: string };
-  readonly desktop: { readonly placeholder: string };
-  readonly listen: {
-    readonly title: string;
-    readonly play: string;
-    readonly pause: string;
-    readonly playAgain: string;
-    readonly statusIdle: string;
-    readonly statusStarting: string;
-    readonly statusPlaying: string;
-    readonly statusPaused: string;
-    readonly statusEnded: string;
-    readonly statusError: string;
-    readonly bands: string;
-    readonly timer: string;
-    readonly timerOff: string;
-    readonly timerMinutes: string;
-    readonly timerLeft: string;
-    readonly output: string;
-    readonly headphones: string;
-    readonly speaker: string;
-    readonly headphonesNote: string;
-    readonly speakerNote: string;
-    readonly proEyebrow: string;
-    readonly proTune: string;
-    readonly proLayers: string;
-    readonly proPrograms: string;
-    readonly free: string;
-    readonly goalFocus: string;
-    readonly goalCreate: string;
-    readonly goalRelax: string;
-    readonly goalSleep: string;
-    readonly delta: string;
-    readonly theta: string;
-    readonly alpha: string;
-    readonly beta: string;
-    readonly gamma: string;
-    readonly deepSleep: string;
-    readonly daydream: string;
-    readonly calmFocus: string;
-    readonly deepWork: string;
-    readonly peak: string;
-  };
-  readonly get: {
-    readonly title: string;
-    readonly appName: string;
-    readonly subtitle: string;
-    readonly pitch: string;
-    readonly badgeAlt: string;
-    readonly qrHeading: string;
-    readonly qrNote: string;
-    readonly qrAlt: string;
-    readonly free: string;
-    readonly noAccount: string;
-    readonly plansHeading: string;
-    readonly monthly: string;
-    readonly annual: string;
-    readonly lifetime: string;
-    readonly proHeading: string;
-    readonly proBody: string;
-    readonly barLabel: string;
-    readonly barAction: string;
-  };
-  readonly features: {
-    readonly eyebrowPro: string;
-    readonly eyebrowFree: string;
-    readonly getIt: string;
-    readonly tune: FeatureStrings;
-    readonly layers: FeatureStrings;
-    readonly programs: FeatureStrings;
-    readonly progress: FeatureStrings;
-    readonly iphone: FeatureStrings & {
-      readonly surfaces: string;
-      readonly lockScreen: string;
-      readonly dynamicIsland: string;
-      readonly controlCenter: string;
-      readonly widget: string;
-      readonly siri: string;
-    };
-  };
-  readonly aboutSound: {
-    readonly title: string;
-    readonly binauralHeading: string;
-    readonly binauralTag: string;
-    readonly leftEar: string;
-    readonly rightEar: string;
-    readonly difference: string;
-    readonly binauralBody: string;
-    readonly isochronicHeading: string;
-    readonly isochronicTag: string;
-    readonly isochronicBody: string;
-    readonly isochronicAlt: string;
-    readonly researchHeading: string;
-    readonly researchBody: string;
-    readonly researchPromise: string;
-    readonly safetyHeading: string;
-    readonly safetyDriving: string;
-    readonly safetyMedical: string;
-    readonly safetyVolume: string;
-  };
-  readonly aboutApp: {
-    readonly title: string;
-    readonly name: string;
-    readonly version: string;
-    readonly credits: string;
-    readonly madeBy: string;
-    readonly privacyHeading: string;
-    readonly privacyBody: string;
-    readonly privacyLink: string;
-    readonly supportLink: string;
-    readonly termsLink: string;
-    readonly trademarks: string;
-    readonly getApp: string;
-  };
-}
-
-interface FeatureStrings {
-  readonly title: string;
-  readonly heading: string;
-  readonly body: string;
-  readonly caption: string;
-  readonly frameAlt: string;
-}
-
-export const strings: Strings = {
+// Later issues add their keys here. The sections `listen`, `get`, `features`, `aboutSound` and `aboutApp` (issue #6)
+// carry their source in `provenance` below: `approved: <source>` (verbatim approved app copy) or `new` (the owner's batch approval). Banned words are checked over src/ (scripts/check.sh).
+export const strings = {
   siteName: 'FocusTones',
-  menuBar: { appMenu: 'FocusTones' },
-  desktop: { placeholder: 'The desktop is under construction.' },
+  menuBar: {
+    appMenu: 'FocusTones',
+    appMenuLabel: 'FocusTones menu',
+    about: 'About FocusTones…',
+    replayStartup: 'Restart',
+    file: 'File',
+    open: 'Open',
+    closeWindow: 'Close Window',
+    closeAll: 'Close All Windows',
+    edit: 'Edit',
+    selectAll: 'Select All Icons',
+    deselectAll: 'Deselect All',
+    view: 'View',
+    cleanUp: 'Clean Up Desktop',
+    showDate: 'Show Date in Menu Bar',
+    window: 'Window',
+    zoom: 'Zoom Window',
+    collapse: 'Collapse Window',
+    expand: 'Expand Window',
+    moveResize: 'Move or Resize Window',
+    nextWindow: 'Next Window',
+    showDesktop: 'Show Desktop',
+    noWindows: 'No open windows',
+    help: 'Help',
+    desktopHelp: 'Desktop Help',
+    menuBarLabel: 'Menu bar',
+    volume: 'Volume',
+    volumeValue: 'Volume',
+    clockLabel: 'Clock. Press to show or hide the date.',
+  },
+  desktop: {
+    surfaceLabel: 'Desktop',
+    iconsLabel: 'Desktop icons',
+    close: 'Close',
+    zoom: 'Zoom',
+    collapse: 'Collapse',
+    expand: 'Expand',
+    resize: 'Resize window',
+    titleBar: 'title bar',
+    moveHint: 'Arrow keys move this window. Shift plus arrow keys resize it.',
+    switcherLabel: 'Open windows',
+    switcherDesktop: 'Desktop',
+    closeWindow: 'Close window',
+    startupTitle: 'FocusTones',
+    startupStatus: 'Starting up…',
+    startupSkip: 'Click or press any key to skip',
+    trashName: 'Trash',
+  },
+  windows: {
+    welcome: {
+      title: 'Welcome',
+      iconLabel: 'Welcome',
+      heading: 'Welcome to FocusTones',
+      body: 'A quiet desktop for focus sounds. Double-click an icon to open a window, drag a title bar to move it, and double-click a title bar to roll the window up.',
+      phoneBody: 'A quiet desktop for focus sounds. Tap an icon to open a window, and use the strip at the bottom to switch between them.',
+      tip: 'Try the Window menu, or press Ctrl or Cmd with W to close a window.',
+    },
+    about: {
+      title: 'About FocusTones',
+      short: 'About',
+      name: 'FocusTones',
+      tagline: 'Binaural beats for focus, free in your browser.',
+      detail: 'Everything runs on this page, on your device. Nothing is tracked and there is no account.',
+    },
+    help: {
+      title: 'Desktop Help',
+      short: 'Help',
+      iconLabel: 'Desktop Help',
+      heading: 'Getting around',
+      items: [
+        'Double-click an icon to open its window. On a touch screen, tap it once.',
+        'Drag a title bar to move a window. Drag the corner box to resize it. From the keyboard, choose Move or Resize Window in the Window menu, then use the arrow keys, and add Shift to resize.',
+        'Double-click a title bar, or press its right-hand box, to roll the window up.',
+        'Press the box on the left to close a window, or press Ctrl or Cmd with W.',
+        'The Window menu lists everything that is open.',
+        'Press Tab to move between controls and Esc to close a menu.',
+      ],
+    },
+    trash: {
+      title: 'Trash',
+      iconLabel: 'Trash',
+      empty: 'The Trash is empty.',
+      detail: 'Nothing here is saved anywhere but this device.',
+    },
+  },
   listen: {
     title: 'Listen',
     play: 'Play',
@@ -275,7 +232,8 @@ export const strings: Strings = {
     trademarks: 'iPhone and App Store are trademarks of Apple Inc. FocusTones is not affiliated with Apple.',
     getApp: 'Get the iPhone app',
   },
-};
+} as const;
+
 
 const APPROVED_PAGE = 'approved: focustones-ios docs/marketing/web/page.md';
 const APPROVED_COPY = 'approved: focustones-ios docs/marketing/store/1.0/copy.md';
@@ -285,9 +243,6 @@ const NEW = 'new';
 
 /** Where each string came from, keyed by its path in `strings`. A key with no entry here fails strings.test.ts. */
 export const provenance: Readonly<Record<string, string>> = {
-  siteName: NEW,
-  'menuBar.appMenu': NEW,
-  'desktop.placeholder': NEW,
   'listen.title': NEW,
   'listen.play': NEW,
   'listen.pause': NEW,

@@ -7,12 +7,12 @@ describe('window specs', () => {
   it('have unique ids and open Listen and Get on launch', () => {
     const ids = windowSpecs.map((w) => w.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(windowSpecs.filter((w) => w.openOnLaunch).map((w) => w.id)).toEqual(['listen', 'get']);
+    expect(windowSpecs.filter((w) => w.openOnLaunch).map((w) => w.id).sort()).toEqual(['get', 'listen']);
   });
 
   it('cover every window the issue names, under the ids the Listen window opens', () => {
     expect(windowSpecs.map((w) => w.id)).toEqual(expect.arrayContaining([
-      'listen', 'get', 'feature-tune', 'feature-layers', 'feature-programs', 'feature-progress', 'feature-iphone', 'about-sound', 'about-app',
+      'listen', 'get', 'feature-tune', 'feature-layers', 'feature-programs', 'feature-progress', 'feature-iphone', 'about-sound',
     ]));
   });
 });

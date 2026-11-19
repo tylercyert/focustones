@@ -1,5 +1,6 @@
 import { strings } from '../../content/strings.ts';
-import { openWindow } from '../openWindow.ts';
+import { useDesktop } from '../../desktop/context.ts';
+import { GetBar } from '../get/GetWindow.tsx';
 import { Orb } from './Orb.tsx';
 import { BAND_HUES, type Band } from './orbMotion.ts';
 import { PRESETS, type EngineState, type Output } from './engineAdapter.ts';
@@ -34,6 +35,7 @@ const Lock = () => (
 /** The window that plays sound: the orb, the preset, Play, the five bands, Timer and Headphones/Speaker. */
 export function ListenWindow() {
   const m = useListen();
+  const { openWindow, phone } = useDesktop();
   const hues = BAND_HUES[m.preset.band];
   const style = {
     '--band': rgb(hues.base), '--band-light': rgb(hues.light), '--band-deep': rgb(hues.deep),
@@ -112,6 +114,7 @@ export function ListenWindow() {
       </div>
 
       <p className="ft-foot">{L.free}</p>
+      {phone && <div className="ft-bar-dock"><GetBar /></div>}
     </section>
   );
 }

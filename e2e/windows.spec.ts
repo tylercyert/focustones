@@ -1,22 +1,41 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Journeys for the Listen, Get FocusTones, feature and About windows, at 1280×800 and 375×812 (two projects).
-// They run against the dev harness; when the shell registers the windows, point HARNESS at '/' and open windows by icon.
-const HARNESS = '/harness.html';
+// Journeys for Listen, Get FocusTones, the feature windows and the About windows, inside the real desktop, at 1280×800
+// and 375×812 (two Playwright projects). They also write the evidence screenshots under docs/evidence/6-windows/.
 const TOKEN = /[?&]pt=[^&]+/;
-const shot = (page: Page, name: string) => page.screenshot({ path: `docs/evidence/${name}-${page.viewportSize()!.width}.png` });
+const phone = (page: Page) => page.viewportSize()!.width < 700;
+const shot = (page: Page, name: string) => page.screenshot({ path: `docs/evidence/6-windows/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` });
+const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
 
+// Skip the first-visit startup moment (it has its own test in desktop.spec.ts).
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('focustones.startup.seen', '1'));
   const outside: string[] = [];
-  page.on('request', (r) => { if (!/^(http:\/\/localhost|data:|blob:)/.test(r.url())) outside.push(r.url()); });
+  page.on('request', (r) => { if (new URL(r.url()).hostname !== 'localhost' && !/^(data|blob):/.test(r.url())) outside.push(r.url()); });
   page.on('pageerror', (e) => { throw e; });
+  page.on('console', (m) => { if (m.type() === 'error') throw new Error(`console error: ${m.text()}`); });
   (page as Page & { outside: string[] }).outside = outside;
 });
 test.afterEach(({ page }) => { expect((page as Page & { outside: string[] }).outside).toEqual([]); });
 
+const icon = (page: Page, label: string) => page.locator('nav .dicon').filter({ hasText: label });
+
+/** Opens a window from its desktop icon (on a phone icons show only with no window open, so close them all first). */
+async function openByIcon(page: Page, label: string) {
+  if (phone(page)) {
+    await page.getByRole('menuitem', { name: 'File', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Close All Windows' }).click();
+    await icon(page, label).click();
+  } else {
+    await icon(page, label).dblclick();
+  }
+  await expect(win(page, label)).toBeVisible();
+}
+
 test('land → Play → hear and see the state → bands, timer, mode', async ({ page }) => {
-  await page.goto(`${HARNESS}?bar=${page.viewportSize()!.width < 700 ? 1 : 0}`);
-  const listen = page.locator('[data-window="listen"]');
+  await page.goto('/');
+  const listen = win(page, 'Listen');
+  await expect(listen).toBeVisible();
   await expect(listen.getByTestId('preset-name')).toHaveText('Deep Work');
   await expect(listen.getByTestId('preset-line')).toHaveText('Focus · β 16 Hz');
   await expect(listen.getByTestId('status')).toHaveText('Ready when you are');
@@ -24,7 +43,6 @@ test('land → Play → hear and see the state → bands, timer, mode', async ({
 
   const t0 = Date.now();
   await listen.getByTestId('play').click();
-  await expect(listen.getByTestId('status')).toHaveText(/Fading in|Playing/);
   await expect(listen.getByTestId('status')).toHaveText('Playing');
   expect(Date.now() - t0).toBeLessThan(5000); // click to sound, far inside the 20 s budget
   await expect(listen.getByTestId('orb')).toHaveAttribute('data-playing', 'true');
@@ -50,9 +68,13 @@ test('land → Play → hear and see the state → bands, timer, mode', async ({
   await expect(listen.getByTestId('status')).toHaveText(/Fading in|Playing|\d+:\d\d left/);
 });
 
-test('the free set is every band preset, any timer, no nag', async ({ page }) => {
-  await page.goto(HARNESS);
-  const listen = page.locator('[data-window="listen"]');
+test('the menu bar volume drives the engine, and the free set has no limits', async ({ page }) => {
+  await page.goto('/');
+  const listen = win(page, 'Listen');
+  await page.getByRole('button', { name: /^Volume, \d+%/ }).click();
+  await page.getByRole('slider', { name: 'Volume' }).fill('30');
+  await expect(page.getByRole('button', { name: 'Volume, 30%' })).toBeVisible();
+  await page.keyboard.press('Escape');
   const names: string[] = [];
   for (const b of ['delta', 'theta', 'alpha', 'beta', 'gamma']) {
     await listen.getByTestId(`band-${b}`).click();
@@ -66,8 +88,9 @@ test('the free set is every band preset, any timer, no nag', async ({ page }) =>
 });
 
 test('Get FocusTones: badge and QR carry the campaign token, prices as approved', async ({ page }) => {
-  await page.goto(HARNESS);
-  const get = page.locator('[data-window="get"]');
+  await page.goto('/');
+  if (phone(page)) await page.getByRole('button', { name: 'Get FocusTones', exact: true }).click(); // the switcher strip
+  const get = win(page, 'Get FocusTones');
   await expect(get.getByText('FocusTones: Binaural Beats')).toBeVisible();
   await expect(get.getByText('Focus, Study & Sleep Sounds')).toBeVisible();
   const badge = get.locator('.ft-badge');
@@ -81,59 +104,75 @@ test('Get FocusTones: badge and QR carry the campaign token, prices as approved'
   await expect(qr.locator('svg path')).toHaveCount(1);
   expect(await qr.getAttribute('href')).toContain('ct=focustones-co-qr');
   // The QR code is for computers: shown on a wide screen with a fine pointer, hidden on a phone-sized one.
-  if ((page.viewportSize()?.width ?? 0) >= 700) await expect(qr).toBeVisible();
-  else await expect(qr).toBeHidden();
+  if (phone(page)) await expect(qr).toBeHidden();
+  else await expect(qr).toBeVisible();
   for (const price of ['Monthly: $6.99 a month.', 'Annual: a 7-day trial, then $39.99 a year.', 'Lifetime: $79.99, one purchase with no renewal.']) {
     await expect(get.getByText(price)).toBeVisible();
   }
   await expect(get.getByText('No account and no ads.')).toBeVisible();
   await expect(get.getByText('Five band presets, any timer and Speaker mode are free, with no time limit.')).toBeVisible();
-  await get.scrollIntoViewIfNeeded();
   await shot(page, 'get');
 });
 
-test('locked controls open the matching window, with a campaign link', async ({ page }) => {
-  await page.goto(HARNESS);
-  for (const [id, heading, ct] of [
-    ['tune', 'An instrument you can tune', 'tune'],
-    ['layers', 'Lay something underneath', 'layers'],
-    ['programs', 'Save the sound that works', 'programs'],
-  ] as const) {
-    await page.getByTestId(`locked-${id}`).click();
-    const win = page.locator(`[data-window="feature-${id}"]`);
-    await expect(win.getByRole('heading', { name: heading })).toBeVisible();
-    await expect(win.locator('img[src^="/frames/"]')).toBeVisible();
-    expect(await win.locator('.ft-badge').getAttribute('href')).toContain(`ct=focustones-co-${ct}`);
+test('on a phone the Get bar stays under Listen; on a desktop it does not', async ({ page }) => {
+  await page.goto('/');
+  const bar = win(page, 'Listen').locator('.ft-getbar');
+  if (phone(page)) {
+    await expect(bar).toBeVisible();
+    expect(await bar.locator('a').getAttribute('href')).toContain('ct=focustones-co-bar');
+  } else {
+    await expect(bar).toHaveCount(0);
   }
 });
 
-for (const [id, heading] of [
-  ['feature-tune', 'An instrument you can tune'],
-  ['feature-layers', 'Lay something underneath'],
-  ['feature-programs', 'Save the sound that works'],
-  ['feature-progress', 'See your focus time'],
-  ['feature-iphone', 'Runs the whole work block'],
+test('locked controls open the matching window, with a campaign link', async ({ page }) => {
+  await page.goto('/');
+  for (const [id, label, heading] of [
+    ['tune', 'Tune', 'An instrument you can tune'],
+    ['layers', 'Layers', 'Lay something underneath'],
+    ['programs', 'Programs', 'Save the sound that works'],
+  ] as const) {
+    await win(page, 'Listen').getByTestId(`locked-${id}`).click();
+    const w = win(page, label);
+    await expect(w.getByRole('heading', { name: heading })).toBeVisible();
+    await expect(w.locator('img[src^="/frames/"]')).toBeVisible();
+    expect(await w.locator('.ft-badge').getAttribute('href')).toContain(`ct=focustones-co-${id}`);
+    if (phone(page)) await page.getByRole('button', { name: 'Listen', exact: true }).click(); // back to Listen via the strip
+  }
+});
+
+for (const [label, heading, frame] of [
+  ['Tune', 'An instrument you can tune', '/frames/tune.webp'],
+  ['Layers', 'Lay something underneath', '/frames/layers.webp'],
+  ['Programs', 'Save the sound that works', '/frames/mixes.webp'],
+  ['Progress', 'See your focus time', '/frames/progress.webp'],
+  ['iPhone everywhere', 'Runs the whole work block', '/frames/timer.webp'],
 ] as const) {
-  test(`${id}: real app frame, approved line, App Store link`, async ({ page }) => {
-    await page.goto(`${HARNESS}?w=${id}`);
-    const win = page.locator(`[data-window="${id}"]`);
-    await expect(win.getByRole('heading', { name: heading })).toBeVisible();
-    const img = win.locator('img[src^="/frames/"]');
-    await expect(img).toBeVisible();
+  test(`${label}: opens from its icon with the matching real app frame and an App Store link`, async ({ page }) => {
+    await page.goto('/');
+    await openByIcon(page, label);
+    const w = win(page, label);
+    await expect(w.getByRole('heading', { name: heading })).toBeVisible();
+    const img = w.locator('img[src^="/frames/"]');
+    await expect(img).toHaveAttribute('src', frame); // never a frame whose caption belongs to another window
     expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
-    expect(await win.locator('.ft-badge').getAttribute('href')).toMatch(TOKEN);
-    await shot(page, id);
+    expect(await w.locator('.ft-badge').getAttribute('href')).toMatch(TOKEN);
+    await shot(page, `feature-${label.split(' ')[0].toLowerCase()}`);
   });
 }
 
-test('About the sound and About FocusTones', async ({ page }) => {
-  await page.goto(`${HARNESS}?w=about-sound`);
-  await expect(page.getByRole('heading', { name: 'Binaural beats' })).toBeVisible();
-  await expect(page.getByText('It promises no particular effect.')).toBeVisible();
+test('About the sound and About FocusTones (from the FocusTones menu)', async ({ page }) => {
+  await page.goto('/');
+  await openByIcon(page, 'About the sound');
+  await expect(win(page, 'About the sound').getByRole('heading', { name: 'Binaural beats', exact: true })).toBeVisible();
+  await expect(win(page, 'About the sound').getByText('It promises no particular effect.')).toBeVisible();
   await shot(page, 'about-sound');
-  await page.goto(`${HARNESS}?w=about-app`);
-  await expect(page.getByTestId('privacy-line')).toHaveText('This site sets no cookies and sends nothing anywhere.');
-  const links = await page.locator('.ft-links a').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href));
+
+  await page.getByRole('menuitem', { name: 'FocusTones menu' }).click();
+  await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
+  const about = win(page, 'About FocusTones');
+  await expect(about.getByTestId('privacy-line')).toHaveText('This site sets no cookies and sends nothing anywhere.');
+  const links = await about.locator('.ft-links a').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href));
   expect(links).toEqual(['https://tyl.sh/focustones/privacy', 'https://tyl.sh/focustones/support', 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/']);
   expect(await page.evaluate(() => document.cookie)).toBe('');
   await shot(page, 'about-app');
@@ -143,7 +182,7 @@ test.describe('the orb', () => {
   const frame = (page: Page) => page.getByTestId('orb').locator('canvas').evaluate((c: HTMLCanvasElement) => c.toDataURL());
 
   test('breathes while playing', async ({ page }) => {
-    await page.goto(HARNESS);
+    await page.goto('/');
     await page.getByTestId('play').click();
     await expect(page.getByTestId('status')).toHaveText('Playing');
     const a = await frame(page);
@@ -154,7 +193,7 @@ test.describe('the orb', () => {
   test.describe('with Reduce Motion', () => {
     test.use({ reducedMotion: 'reduce' });
     test('holds still, playing or not', async ({ page }) => {
-      await page.goto(HARNESS);
+      await page.goto('/');
       await page.waitForTimeout(500);
       const idle = await frame(page);
       await page.waitForTimeout(1200);
