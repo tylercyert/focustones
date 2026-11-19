@@ -1,13 +1,90 @@
 // Every visible string on the site lives here, so the owner approves one file (docs/product.md, public words).
 // Later issues add their keys here. Banned words are checked over src/ (scripts/check.sh).
-export interface Strings {
-  readonly siteName: string;
-  readonly menuBar: { readonly appMenu: string };
-  readonly desktop: { readonly placeholder: string };
-}
-
-export const strings: Strings = {
+export const strings = {
   siteName: 'FocusTones',
-  menuBar: { appMenu: 'FocusTones' },
-  desktop: { placeholder: 'The desktop is under construction.' },
-};
+  menuBar: {
+    appMenu: 'FocusTones',
+    appMenuLabel: 'FocusTones menu',
+    about: 'About FocusTones…',
+    replayStartup: 'Restart',
+    file: 'File',
+    open: 'Open',
+    closeWindow: 'Close Window',
+    closeAll: 'Close All Windows',
+    edit: 'Edit',
+    selectAll: 'Select All Icons',
+    deselectAll: 'Deselect All',
+    view: 'View',
+    cleanUp: 'Clean Up Desktop',
+    showDate: 'Show Date in Menu Bar',
+    window: 'Window',
+    zoom: 'Zoom Window',
+    collapse: 'Collapse Window',
+    expand: 'Expand Window',
+    moveResize: 'Move or Resize Window',
+    nextWindow: 'Next Window',
+    showDesktop: 'Show Desktop',
+    noWindows: 'No open windows',
+    help: 'Help',
+    desktopHelp: 'Desktop Help',
+    menuBarLabel: 'Menu bar',
+    volume: 'Volume',
+    volumeValue: 'Volume',
+    clockLabel: 'Clock. Press to show or hide the date.',
+  },
+  desktop: {
+    surfaceLabel: 'Desktop',
+    iconsLabel: 'Desktop icons',
+    close: 'Close',
+    zoom: 'Zoom',
+    collapse: 'Collapse',
+    expand: 'Expand',
+    resize: 'Resize window',
+    titleBar: 'title bar',
+    moveHint: 'Arrow keys move this window. Shift plus arrow keys resize it.',
+    switcherLabel: 'Open windows',
+    switcherDesktop: 'Desktop',
+    closeWindow: 'Close window',
+    startupTitle: 'FocusTones',
+    startupStatus: 'Starting up…',
+    startupSkip: 'Click or press any key to skip',
+    trashName: 'Trash',
+  },
+  windows: {
+    welcome: {
+      title: 'Welcome',
+      iconLabel: 'Welcome',
+      heading: 'Welcome to FocusTones',
+      body: 'A quiet desktop for focus sounds. Double-click an icon to open a window, drag a title bar to move it, and double-click a title bar to roll the window up.',
+      phoneBody: 'A quiet desktop for focus sounds. Tap an icon to open a window, and use the strip at the bottom to switch between them.',
+      tip: 'Try the Window menu, or press Ctrl or Cmd with W to close a window.',
+    },
+    about: {
+      title: 'About FocusTones',
+      short: 'About',
+      name: 'FocusTones',
+      tagline: 'Binaural beats for focus, free in your browser.',
+      detail: 'Everything runs on this page, on your device. Nothing is tracked and there is no account.',
+    },
+    help: {
+      title: 'Desktop Help',
+      short: 'Help',
+      iconLabel: 'Desktop Help',
+      heading: 'Getting around',
+      items: [
+        'Double-click an icon to open its window. On a touch screen, tap it once.',
+        'Drag a title bar to move a window. Drag the corner box to resize it. From the keyboard, choose Move or Resize Window in the Window menu, then use the arrow keys, and add Shift to resize.',
+        'Double-click a title bar, or press its right-hand box, to roll the window up.',
+        'Press the box on the left to close a window, or press Ctrl or Cmd with W.',
+        'The Window menu lists everything that is open.',
+        'Press Tab to move between controls and Esc to close a menu.',
+      ],
+    },
+    trash: {
+      title: 'Trash',
+      iconLabel: 'Trash',
+      empty: 'The Trash is empty.',
+      detail: 'Nothing here is saved anywhere but this device.',
+    },
+  },
+} as const;
