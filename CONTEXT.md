@@ -1,0 +1,33 @@
+# FocusTones web: glossary
+
+The words this site uses. Terms below are shared with the iOS app (`focustones-ios` CONTEXT.md); add a term here before using a new one.
+
+## Sound
+
+**Band**: one of five beat ranges, each with a color: delta (0.5–4 Hz), theta (4–8 Hz), alpha (8–13 Hz), beta (13–30 Hz), gamma (30–45 Hz). _Avoid_: brainwave, wave type.
+
+**Beat**: the pulse rate a tone produces, in Hz: the difference between the two ears' frequencies in binaural mode, or the pulse rate in isochronic mode. _Avoid_: offset, beat frequency.
+
+**Carrier**: the pitch of the tone the listener hears, 80–1000 Hz. _Avoid_: base frequency, pitch.
+
+**Mode**: how the beat is made. **Binaural** (shown to visitors as Headphones): a different frequency in each ear. **Isochronic** (Speaker): one tone pulsing at the beat. _Avoid_: type, style.
+
+**Preset**: a mix that ships with the app. The site plays the free ones: Deep Work, Peak, Daydream, Calm Focus, Deep Sleep.
+
+**Free set**: what anyone can use without Pro; on this site it is playable with no time limit. _Avoid_: trial, lite.
+
+**Pro**: the app's one paid entitlement; everything beyond the free set. The site shows it in windows that link to the app. _Avoid_: premium, plus.
+
+**Timer**: the length a session is set to end at, or Off; it fades out over its last 30 seconds. _Avoid_: duration, countdown.
+
+**Fade**: the gentle rise at the start of a session (3 s) and fall at its end or on pause.
+
+**Orb**: the animated sphere colored by the current band, breathing slowly while a session plays. It never flashes at the beat rate. _Avoid_: sphere, visualizer.
+
+## Desktop
+
+**Desktop**: the whole page: a classic Mac OS–style surface with a menu bar, icons and windows.
+
+**Window**: a movable, closable panel on the desktop, one per `WindowSpec`. Listen is the window that plays sound. _Avoid_: modal, popup, dialog.
+
+**Menu bar**: the strip across the top of the desktop.
