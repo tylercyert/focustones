@@ -12,7 +12,8 @@ async function settle(page: Page) {
   });
   await page.waitForTimeout(150);
 }
-const shot = async (page: Page, name: string) => { await settle(page); await page.screenshot({ path: `docs/evidence/6-windows/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` }); };
+/** Only the Chromium windows projects write the #6 evidence; other engines run the same journeys without overwriting it. */
+const shot = async (page: Page, name: string) => { await settle(page); if (!test.info().project.name.startsWith('windows-')) return; await page.screenshot({ path: `docs/evidence/6-windows/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` }); };
 const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
 
 // Skip the first-visit startup moment (it has its own test in desktop.spec.ts).
@@ -182,7 +183,8 @@ test('About the sound and About FocusTones (from the FocusTones menu)', async ({
   await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
   const about = win(page, 'About FocusTones');
   await expect(about.getByTestId('privacy-line')).toHaveText('This site sets no cookies and sends nothing anywhere.');
-  const links = await about.locator('.ft-links a').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href));
+  // One evaluate per link: locator.evaluateAll under a role locator crashes Playwright's Firefox (1.65).
+  const links = await Promise.all((await about.locator('.ft-links a').all()).map((a) => a.evaluate((el) => (el as HTMLAnchorElement).href)));
   expect(links).toEqual(['https://tyl.sh/focustones/privacy', 'https://tyl.sh/focustones/support', 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/']);
   expect(await page.evaluate(() => document.cookie)).toBe('');
   await expect(about.getByText('Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc.')).toBeVisible();
