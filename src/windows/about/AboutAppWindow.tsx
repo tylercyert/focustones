@@ -1,3 +1,4 @@
+import { AppIconImage } from '../../desktop/icons.tsx';
 import { strings } from '../../content/strings.ts';
 import { AppStoreBadge } from '../shared/AppStoreBadge.tsx';
 import { EULA_URL, PRIVACY_URL, SUPPORT_URL } from '../shared/campaign.ts';
@@ -8,7 +9,7 @@ const A = strings.aboutApp;
 export function AboutAppWindow() {
   return (
     <section className="ft-win ft-about-app" aria-label={A.title}>
-      <img className="ft-icon ft-icon-lg" src="/icons/app-256.png" alt="" width="96" height="96" />
+      <AppIconImage className="ft-icon ft-icon-lg" size={96} />
       <h2 className="ft-h2 ft-center">{A.name}</h2>
       <p className="ft-small ft-center">{A.version}</p>
       <p className="ft-p ft-center">{A.credits}</p>

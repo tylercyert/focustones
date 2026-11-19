@@ -8,3 +8,4 @@ body {
   font: 400 15px/1.35 "Pixelify Sans", "Courier New", monospace; color: #000; background: #6767c8;
 }
 button { font: inherit; color: inherit; }
+.pic { display: contents; }

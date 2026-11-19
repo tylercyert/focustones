@@ -27,7 +27,7 @@
   --plat-ink: #000000;
   --plat-ink-2: #333333; /* secondary text on platinum: 9.9:1 */
   --plat-ink-3: #4d4d4d; /* tertiary text on platinum: 6.5:1 */
-  --plat-ink-off: #6b6b6b; /* disabled and inactive titles: 3.9:1, non-essential */
+  --plat-ink-off: #595959; /* disabled items and inactive titles: 5.0:1 on platinum */
   --select: #3a3aa0; /* menu and list highlight (blue-violet), white text 8.6:1 */
   --select-ink: #ffffff;
 

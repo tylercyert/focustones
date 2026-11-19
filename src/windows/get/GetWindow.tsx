@@ -1,3 +1,4 @@
+import { AppIconImage } from '../../desktop/icons.tsx';
 import qr from 'virtual:campaign-qr';
 import { strings } from '../../content/strings.ts';
 import { AppStoreBadge } from '../shared/AppStoreBadge.tsx';
@@ -22,7 +23,7 @@ export function GetWindow() {
   return (
     <section className="ft-win ft-get" aria-label={G.title}>
       <header className="ft-get-head">
-        <img className="ft-icon" src="/icons/app-256.png" alt="" width="72" height="72" />
+        <AppIconImage className="ft-icon" size={72} />
         <div>
           <h2 className="ft-get-name">{G.appName}</h2>
           <p className="ft-get-sub">{G.subtitle}</p>
@@ -64,7 +65,7 @@ export function GetWindow() {
 export function GetBar() {
   return (
     <aside className="ft-getbar" aria-label={G.barLabel}>
-      <img src="/icons/app-256.png" alt="" width="36" height="36" />
+      <AppIconImage size={36} />
       <div className="ft-getbar-text"><strong>{strings.aboutApp.name}</strong><span>{G.barLabel}</span></div>
       <a className="ft-getbar-btn" href={appStoreUrl('bar')} target="_blank" rel="noopener" data-placement="bar">{G.barAction}</a>
     </aside>

@@ -151,11 +151,11 @@ test('locked controls open the matching window, with a campaign link', async ({ 
 });
 
 for (const [label, heading, frame] of [
-  ['Tune', 'An instrument you can tune', '/frames/tune.webp'],
-  ['Layers', 'Lay something underneath', '/frames/layers.webp'],
-  ['Programs', 'Save the sound that works', '/frames/mixes.webp'],
-  ['Progress', 'See your focus time', '/frames/progress.webp'],
-  ['iPhone everywhere', 'Runs the whole work block', '/frames/timer.webp'],
+  ['Tune', 'An instrument you can tune', '/frames/tune'],
+  ['Layers', 'Lay something underneath', '/frames/layers'],
+  ['Programs', 'Save the sound that works', '/frames/mixes'],
+  ['Progress', 'See your focus time', '/frames/progress'],
+  ['iPhone everywhere', 'Runs the whole work block', '/frames/timer'],
 ] as const) {
   test(`${label}: opens from its icon with the matching real app frame and an App Store link`, async ({ page }) => {
     await page.goto('/');
@@ -163,8 +163,10 @@ for (const [label, heading, frame] of [
     const w = win(page, label);
     await expect(w.getByRole('heading', { name: heading })).toBeVisible();
     const img = w.locator('img[src^="/frames/"]');
-    await expect(img).toHaveAttribute('src', frame); // never a frame whose caption belongs to another window
-    expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+    await expect(img).toHaveAttribute('src', `${frame}-640.webp`); // never a frame whose caption belongs to another window
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+    // The browser picks a modern format at a size that fits (#8): AVIF or WebP, 320 or 640 px wide.
+    expect(await img.evaluate((el: HTMLImageElement) => el.currentSrc)).toMatch(new RegExp(`${frame}-(320|640)\\.(avif|webp)$`));
     expect(await w.locator('.ft-badge').getAttribute('href')).toMatch(TOKEN);
     await shot(page, `feature-${label.split(' ')[0].toLowerCase()}`);
   });
