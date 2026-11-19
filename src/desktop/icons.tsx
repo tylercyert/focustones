@@ -49,6 +49,69 @@ const drawers: Record<string, () => Grid> = {
     fill(g, 7, 29, 19, 1, K); fill(g, 26, 8, 1, 22, K);
     return g;
   },
+  tune() {
+    const g = blank();
+    roundRect(g, 3, 3, 26, 26, K, G1);
+    fill(g, 4, 4, 24, 1, W); fill(g, 4, 4, 1, 24, W);
+    [[9, 12], [16, 20], [23, 9]].forEach(([x, ky]) => {
+      fill(g, x, 7, 2, 19, G4); fill(g, x, ky + 2, 2, 26 - ky - 2, '#7BBE62');
+      fill(g, x - 2, ky, 6, 4, W); frame(g, x - 2, ky, 6, 4, K); fill(g, x - 1, ky + 1, 4, 1, G2);
+    });
+    return g;
+  },
+  layers() {
+    const g = blank();
+    [['#21B5B0', 20], ['#7BBE62', 13], ['#D9B44A', 6]].forEach(([c, y]) => {
+      for (let j = 0; j < 7; j++) { const inset = Math.abs(j - 3) < 3 ? 0 : 1; fill(g, 4 + inset * 2 + Math.max(0, 3 - j), (y as number) + j, 24 - inset * 4 - Math.max(0, 3 - j) * 2, 1, c as string); }
+      fill(g, 5, (y as number) + 3, 22, 1, W); set(g, 4, (y as number) + 3, K); set(g, 27, (y as number) + 3, K);
+    });
+    fill(g, 9, 5, 14, 1, K); fill(g, 6, 12, 1, 1, K); fill(g, 6, 19, 1, 1, K); fill(g, 25, 12, 1, 1, K); fill(g, 25, 19, 1, 1, K);
+    fill(g, 7, 27, 18, 1, K);
+    return g;
+  },
+  programs() {
+    const g = blank();
+    roundRect(g, 2, 4, 28, 24, K, '#141823');
+    fill(g, 5, 24, 22, 1, G4); fill(g, 5, 7, 1, 18, G4);
+    const ys = (x: number) => { const t = (x - 6) / 20; const e = t * t * (3 - 2 * t); return 22 - 13 * e; };
+    for (let x = 6; x <= 26; x++) {
+      const t = (x - 6) / 20;
+      const c = t < 0.34 ? '#21B5B0' : t < 0.67 ? '#7BBE62' : '#D9B44A';
+      fill(g, x, Math.round(ys(x)), 1, 2, c);
+    }
+    fill(g, 5, 21, 3, 3, '#7FE3DC'); fill(g, 25, 8, 3, 3, '#F4DE8E');
+    return g;
+  },
+  progress() {
+    const g = blank();
+    roundRect(g, 2, 3, 28, 26, K, G1);
+    fill(g, 3, 4, 26, 1, W); fill(g, 3, 4, 1, 24, W);
+    fill(g, 5, 25, 22, 1, K);
+    [[6, 9, '#7BBE62'], [11, 14, '#7BBE62'], [16, 6, '#21B5B0'], [21, 17, '#D9B44A']].forEach(([x, h, c]) => {
+      fill(g, x as number, 25 - (h as number), 4, h as number, c as string); frame(g, x as number, 25 - (h as number), 4, h as number, K);
+    });
+    return g;
+  },
+  phone() {
+    const g = blank();
+    roundRect(g, 9, 1, 14, 30, K, G5);
+    fill(g, 11, 5, 10, 21, '#0A0C12');
+    orb(g, 16, 14, 3.5);
+    fill(g, 13, 20, 6, 1, '#7BBE62'); fill(g, 14, 23, 4, 1, G4);
+    fill(g, 14, 3, 4, 1, G4); fill(g, 14, 28, 4, 1, G3);
+    fill(g, 10, 2, 1, 26, G4);
+    return g;
+  },
+  wave() {
+    const g = blank();
+    roundRect(g, 2, 5, 28, 22, K, '#141823');
+    for (let x = 5; x <= 26; x++) {
+      const y = Math.round(16 + 6 * Math.sin((x - 5) * 0.62) * Math.min(1, (x - 3) / 5));
+      fill(g, x, y, 1, 2, x % 2 ? '#7FE3DC' : '#E9C866');
+    }
+    fill(g, 5, 16, 22, 1, G5);
+    return g;
+  },
   trash() {
     const g = blank();
     fill(g, 12, 3, 8, 2, K); fill(g, 13, 4, 6, 1, G3);   // handle

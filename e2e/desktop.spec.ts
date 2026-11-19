@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-const ORIGIN = 'http://localhost:4391';
+declare const process: { env: Record<string, string | undefined> };
+const ORIGIN = `http://localhost:${process.env.FT_PREVIEW_PORT ?? 4391}`;
 
 // Reduce Motion skips the startup moment, so most tests begin on the desktop at once.
 test.use({ reducedMotion: 'reduce' });
@@ -13,6 +14,8 @@ function watch(page: Page) {
   return problems;
 }
 const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
+/** The desktop launches with Listen and Get FocusTones open; these shell tests start from an empty desktop. */
+const emptyDesktop = async (page: Page) => { await page.getByRole('menuitem', { name: 'File', exact: true }).click(); await page.getByRole('menuitem', { name: 'Close All Windows' }).click(); await expect(page.getByRole('dialog')).toHaveCount(0); };
 const openWelcome = (page: Page) => page.getByRole('button', { name: 'Welcome', exact: true }).first().dblclick();
 const openHelp = async (page: Page) => { await page.getByRole('menuitem', { name: 'Help', exact: true }).click(); await page.getByRole('menuitem', { name: 'Desktop Help' }).click(); };
 const box = async (page: Page, name: string) => (await win(page, name).boundingBox())!;
@@ -23,7 +26,9 @@ test.describe('desktop', () => {
     await page.goto('/');
     await expect(page.getByRole('menubar', { name: 'Menu bar' })).toBeVisible();
     for (const m of ['FocusTones menu', 'File', 'Edit', 'View', 'Window', 'Help']) await expect(page.getByRole('menuitem', { name: m })).toBeVisible();
-    await expect(page.getByRole('dialog')).toHaveCount(0); // nothing opens on launch until the real windows register openOnLaunch
+    await expect(page.getByRole('dialog')).toHaveCount(2); // Listen and Get FocusTones open on launch
+    await expect(win(page, 'Listen')).toHaveAttribute('data-active', 'true'); // Listen is in front
+    await emptyDesktop(page);
     await expect(page.getByRole('button', { name: 'Welcome' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Desktop Help' })).toHaveCount(0); // Help is in the Help menu only
     await expect(page.getByRole('button', { name: 'Trash' })).toBeVisible();
@@ -155,6 +160,7 @@ test.describe('desktop', () => {
 
   test('Ctrl/Cmd+W closes the window that holds keyboard focus, never another', async ({ page }) => {
     await page.goto('/');
+    await emptyDesktop(page);
     await openWelcome(page);
     await page.getByRole('menuitem', { name: 'FocusTones menu' }).click();
     await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
@@ -162,7 +168,7 @@ test.describe('desktop', () => {
     // Tab from the menu bar into Welcome (behind About): focus and the front window must agree.
     await page.getByRole('menuitem', { name: 'Help', exact: true }).focus();
     const welcome = win(page, 'Welcome');
-    for (let i = 0; i < 12 && !(await welcome.evaluate((e) => e.contains(document.activeElement))); i++) await page.keyboard.press('Tab');
+    for (let i = 0; i < 30 && !(await welcome.evaluate((e) => e.contains(document.activeElement))); i++) await page.keyboard.press('Tab');
     expect(await welcome.evaluate((e) => e.contains(document.activeElement))).toBe(true);
     await expect(welcome).toHaveAttribute('data-active', 'true');
     await expect(win(page, 'About FocusTones')).not.toHaveAttribute('data-active', 'true');
@@ -267,15 +273,16 @@ test.describe('desktop', () => {
 
   test('the Tab order reaches menus, icons, then the window controls', async ({ page }) => {
     await page.goto('/');
+    await emptyDesktop(page);
     const seen: string[] = [];
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 40; i++) {
       await page.keyboard.press('Tab');
       seen.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim() ?? ''));
     }
     await openWelcome(page);
     await page.getByRole('menuitem', { name: 'FocusTones menu' }).focus();
     const order: string[] = [];
-    for (let i = 0; i < 14; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim() ?? '')); }
+    for (let i = 0; i < 40; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim() ?? '')); }
     expect(order.indexOf('Close')).toBeGreaterThan(order.findIndex((s) => s === 'Help'));
     expect(seen.some((s) => s.includes('Welcome'))).toBe(true);
   });
@@ -315,6 +322,10 @@ test.describe('phone', () => {
     await page.goto('/');
     const noOverflow = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth && document.body.scrollWidth <= window.innerWidth);
     expect(await noOverflow()).toBe(true);
+    await expect(win(page, 'Listen')).toBeVisible(); // Listen fills the screen; Get FocusTones is one tab away
+    await expect(win(page, 'Get FocusTones')).toBeHidden();
+    await page.getByRole('menuitem', { name: 'File', exact: true }).tap();
+    await page.getByRole('menuitem', { name: 'Close All Windows' }).tap();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.getByRole('button', { name: 'Welcome', exact: true }).tap(); // one tap opens
     const w = win(page, 'Welcome');

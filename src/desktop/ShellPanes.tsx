@@ -3,17 +3,6 @@ import { Icon } from './icons.tsx';
 
 const t = strings.windows;
 
-export function About() {
-  return (
-    <div className="pane pane-center">
-      <Icon name="app" size={64} />
-      <h3 className="pane-title">{t.about.name}</h3>
-      <p>{t.about.tagline}</p>
-      <p className="pane-small">{t.about.detail}</p>
-    </div>
-  );
-}
-
 export function Help() {
   return (
     <div className="pane">
