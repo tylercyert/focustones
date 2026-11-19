@@ -489,3 +489,43 @@ test.describe('touch tablet', () => {
     await expect(folder.getByRole('option')).toHaveCount(4);
   });
 });
+
+test.describe('enlarged text', () => {
+  for (const width of [375, 390, 402]) {
+    test(`at 200% text the Desktop Patterns names stay apart and readable at ${width} px`, async ({ page }) => {
+      test.skip(!phone(page), 'Phone widths; the 375 project covers them.');
+      await page.setViewportSize({ width, height: 812 });
+      await page.goto('/');
+      await menu(page, 'FocusTones menu', 'Desktop Patterns');
+      const panel = win(page, 'Desktop Patterns');
+      // Chromium text-scaling model (as in windows.spec.ts): double every element's own original computed font size.
+      await panel.evaluate((root) => {
+        const els = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+        const sizes = els.map((el) => parseFloat(getComputedStyle(el).fontSize));
+        els.forEach((el, i) => { el.style.fontSize = `${sizes[i] * 2}px`; });
+      });
+      await page.waitForTimeout(150);
+      const labels = await panel.locator('.dx-swatch').evaluateAll((btns) => btns.map((b) => {
+        const name = b.querySelector('.dx-swatch-name')!;
+        const range = document.createRange();
+        range.selectNodeContents(name);
+        const t = range.getBoundingClientRect(); // the text itself, not its box
+        const cell = b.getBoundingClientRect();
+        return { text: name.textContent, t: { l: t.left, r: t.right, top: t.top, b: t.bottom }, cell: { l: cell.left, r: cell.right } };
+      }));
+      expect(labels).toHaveLength(8);
+      for (const a of labels) {
+        expect(a.t.l, `${a.text} inside its cell`).toBeGreaterThanOrEqual(a.cell.l - 0.5);
+        expect(a.t.r, `${a.text} inside its cell`).toBeLessThanOrEqual(a.cell.r + 0.5);
+      }
+      for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+        const [a, b] = [labels[i].t, labels[j].t];
+        const overlap = Math.min(a.r, b.r) - Math.max(a.l, b.l) > 0.5 && Math.min(a.b, b.b) - Math.max(a.top, b.top) > 0.5;
+        expect(overlap, `${labels[i].text} / ${labels[j].text}`).toBe(false);
+      }
+      const body = panel.locator('.win-body');
+      expect(await body.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      if (width === 375) await shot(page, 'patterns-200-percent-text');
+    });
+  }
+});

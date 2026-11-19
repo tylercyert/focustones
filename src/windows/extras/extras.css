@@ -147,7 +147,8 @@
 
 /* Control panels */
 .dx-panel { display: grid; align-content: start; }
-.dx-swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+/* Columns sized in em: at default text four fit a phone, and as text grows the grid drops to fewer, wider columns. */
+.dx-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.6em), 1fr)); gap: 8px; }
 .dx-swatch { display: grid; justify-items: center; gap: 4px; padding: 4px 2px; border: 0; background: none; font: inherit; color: inherit; min-width: 0; }
 .dx-swatch-art { position: relative; display: block; width: 100%; max-width: 72px; aspect-ratio: 4 / 3; border: 1px solid var(--dx-ink); background-color: var(--desk-b, #40392f); box-shadow: 1px 1px 0 var(--dx-hi); }
 .dx-swatch-art[data-pattern]::before {
@@ -155,7 +156,7 @@
   -webkit-mask: var(--dx-pattern) 0 0 / 8px 8px repeat; mask: var(--dx-pattern) 0 0 / 8px 8px repeat;
 }
 .dx-swatch-default { background-image: conic-gradient(var(--desk-a, #4d463b) 25%, var(--desk-b, #40392f) 0 50%, var(--desk-a, #4d463b) 0 75%, var(--desk-b, #40392f) 0); background-size: 4px 4px; }
-.dx-swatch-name { font-size: 11.5px; line-height: 1.15; text-align: center; padding: 0 3px; }
+.dx-swatch-name { max-width: 100%; font-size: 11.5px; line-height: 1.15; text-align: center; padding: 0 3px; overflow-wrap: anywhere; } /* wraps inside its cell, never into a neighbor */
 .dx-swatch[aria-checked='true'] .dx-swatch-art { outline: 2px solid var(--dx-ink); outline-offset: 2px; }
 .dx-swatch[aria-checked='true'] .dx-swatch-name { background: var(--dx-select); color: #ffffff; }
 .dx-swatch:focus-visible { outline: 1px dotted var(--dx-ink); }
