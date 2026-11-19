@@ -226,7 +226,7 @@ export const strings = {
     name: 'FocusTones',
     version: 'Web trial 1.0',
     credits: 'The free web trial of FocusTones: Binaural Beats. The sound and the orb are made in your browser.',
-    madeBy: 'Made by Tyl Softworks.',
+    madeBy: 'Made by Tyler Cyert.',
     privacyHeading: 'Privacy',
     privacyBody: 'This site sets no cookies and sends nothing anywhere.',
     privacyLink: 'Privacy Policy',
@@ -336,7 +336,7 @@ export const strings = {
       title: 'Credits',
       heading: 'You found the credits',
       lines: [
-        'Made by Tyl Softworks.',
+        'Made by Tyler Cyert.',
         'Every pixel, pattern and chord on this desktop was made from scratch.',
         'Special thanks: you, for poking around.',
         'No distractions were harmed. Some were emptied.',
