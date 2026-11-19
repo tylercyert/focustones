@@ -197,6 +197,17 @@ test.describe("cold iOS start", () => {
     expect(out.calls).toEqual(["resume:gesture", "play:gesture"]);
     expect(out.state).toBe("playing");
   });
+
+  test("a refused media element still plays, straight to the speakers", async ({ page }) => {
+    const out = await page.evaluate(async () => {
+      HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException("refused", "NotAllowedError"));
+      const e = window.engine;
+      await e.start("deep-work");
+      const internals = e as unknown as { ctx: AudioContext; element: HTMLAudioElement | null };
+      return { state: e.currentState, ctx: internals.ctx.state as string, element: internals.element };
+    });
+    expect(out).toEqual({ state: "playing", ctx: "running", element: null });
+  });
 });
 
 // The tab was in the background past the timer's end: the page's interval never ran, and the context was suspended.
@@ -215,6 +226,10 @@ async function returnToForeground(page: import("@playwright/test").Page, timerSe
       await internals.ctx.suspend(); // the interruption
       Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
       document.dispatchEvent(new Event("visibilitychange"));
+      // A resume can take longer than a moment (Firefox on a null audio sink): while the engine still means to play,
+      // wait for the context to run, up to 3 s; then settle for 300 ms either way.
+      const deadline = performance.now() + 3000;
+      while (e.currentState === "playing" && internals.ctx.state !== "running" && performance.now() < deadline) await new Promise((r) => setTimeout(r, 50));
       await new Promise((r) => setTimeout(r, 300));
       return {
         state: e.currentState,

@@ -1,0 +1,38 @@
+/*
+ * The desktop's tokens: one file, so the Desktop Patterns control panel (#14) can swap the pattern and colours by
+ * setting these properties on `.desktop` (or :root). Classic Mac OS 8/9 "Platinum" proportions and colours, drawn
+ * from scratch (ADR 0002): no Apple pattern bitmaps, icons or fonts.
+ */
+:root {
+  /* Desktop: a blue-violet surface with a sparse diagonal dither of our own (one light pixel per 2×2 cell, on a
+     diagonal lattice), so it reads as texture up close and as one calm colour from a distance. */
+  --desk-base: #6767c8;
+  --desk-a: #7474d2; /* the dither's light pixel */
+  --desk-b: #5f5fbf; /* the dither's dark pixel */
+  --desk-pattern:
+    conic-gradient(at 1px 1px, transparent 75%, var(--desk-a) 0) 0 0 / 4px 4px,
+    conic-gradient(at 1px 1px, transparent 75%, var(--desk-a) 0) 2px 2px / 4px 4px,
+    conic-gradient(at 1px 1px, transparent 75%, var(--desk-b) 0) 2px 0 / 4px 4px,
+    var(--desk-base);
+  --desk-label-bg: #ffffff; /* desktop icon names sit on a white box */
+  --desk-label-ink: #000000;
+
+  /* Platinum chrome */
+  --plat: #dddddd; /* window, menu and control face */
+  --plat-hi: #ffffff; /* bevel highlight, top and left */
+  --plat-mid: #bbbbbb; /* pressed face, inactive title */
+  --plat-lo: #888888; /* bevel shadow, bottom and right */
+  --plat-dark: #555555; /* deep shadow, pressed edges */
+  --plat-well: #ffffff; /* inset lists and fields */
+  --plat-ink: #000000;
+  --plat-ink-2: #333333; /* secondary text on platinum: 9.9:1 */
+  --plat-ink-3: #4d4d4d; /* tertiary text on platinum: 6.5:1 */
+  --plat-ink-off: #595959; /* disabled items and inactive titles: 5.0:1 on platinum */
+  --select: #3a3aa0; /* menu and list highlight (blue-violet), white text 8.6:1 */
+  --select-ink: #ffffff;
+
+  /* The Listen window's display: the one place modern rendering (the orb's glow) is allowed. */
+  --display: #0a0c12;
+  --display-ink: #f2f4f8;
+  --display-ink-2: #a3aabb;
+}

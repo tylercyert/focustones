@@ -28,7 +28,7 @@ export type Action =
   | { type: 'toggleZoom'; id: string }
   | { type: 'move'; id: string; x: number; y: number }
   | { type: 'resize'; id: string; width: number; height: number; min: Size }
-  | { type: 'cleanUp'; defs: readonly WindowDef[] }
+  | { type: 'cleanUp'; defs: readonly WindowDef[]; surface?: Size }
   | { type: 'closeAll' }
   | { type: 'setVolume'; volume: number };
 
@@ -67,11 +67,29 @@ export function save(s: DesktopState): void {
   try { localStorage.setItem(STORAGE_KEY, serialize(s)); } catch { /* storage off: positions just do not persist */ }
 }
 
-const fresh = (d: WindowDef): WinState => ({ x: d.position.x, y: d.position.y, width: d.size.width, height: d.size.height, collapsed: false, zoomed: false });
+/** The strip down the right-hand side that the desktop icons use: a fresh window keeps clear of it. */
+export const ICON_COLUMN = 124;
+const MARGIN = 8;
 
-export function initialState(defs: readonly WindowDef[], saved: Saved | null): DesktopState {
+/**
+ * Where a window opens by default on this surface: its own position and size when they fit; otherwise moved left to
+ * stay clear of the icon column, then narrowed and shortened to fit (never off the edge, never under the icons).
+ */
+export function fitToSurface(d: WindowDef, surface?: Size): Rect {
+  const r = { x: d.position.x, y: d.position.y, width: d.size.width, height: d.size.height };
+  if (!surface) return r;
+  const right = surface.width - ICON_COLUMN;
+  if (r.x + r.width > right) r.x = Math.max(MARGIN, right - r.width);
+  r.width = Math.min(r.width, Math.max(240, right - r.x));
+  r.height = Math.min(r.height, Math.max(200, surface.height - r.y - MARGIN));
+  return r;
+}
+
+const fresh = (d: WindowDef, surface?: Size): WinState => ({ ...fitToSurface(d, surface), collapsed: false, zoomed: false });
+
+export function initialState(defs: readonly WindowDef[], saved: Saved | null, surface?: Size): DesktopState {
   const rects: Record<string, WinState> = {};
-  for (const d of defs) rects[d.id] = saved?.rects[d.id] ?? fresh(d);
+  for (const d of defs) rects[d.id] = saved?.rects[d.id] ?? fresh(d, surface);
   const order = defs.filter((d) => d.openOnLaunch).map((d) => d.id);
   return { order, active: order.at(-1) ?? null, rects, volume: saved?.volume ?? 0.7 };
 }
@@ -107,7 +125,7 @@ export function reduce(s: DesktopState, a: Action): DesktopState {
       return patch(a.id, { width: Math.max(a.min.width, a.width), height: Math.max(a.min.height, a.height), zoomed: false });
     case 'cleanUp': {
       const rects = { ...s.rects };
-      for (const d of a.defs) rects[d.id] = fresh(d);
+      for (const d of a.defs) rects[d.id] = fresh(d, a.surface);
       return { ...s, rects };
     }
     case 'setVolume':

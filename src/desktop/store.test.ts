@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampRect, initialState, parseSaved, reduce, serialize, type DesktopState, type Action } from './store.ts';
+import { clampRect, fitToSurface, ICON_COLUMN, initialState, parseSaved, reduce, serialize, type DesktopState, type Action } from './store.ts';
 
 const defs = [
   { id: 'a', size: { width: 300, height: 200 }, position: { x: 40, y: 30 }, openOnLaunch: true },
@@ -8,6 +8,23 @@ const defs = [
 const run = (s: DesktopState, ...as: Action[]) => as.reduce(reduce, s);
 
 describe('desktop store', () => {
+  it('opens a default window clear of the icon column and inside the surface (#8: 768 px wide hid Get FocusTones)', () => {
+    const get = { id: 'get', size: { width: 400, height: 676 }, position: { x: 532, y: 30 }, openOnLaunch: true };
+    expect(fitToSurface(get, { width: 1280, height: 778 })).toEqual({ x: 532, y: 30, width: 400, height: 676 }); // fits: untouched
+    const tablet = fitToSurface(get, { width: 768, height: 1000 });
+    expect(tablet.x + tablet.width).toBeLessThanOrEqual(768 - ICON_COLUMN);
+    expect(tablet.width).toBe(400);
+    const short = fitToSurface(get, { width: 1024, height: 600 });
+    expect(short.y + short.height).toBeLessThanOrEqual(600);
+    const narrow = fitToSurface(get, { width: 500, height: 900 });
+    expect(narrow.x).toBeGreaterThanOrEqual(0);
+    expect(narrow.x + narrow.width).toBeLessThanOrEqual(500 - ICON_COLUMN);
+    // Clean Up uses the same fit, twice in a row.
+    let s = initialState([get], null, { width: 768, height: 1000 });
+    s = run(s, { type: 'move', id: 'get', x: 600, y: 300 }, { type: 'cleanUp', defs: [get], surface: { width: 768, height: 1000 } }, { type: 'cleanUp', defs: [get], surface: { width: 768, height: 1000 } });
+    expect(s.rects.get).toMatchObject(tablet);
+  });
+
   it('opens launch windows and focuses the last one', () => {
     const s = initialState(defs, null);
     expect(s.order).toEqual(['a']);

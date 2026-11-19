@@ -121,7 +121,8 @@ test.describe('desktop', () => {
     await page.mouse.move(-400, -400, { steps: 4 });
     await page.mouse.up();
     const after = await box(page, 'Welcome');
-    expect(after.y).toBeGreaterThanOrEqual(24);
+    const bar = (await page.getByRole('menubar', { name: 'Menu bar' }).boundingBox())!;
+    expect(after.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1); // the title bar stays below the menu bar
     expect(after.x + after.width).toBeGreaterThan(30);
   });
 
@@ -300,11 +301,12 @@ test.describe('desktop', () => {
     // A fresh first visit that is left alone ends by itself in under 1.2 s.
     const ctx2 = await browser.newContext({ reducedMotion: 'no-preference' });
     const page2 = await ctx2.newPage();
-    const t0 = Date.now();
     await page2.goto(ORIGIN);
     await expect(page2.getByRole('status', { name: 'Starting up…' })).toBeVisible();
+    // Timed from the moment it shows (not from navigation, which a busy three-engine run can slow), with polling slack.
+    const t0 = Date.now();
     await expect(page2.getByRole('status', { name: 'Starting up…' })).toHaveCount(0, { timeout: 2000 });
-    expect(Date.now() - t0).toBeLessThan(1200 + 300); // + page load allowance
+    expect(Date.now() - t0).toBeLessThan(1200 + 200);
     await ctx2.close();
   });
 

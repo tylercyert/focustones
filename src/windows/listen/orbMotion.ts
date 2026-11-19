@@ -37,6 +37,9 @@ export const MOTION = {
   driftPeriod: 40,
   counterDriftPeriod: 26,
   framesPerSecond: 30,
+  /** Idle (not playing, nothing crossing over): the drift takes 26–40 s a turn and moves about half a pixel a frame at
+   *  6 frames a second, so it looks the same as 30 and costs a fifth of the work (and battery). */
+  idleFramesPerSecond: 6,
 } as const;
 
 const INNER_RADIUS = 0.12;
