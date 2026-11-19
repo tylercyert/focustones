@@ -10,6 +10,7 @@ nothing here imports React.
 | `worklet-processor.ts` | The `AudioWorkletProcessor` that calls `EngineRenderer.render` for every quantum. Page code never imports it (Vite bundles it via `?worker&url`). |
 | `protocol.ts` | The processor's name, options and message types, shared by page and worklet. |
 | `engine.ts` / `index.ts` | `FocusEngine`: the typed API and the browser quirks. |
+| `toy.ts` | The desktop delights' one-shot sounds (issue #14): the startup chord, the Trash's crumple and the Beat Calculator's pair of tones, on their own small `AudioContext`, apart from `FocusEngine`. Pure plans tested in `toy.test.ts`; every sound starts from a gesture. |
 
 ## API
 

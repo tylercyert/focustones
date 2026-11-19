@@ -157,6 +157,8 @@
 .is-phone .menu-item { min-height: 44px; padding: 0 18px 0 4px; }
 .is-phone .menu { position: static; }
 .is-phone .menu-list { position: absolute; left: 4px; top: 100%; width: min(280px, calc(100vw - 8px)); min-width: 0; border-top: 1px solid #000; }
+/* A long menu on a short screen scrolls inside itself, so its last items stay reachable (#14 added File items). */
+.menu-list { max-height: calc(100dvh - var(--bar) - 8px); overflow-y: auto; overscroll-behavior: contain; }
 .is-phone .menubar-status .speaker-pop { right: 0; }
 .is-phone .icons {
   position: static; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 4px; align-content: start; justify-items: center; padding: 20px 12px;

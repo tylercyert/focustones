@@ -37,3 +37,15 @@ The words this site uses. Terms below are shared with the iOS app (`focustones-i
 **Collapse**: rolling a window up to its title bar (the classic windowshade); double-click the title bar or press its right-hand box. _Avoid_: minimize.
 
 **Zoom**: toggling a window between its size and the full desktop.
+
+## Desktop delights (issue #14)
+
+**Distractions folder**: the desktop folder of playful items (Notifications, Inbox (99+)…) that can go in the **Trash**; **Empty Trash** (Special menu, or the Trash window's button) removes them for the visit. They come back on the next visit.
+
+**Desk accessory**: a small window opened from the FocusTones menu: the **Beat Calculator** (two ears' Hz in, the beat and its band out) and **Today's One Thing** (a yellow note kept on the device).
+
+**Control panel**: a settings window opened from the FocusTones menu: **Desktop Patterns** (the desktop's background, tinted by the band, and the startup chord) and **Screen Saver**.
+
+**Screen saver**: band-colored orbs drifting on black after 2 minutes without input; it never flashes and holds still with Reduce Motion. _Avoid_: idle screen, sleep.
+
+**Startup chord**: a short warm chord on the first Play of a visit; never on load.
