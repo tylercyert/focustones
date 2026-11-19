@@ -16,10 +16,10 @@ const feature = (id: string, title: string, icon: string, n: number, component: 
 export const windowSpecs: readonly WindowSpec[] = [
   { id: 'get', title: strings.get.title, shortTitle: strings.get.title, icon: 'app', defaultSize: { width: 400, height: 700 }, defaultPosition: { x: 540, y: 28 }, minSize: { width: 340, height: 420 }, component: GetWindow, openOnLaunch: true },
   { id: 'listen', title: strings.listen.title, icon: 'speaker', defaultSize: { width: 440, height: 650 }, defaultPosition: { x: 64, y: 16 }, minSize: { width: 340, height: 420 }, component: ListenWindow, openOnLaunch: true },
-  feature('tune', F.tune.title, 'note', 0, TuneWindow),
-  feature('layers', F.layers.title, 'folder', 1, LayersWindow),
-  feature('programs', F.programs.title, 'disk', 2, ProgramsWindow),
-  feature('progress', F.progress.title, 'note', 3, ProgressWindow),
-  feature('iphone', F.iphone.title, 'app', 4, IphoneWindow),
-  { id: 'about-sound', title: strings.aboutSound.title, shortTitle: 'Sound', icon: 'help', defaultSize: { width: 460, height: 730 }, defaultPosition: { x: 200, y: 40 }, minSize: { width: 340, height: 300 }, component: AboutSoundWindow, openOnLaunch: false },
+  feature('tune', F.tune.title, 'tune', 0, TuneWindow),
+  feature('layers', F.layers.title, 'layers', 1, LayersWindow),
+  feature('programs', F.programs.title, 'programs', 2, ProgramsWindow),
+  feature('progress', F.progress.title, 'progress', 3, ProgressWindow),
+  feature('iphone', F.iphone.title, 'phone', 4, IphoneWindow),
+  { id: 'about-sound', title: strings.aboutSound.title, shortTitle: 'Sound', icon: 'wave', defaultSize: { width: 460, height: 730 }, defaultPosition: { x: 200, y: 40 }, minSize: { width: 340, height: 300 }, component: AboutSoundWindow, openOnLaunch: false },
 ];

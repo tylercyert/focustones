@@ -16,14 +16,18 @@ export interface ListenModel {
   readonly setTimerMinutes: (m: number | null) => void;
 }
 
+/** What the window shows survives closing and reopening it: the engine keeps the timer and mode, so the controls must agree. */
+let rememberedOutput: Output = 'headphones';
+let rememberedMinutes: number | null = null;
+
 /** React state mirroring the page's one engine. The menu bar's volume item drives the engine's volume. */
 export function useListen(): ListenModel {
   const engine = listenEngine();
   const { volume } = useDesktop();
   const [state, setState] = useState(engine.state);
   const [preset, setPreset] = useState(engine.preset);
-  const [output, setOutputState] = useState<Output>('headphones');
-  const [timerMinutes, setMinutes] = useState<number | null>(null);
+  const [output, setOutputState] = useState<Output>(rememberedOutput);
+  const [timerMinutes, setMinutes] = useState<number | null>(rememberedMinutes);
   const [left, setLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -31,6 +35,8 @@ export function useListen(): ListenModel {
     return () => off.forEach((f) => f());
   }, [engine]);
   useEffect(() => { engine.setVolume(volume); }, [engine, volume]);
+  // Closing the window fades the sound out (1.5 s) and pauses it; reopening shows the paused state.
+  useEffect(() => () => engine.pause(), [engine]);
 
   const playing = state === 'starting' || state === 'playing';
   return {
@@ -43,7 +49,7 @@ export function useListen(): ListenModel {
       }
     },
     choose: (id) => engine.setPreset(id),
-    setOutput: (o) => { setOutputState(o); engine.setOutput(o); },
-    setTimerMinutes: (m) => { setMinutes(m); engine.setTimer(m === null ? null : m * 60); },
+    setOutput: (o) => { rememberedOutput = o; setOutputState(o); engine.setOutput(o); },
+    setTimerMinutes: (m) => { rememberedMinutes = m; setMinutes(m); engine.setTimer(m === null ? null : m * 60); },
   };
 }

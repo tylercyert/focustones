@@ -59,8 +59,14 @@ export function Orb({ band, playing, size }: OrbProps) {
     s.still = motionQuery.matches;
 
     const span = Math.ceil(size * (GLOW_REACH * 2 + 0.04));
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Device pixels, at most 3× (2× on a phone, to keep the fill cheap).
+    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), window.innerWidth < 700 ? 2 : 3);
     el.width = el.height = Math.round(span * dpr);
+    // The sphere is drawn on its own canvas, then masked with a soft one-pixel edge: a canvas clip() is not anti-aliased.
+    const S = Math.round(size * dpr);
+    const sphere = document.createElement('canvas');
+    sphere.width = sphere.height = S;
+    const sctx = sphere.getContext('2d')!;
 
     const draw = (t: number) => {
       const level = s.playback.level(t);
@@ -69,11 +75,46 @@ export function Orb({ band, playing, size }: OrbProps) {
       paintMesh(image, points(t, s.still), colors(hues, b.brightness));
       mctx.putImageData(image, 0, 0);
 
+      // The sphere, in its own pixels: mesh, highlight, shade, rim, then the soft edge mask.
+      sctx.globalCompositeOperation = 'source-over';
+      sctx.setTransform(1, 0, 0, 1, 0, 0);
+      sctx.clearRect(0, 0, S, S);
+      sctx.imageSmoothingEnabled = true;
+      sctx.imageSmoothingQuality = 'high';
+      sctx.drawImage(mesh, 0, 0, S, S);
+      sctx.save();
+      sctx.translate(S * 0.38, S * 0.22);
+      sctx.scale(1, 0.9);
+      const spec = sctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.36);
+      spec.addColorStop(0, 'rgba(255,255,255,0.38)');
+      spec.addColorStop(1, 'rgba(255,255,255,0)');
+      sctx.fillStyle = spec;
+      sctx.fillRect(-S, -S, S * 2, S * 2);
+      sctx.restore();
+      const shade = sctx.createRadialGradient(S * 0.46, S * 0.4, 0, S * 0.46, S * 0.4, S * 0.81);
+      shade.addColorStop(0.58, css(INK, 0));
+      shade.addColorStop(0.9, css(INK, 0.12));
+      shade.addColorStop(1, css(INK, 0.22));
+      sctx.fillStyle = shade;
+      sctx.fillRect(0, 0, S, S);
+      const R = S / 2;
+      const rim = sctx.createRadialGradient(R, R, R * 0.84, R, R, R);
+      rim.addColorStop(0, css(hues.light, 0));
+      rim.addColorStop(1, css(mix(hues.light, hues.base, 0.2), 0.5));
+      sctx.fillStyle = rim;
+      sctx.fillRect(0, 0, S, S);
+      sctx.globalCompositeOperation = 'destination-in';
+      const edge = Math.max(1.5, dpr * 1.2) / R; // about 1.2 CSS px of falloff
+      const mask = sctx.createRadialGradient(R, R, 0, R, R, R);
+      mask.addColorStop(0, '#000');
+      mask.addColorStop(Math.max(0, 1 - edge * 1.2), '#000');
+      mask.addColorStop(1, 'rgba(0,0,0,0)');
+      sctx.fillStyle = mask;
+      sctx.fillRect(0, 0, S, S);
+
       ctx.setTransform(el.width / span, 0, 0, el.height / span, 0, 0);
       ctx.clearRect(0, 0, span, span);
       const c = span / 2;
-      const r = size / 2;
-      // Halo: starts at the sphere's rim and fades out.
       const halo = ctx.createRadialGradient(c, c, 0, c, c, size * GLOW_REACH);
       halo.addColorStop(0.46, css(hues.base, 0.6));
       halo.addColorStop(0.56, css(hues.base, 0.42));
@@ -83,42 +124,12 @@ export function Orb({ band, playing, size }: OrbProps) {
       ctx.fillStyle = halo;
       ctx.fillRect(0, 0, span, span);
       ctx.globalAlpha = 1;
-
-      ctx.save();
-      ctx.translate(c, c);
-      ctx.scale(b.scale, b.scale);
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.clip();
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(mesh, -r, -r, size, size);
-      // Soft highlight at the upper left.
-      ctx.save();
-      ctx.translate(-r + size * 0.38, -r + size * 0.22);
-      ctx.scale(1, 0.9);
-      const spec = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.36);
-      spec.addColorStop(0, 'rgba(255,255,255,0.38)');
-      spec.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = spec;
-      ctx.fillRect(-size, -size, size * 2, size * 2);
-      ctx.restore();
-      // Darkening toward the rim that makes a disc read as a sphere.
-      const shade = ctx.createRadialGradient(-r + size * 0.46, -r + size * 0.4, 0, -r + size * 0.46, -r + size * 0.4, size * 0.81);
-      shade.addColorStop(0.58, css(INK, 0));
-      shade.addColorStop(0.9, css(INK, 0.12));
-      shade.addColorStop(1, css(INK, 0.22));
-      ctx.fillStyle = shade;
-      ctx.fillRect(-r, -r, size, size);
-      // Light rim.
-      const rim = ctx.createRadialGradient(0, 0, r * 0.84, 0, 0, r);
-      rim.addColorStop(0, css(hues.light, 0));
-      rim.addColorStop(1, css(mix(hues.light, hues.base, 0.2), 0.5));
-      ctx.fillStyle = rim;
-      ctx.fillRect(-r, -r, size, size);
-      ctx.restore();
+      const d = size * b.scale;
+      ctx.drawImage(sphere, c - d / 2, c - d / 2, d, d);
       ctx.beginPath();
-      ctx.arc(c, c, r * b.scale - 0.25, 0, Math.PI * 2);
+      ctx.arc(c, c, d / 2 - 0.4, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(255,255,255,0.13)';
       ctx.lineWidth = 0.5;
       ctx.stroke();

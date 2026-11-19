@@ -4,7 +4,15 @@ import { expect, test, type Page } from '@playwright/test';
 // and 375×812 (two Playwright projects). They also write the evidence screenshots under docs/evidence/6-windows/.
 const TOKEN = /[?&]pt=[^&]+/;
 const phone = (page: Page) => page.viewportSize()!.width < 700;
-const shot = (page: Page, name: string) => page.screenshot({ path: `docs/evidence/6-windows/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` });
+/** Waits for window-open animations and every image, so no screenshot catches a half-drawn window. */
+async function settle(page: Page) {
+  await page.evaluate(async () => {
+    await Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined)));
+    await Promise.all(Array.from(document.images).map((i) => (i.complete ? undefined : new Promise((r) => { i.onload = i.onerror = r; }))));
+  });
+  await page.waitForTimeout(150);
+}
+const shot = async (page: Page, name: string) => { await settle(page); await page.screenshot({ path: `docs/evidence/6-windows/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` }); };
 const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
 
 // Skip the first-visit startup moment (it has its own test in desktop.spec.ts).
@@ -206,4 +214,53 @@ test.describe('the orb', () => {
       expect(await frame(page)).toBe(playing);
     });
   });
+});
+
+test('closing Listen fades the sound out and pauses it; reopening shows the same state', async ({ page }) => {
+  await page.goto('/');
+  const listen = win(page, 'Listen');
+  await listen.getByTestId('timer-25').click();
+  await listen.getByTestId('output-speaker').click();
+  await listen.getByTestId('play').click();
+  await expect(listen.getByTestId('status')).toHaveText(/^2[45]:\d\d left$/);
+  await listen.getByRole('button', { name: 'Close' }).click();
+  await expect(listen).toHaveCount(0);
+  await openByIcon(page, 'Listen');
+  const again = win(page, 'Listen');
+  await expect(again.getByTestId('status')).toHaveText('Paused'); // paused, not still playing
+  await expect(again.getByTestId('play')).toHaveAccessibleName('Play');
+  await expect(again.getByTestId('orb')).toHaveAttribute('data-playing', 'false');
+  await expect(again.getByTestId('timer-25')).toHaveAttribute('aria-checked', 'true');
+  await expect(again.getByTestId('output-speaker')).toHaveAttribute('aria-checked', 'true');
+  await again.getByTestId('play').click();
+  await expect(again.getByTestId('status')).toHaveText(/Playing|\d+:\d\d left/);
+});
+
+test('every window has its own drawn desktop icon (the app icon only for Get FocusTones)', async ({ page }) => {
+  await page.goto('/');
+  if (phone(page)) {
+    await page.getByRole('menuitem', { name: 'File', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Close All Windows' }).click();
+  }
+  const art = async (id: string) => page.locator(`.dicon[data-icon="${id}"] .dicon-art`).evaluate((e) => ({ tag: e.tagName, src: e.getAttribute('src'), html: e.innerHTML }));
+  const ids = ['feature-tune', 'feature-layers', 'feature-programs', 'feature-progress', 'feature-iphone', 'about-sound', 'listen', 'welcome'];
+  const drawn = new Set<string>();
+  for (const id of ids) {
+    const a = await art(id);
+    expect(a.tag, id).toBe('svg');
+    drawn.add(a.html);
+  }
+  expect(drawn.size).toBe(ids.length); // no two share a picture
+  expect((await art('get')).src).toContain('/icons/app-');
+});
+
+test('on a short phone screen the Get bar never covers the last line of Listen', async ({ page }) => {
+  test.skip(!phone(page), 'phones only');
+  await page.setViewportSize({ width: 375, height: 600 });
+  await page.goto('/');
+  const body = page.locator('.win-body', { has: page.getByTestId('play') });
+  await body.evaluate((e) => { e.scrollTop = e.scrollHeight; });
+  const last = (await page.locator('.ft-foot').last().boundingBox())!;
+  const bar = (await page.locator('.ft-getbar').boundingBox())!;
+  expect(last.y + last.height).toBeLessThanOrEqual(bar.y + 1);
 });
