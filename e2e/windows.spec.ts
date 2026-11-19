@@ -80,6 +80,9 @@ test('Get FocusTones: badge and QR carry the campaign token, prices as approved'
   const qr = get.getByTestId('qr');
   await expect(qr.locator('svg path')).toHaveCount(1);
   expect(await qr.getAttribute('href')).toContain('ct=focustones-co-qr');
+  // The QR code is for computers: shown on a wide screen with a fine pointer, hidden on a phone-sized one.
+  if ((page.viewportSize()?.width ?? 0) >= 700) await expect(qr).toBeVisible();
+  else await expect(qr).toBeHidden();
   for (const price of ['Monthly: $6.99 a month.', 'Annual: a 7-day trial, then $39.99 a year.', 'Lifetime: $79.99, one purchase with no renewal.']) {
     await expect(get.getByText(price)).toBeVisible();
   }

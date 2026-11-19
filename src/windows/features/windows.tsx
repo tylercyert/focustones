@@ -4,7 +4,7 @@ import { FeatureWindow } from './FeatureWindow.tsx';
 const F = strings.features;
 
 export const TuneWindow = () => <FeatureWindow placement="tune" frame="/frames/tune.webp" copy={F.tune} pro />;
-export const LayersWindow = () => <FeatureWindow placement="layers" frame="/frames/tune.webp" copy={F.layers} pro />;
+export const LayersWindow = () => <FeatureWindow placement="layers" frame="/frames/layers.webp" copy={F.layers} pro crop />;
 export const ProgramsWindow = () => <FeatureWindow placement="programs" frame="/frames/mixes.webp" copy={F.programs} pro />;
 export const ProgressWindow = () => <FeatureWindow placement="progress" frame="/frames/progress.webp" copy={F.progress} pro={false} />;
 

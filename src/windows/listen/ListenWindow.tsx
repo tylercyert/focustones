@@ -112,7 +112,6 @@ export function ListenWindow() {
       </div>
 
       <p className="ft-foot">{L.free}</p>
-      <p className="ft-foot ft-foot-dim">{L.safety}</p>
     </section>
   );
 }

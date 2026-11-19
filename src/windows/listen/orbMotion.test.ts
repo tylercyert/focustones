@@ -1,6 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { BAND_HUES, MOTION, OrbMorph, OrbPlayback, breath, breathPhase, colors, ease, isAnimating, points } from './orbMotion.ts';
 
+const hexOf = (c: readonly number[]) => '#' + c.map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+
+describe('band colours', () => {
+  // focustones-ios Packages/UI/Sources/UI/Palette.swift, `Palette.hues(_:)`.
+  const ios = {
+    delta: ['#21B5B0', '#7FE3DC', '#0E6F78', '#3C7FD6'],
+    theta: ['#26C3A8', '#8AEBD4', '#138A6E', '#2B9FC6'],
+    alpha: ['#7BBE62', '#C2E89A', '#3F8A35', '#2FB59A'],
+    beta: ['#D9B44A', '#F4DE8E', '#A8721A', '#F2A23A'],
+    gamma: ['#F2A23A', '#FFD08A', '#C2561A', '#E8664A'],
+  } as const;
+  it.each(Object.keys(ios) as (keyof typeof ios)[])('%s matches the iOS palette exactly', (band) => {
+    const h = BAND_HUES[band];
+    expect([h.base, h.light, h.deep, h.cross].map(hexOf)).toEqual(ios[band]);
+  });
+});
+
 describe('orb motion', () => {
   it('breathes on a 6 s cycle: out at 0, in at 3 s, out again at 6 s', () => {
     expect(breathPhase(0)).toBeCloseTo(0);

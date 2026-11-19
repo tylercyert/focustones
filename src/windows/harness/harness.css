@@ -8,7 +8,8 @@ body { background: #8f939c; font: 13px system-ui, sans-serif; }
 .h-title { height: 22px; flex: none; display: grid; place-items: center; position: relative; background: repeating-linear-gradient(#e9eaee 0 1px, #bfc1c8 1px 2px); border-bottom: 1px solid #000; font-weight: 700; }
 .h-title span { background: #dcdde2; padding: 0 10px; line-height: 16px; }
 .h-close { position: absolute; left: 6px; top: 4px; width: 12px; height: 12px; border: 1px solid #000; background: #e9eaee; box-shadow: inset 1px 1px #fff; }
-.h-body { flex: 1; min-height: 0; overflow: auto; background: #0a0c12; border: 2px solid #dcdde2; }
+.h-body { flex: 1; min-height: 0; overflow: auto; background: #0a0c12; border: 2px solid #dcdde2; display: flex; flex-direction: column; }
+.h-body > * { flex: 1 0 auto; }
 .h-bar { position: fixed; left: 0; right: 0; bottom: 0; }
 @media (max-width: 700px) {
   .h-menubar span { display: none; }

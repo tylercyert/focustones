@@ -9,7 +9,7 @@ import { ListenWindow } from './listen/ListenWindow.tsx';
 
 const F = strings.features;
 const feature = (id: string, title: string, icon: string, n: number, component: WindowSpec['component']): WindowSpec => ({
-  id: `feature-${id}`, title, icon, defaultSize: { width: 620, height: 470 }, defaultPosition: { x: 120 + n * 28, y: 70 + n * 28 }, component, openOnLaunch: false,
+  id: `feature-${id}`, title, icon, defaultSize: { width: 620, height: 404 }, defaultPosition: { x: 120 + n * 28, y: 70 + n * 28 }, component, openOnLaunch: false,
 });
 
 /** Every window this folder provides; `src/desktop/registry.ts` lists them. */

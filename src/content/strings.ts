@@ -31,7 +31,6 @@ export interface Strings {
     readonly proLayers: string;
     readonly proPrograms: string;
     readonly free: string;
-    readonly safety: string;
     readonly goalFocus: string;
     readonly goalCreate: string;
     readonly goalRelax: string;
@@ -158,7 +157,6 @@ export const strings: Strings = {
     proLayers: 'Layers',
     proPrograms: 'Programs',
     free: 'Five band presets, any timer and Speaker mode are free, with no time limit.',
-    safety: 'Keep the volume moderate. The orb never flashes at the beat.',
     goalFocus: 'Focus',
     goalCreate: 'Create',
     goalRelax: 'Relax',
@@ -315,7 +313,6 @@ export const provenance: Readonly<Record<string, string>> = {
   'listen.proLayers': 'new (the feature name the app uses)',
   'listen.proPrograms': 'new (the feature name the app uses)',
   'listen.free': `${APPROVED_PAGE} closing`,
-  'listen.safety': APPROVED_ABOUT,
   'listen.goalFocus': 'new (the goal name the app uses, Catalog.swift)',
   'listen.goalCreate': 'new (the goal name the app uses, Catalog.swift)',
   'listen.goalRelax': 'new (the goal name the app uses, Catalog.swift)',
