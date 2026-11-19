@@ -45,6 +45,8 @@ export const PULSE_RAMP = 0.15;
 export const START_FADE_SECONDS = 3;
 export const PAUSE_FADE_SECONDS = 1.5;
 export const TIMER_FADE_SECONDS = 30;
+/** How long a timer edit takes to bring back a fade-out that had started. */
+export const TIMER_RESTORE_SECONDS = 1;
 
 const clamp = (x: number, lo: number, hi: number, fallback: number) =>
   Number.isFinite(x) ? Math.min(Math.max(x, lo), hi) : fallback;
@@ -90,11 +92,15 @@ export function limit(x: number): number {
 
 /** The whole mix's fade: a linear position heard through a raised cosine, so it starts and lands with no corner. */
 export class Fade {
-  position = 0;
-  private goal = 0;
+  position: number;
+  private goal: number;
   private from = 0;
   private frames = 0;
   private remaining = 0;
+
+  constructor(initial = 0) {
+    this.position = this.goal = initial;
+  }
 
   /** Fades to `target` (0 silent, 1 full) over `seconds` from wherever it is now. */
   start(target: number, seconds: number, rate: number): void {
@@ -151,6 +157,8 @@ export class EngineRenderer {
   private readonly modeStep: number;
 
   private readonly fade = new Fade();
+  /** The timer's own fade-out, apart from the start/pause fade, so a timer edit can restore it without touching them. */
+  private readonly timerEnv = new Fade(1);
 
   // The timer counts frames down while running.
   private timerOn = false;
@@ -190,7 +198,7 @@ export class EngineRenderer {
   /** `seconds` of listening left, or null for none. Counts down only while running. */
   setTimer(seconds: number | null): void {
     this.done = false;
-    this.timerFading = false;
+    this.restoreTimerEnvelope(TIMER_RESTORE_SECONDS);
     if (seconds === null || !Number.isFinite(seconds) || seconds <= 0) {
       this.timerOn = false;
       return;
@@ -205,9 +213,15 @@ export class EngineRenderer {
     if (running === this.running) return;
     this.running = running;
     if (running && this.timerOn) {
-      this.timerFading = false;
+      this.restoreTimerEnvelope(START_FADE_SECONDS);
       this.armTimerFade();
     }
+  }
+
+  /** Brings the timer's fade-out back up (smoothly) if it has started or moved, and disarms it. */
+  private restoreTimerEnvelope(seconds: number): void {
+    if (this.timerFading || this.timerEnv.position < 1) this.timerEnv.start(1, seconds, this.sampleRate);
+    this.timerFading = false;
   }
 
   /** The fade-out starts when this much is left: the last 30 s, or after a short rise for a timer under 30 s. */
@@ -228,7 +242,7 @@ export class EngineRenderer {
 
   /** At silence and staying there. */
   get isSilent(): boolean {
-    return this.fade.isSilent;
+    return this.fade.isSilent || this.timerEnv.isSilent;
   }
 
   /** Fills `frameCount` samples of each channel. */
@@ -277,7 +291,7 @@ export class EngineRenderer {
         this.timerFrames--;
         if (!this.timerFading && this.timerFrames <= this.timerFadeAt) {
           this.timerFading = true;
-          this.fade.start(0, this.timerFrames / this.sampleRate, this.sampleRate);
+          this.timerEnv.start(0, this.timerFrames / this.sampleRate, this.sampleRate);
         }
         if (this.timerFrames <= 0) {
           this.timerFrames = 0;
@@ -286,7 +300,7 @@ export class EngineRenderer {
         }
       }
 
-      const g = this.fade.next() * this.gain;
+      const g = this.fade.next() * this.timerEnv.next() * this.gain;
       left[i] = limit(l * g);
       right[i] = limit(r * g);
     }

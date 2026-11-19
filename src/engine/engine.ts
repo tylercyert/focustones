@@ -54,7 +54,8 @@ export class FocusEngine {
   private stopTimeout: ReturnType<typeof setTimeout> | null = null;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private wantsPlaying = false;
-  private startToken = 0;
+  private pending: Promise<void> | null = null;
+  private stream: MediaStreamAudioDestinationNode | null = null;
   private readonly listeners: { [K in keyof EngineEvents]: Set<Listener<K>> } = {
     state: new Set(),
     time: new Set(),
@@ -113,37 +114,30 @@ export class FocusEngine {
 
   /**
    * Starts (or resumes) with a 3 s fade-in. Call it from a click or tap handler: iOS only unlocks audio inside one.
-   * Passing a preset switches to it first.
+   * Passing a preset switches to it first, whether or not it is already playing. Calling it again while a start is
+   * in flight joins that start.
    */
-  async start(preset?: Preset | string): Promise<void> {
-    if (preset !== undefined) this.applyPreset(preset);
+  start(preset?: Preset | string): Promise<void> {
+    if (preset !== undefined) this.setPreset(preset);
     this.wantsPlaying = true;
-    const token = ++this.startToken;
     if (this.stopTimeout) clearTimeout(this.stopTimeout);
     this.stopTimeout = null;
-    if (this.state === "playing" || this.state === "starting") return;
-    this.setState("starting");
+    // Everything that needs the user's gesture happens here, synchronously, before any await.
+    const unlocked = this.unlock();
+    return this.run(unlocked);
+  }
+
+  private async run(unlocked: Promise<unknown>): Promise<void> {
     try {
-      // Everything that needs the gesture happens before the first await.
-      if (!this.ctx) {
-        const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        this.ctx = new Ctor({ latencyHint: "playback" });
-        const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
-        if (session) session.type = "playback"; // Safari 16.4+: audio is media, so the ringer switch does not mute it
+      while (this.wantsPlaying && this.state !== "playing") {
+        if (this.pending) {
+          await this.pending;
+          continue;
+        }
+        this.setState("starting");
+        this.pending = this.begin(unlocked).finally(() => (this.pending = null));
+        await this.pending;
       }
-      const ctx = this.ctx;
-      const resumed = ctx.resume();
-      const playing = this.element?.play();
-      await Promise.all([resumed, playing]);
-      if (!this.node) await this.build(ctx);
-      if (token !== this.startToken) return;
-      this.timerAnchor = ctx.currentTime;
-      this.post({ type: "settings", settings: this.settings() });
-      this.post({ type: "running", running: true });
-      if (this.timerSeconds !== null) this.post({ type: "timer", seconds: this.timerSeconds });
-      this.post({ type: "fade", target: 1, seconds: START_FADE_SECONDS });
-      this.setState("playing");
-      this.startTicker();
     } catch (e) {
       this.wantsPlaying = false;
       this.setState("error");
@@ -151,30 +145,51 @@ export class FocusEngine {
     }
   }
 
+  /** Creates and resumes the context and starts the media element (iOS), all synchronously inside the gesture. */
+  private unlock(): Promise<unknown> {
+    if (!this.ctx) {
+      const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new Ctor({ latencyHint: "playback" });
+      const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+      if (session) session.type = "playback"; // Safari 16.4+: audio is media, so the ringer switch does not mute it
+      if (isIOS()) {
+        // A context connected straight to the speakers is muted by the iPhone's silent switch; one playing through a
+        // media element is not. The element and its stream exist now so that play() runs inside the gesture.
+        this.stream = this.ctx.createMediaStreamDestination();
+        const el = new Audio();
+        el.srcObject = this.stream.stream;
+        this.element = el;
+      }
+    }
+    return Promise.all([this.ctx.resume(), this.element?.play()]);
+  }
+
+  private async begin(unlocked: Promise<unknown>) {
+    const ctx = this.ctx!;
+    await unlocked;
+    if (!this.node) await this.build(ctx);
+    if (!this.wantsPlaying) {
+      this.suspendOutput();
+      return;
+    }
+    this.timerAnchor = ctx.currentTime;
+    this.post({ type: "settings", settings: this.settings() });
+    this.post({ type: "timer", seconds: this.timerSeconds });
+    this.post({ type: "running", running: true });
+    this.post({ type: "fade", target: 1, seconds: START_FADE_SECONDS });
+    this.setState("playing");
+    this.startTicker();
+  }
+
   private async build(ctx: AudioContext) {
     const node = await createToneNode(ctx, { settings: this.settings(), startFade: null, timer: null });
-    node.port.onmessage = (e: MessageEvent<{ type: string }>) => {
-      if (e.data.type === "ended") this.finish();
-    };
-    if (isIOS() && typeof MediaStreamAudioDestinationNode !== "undefined") {
-      // A context connected straight to the speakers is muted by the iPhone's silent switch; one playing through a
-      // media element is not.
-      const dest = ctx.createMediaStreamDestination();
-      node.connect(dest);
-      const el = new Audio();
-      el.srcObject = dest.stream;
-      this.element = el;
-      await el.play();
-    } else {
-      node.connect(ctx.destination);
-    }
+    node.connect(this.stream ?? ctx.destination);
     this.node = node;
   }
 
   /** Fades out over 1.5 s, then suspends the context. The timer holds while paused. */
   pause(): void {
     this.wantsPlaying = false;
-    this.startToken++;
     if (this.state !== "playing" && this.state !== "starting") return;
     if (this.ctx && this.timerSeconds !== null) this.timerSeconds = this.timeRemaining;
     this.post({ type: "running", running: false });
@@ -246,9 +261,15 @@ export class FocusEngine {
   private startTicker() {
     this.stopTicker();
     this.ticker = setInterval(() => {
+      this.checkEnded();
       if (this.timerSeconds !== null) this.emit("time", this.timeRemaining);
     }, 250);
   }
+  /** The worklet posts nothing; the page reads the audio clock to see a timer has run out. */
+  private checkEnded() {
+    if (this.state === "playing" && this.timerSeconds !== null && this.timeRemaining! <= 0.05) this.finish();
+  }
+
   private stopTicker() {
     if (this.ticker) clearInterval(this.ticker);
     this.ticker = null;
@@ -257,6 +278,7 @@ export class FocusEngine {
   /** Tab backgrounding or an interruption (call, Siri) can suspend the context while we mean to play. */
   private onVisible = () => {
     if (document.visibilityState !== "visible" || !this.wantsPlaying || !this.ctx) return;
+    this.checkEnded();
     if ((this.ctx.state as string) !== "running") void this.ctx.resume();
     if (this.element?.paused) void this.element.play();
   };
@@ -283,6 +305,7 @@ export class FocusEngine {
     this.node = null;
     this.ctx = null;
     this.element = null;
+    this.stream = null;
     this.setState("idle");
   }
 }

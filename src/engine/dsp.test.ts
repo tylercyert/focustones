@@ -186,6 +186,66 @@ describe("timer", () => {
   });
 });
 
+describe("timer edits during the final fade", () => {
+  const rate = 48000;
+  const peakAt = (x: Float32Array, t: number) =>
+    x.slice(Math.round((t - 0.05) * rate), Math.round((t + 0.05) * rate)).reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const full = TONE_CEILING;
+  const midFade = (seconds: number) => {
+    const r = steady(rate, { carrier: 220, beat: 10, mode: "binaural", volume: 1 });
+    r.setTimer(seconds);
+    render(r, seconds - 20); // 20 s left: ten seconds into the 30 s fade-out
+    return r;
+  };
+
+  it("clearing the timer brings the sound back, and it stays", () => {
+    const r = midFade(40);
+    r.setTimer(null);
+    const x = render(r, 21).left;
+    expect(peakAt(x, 20.5)).toBeGreaterThan(full * 0.95);
+    expect(r.isSilent).toBe(false);
+    expect(r.timerDone).toBe(false);
+    expect(r.timerRemaining).toBeNull();
+  });
+  it("extending the timer brings the sound back, then fades over the new last 30 s", () => {
+    const r = midFade(40);
+    r.setTimer(60);
+    const x = render(r, 61).left;
+    expect(peakAt(x, 5)).toBeGreaterThan(full * 0.95);
+    expect(peakAt(x, 29)).toBeGreaterThan(full * 0.95);
+    expect(peakAt(x, 45)).toBeLessThan(full * 0.8);
+    expect(peakAt(x, 60.5)).toBe(0);
+    expect(r.timerDone).toBe(true);
+  });
+  it("shortening the timer ends on the new time", () => {
+    const r = midFade(40);
+    r.setTimer(10);
+    const x = render(r, 11).left;
+    expect(peakAt(x, 2)).toBeGreaterThan(full * 0.9);
+    expect(peakAt(x, 10.5)).toBe(0);
+    expect(r.timerDone).toBe(true);
+  });
+  it("a timer set again after one ran out starts clean", () => {
+    const r = midFade(40);
+    render(r, 21);
+    expect(r.timerDone).toBe(true);
+    r.fadeTo(1, 3);
+    r.setTimer(null);
+    const x = render(r, 4).left;
+    expect(peakAt(x, 3.9)).toBeGreaterThan(full * 0.95);
+  });
+  it("pausing and resuming in the fade-out lifts it again", () => {
+    const r = midFade(40); // 20 s left
+    r.setRunning(false);
+    r.fadeTo(0, 1.5);
+    render(r, 2);
+    r.setRunning(true);
+    r.fadeTo(1, 3);
+    const x = render(r, 3.0).left;
+    expect(peakAt(x, 2.95)).toBeGreaterThan(full * 0.9);
+  });
+});
+
 describe("limiter", () => {
   it("never reaches its ceiling and is transparent below 0.8", () => {
     expect(limit(0.5)).toBe(0.5);
