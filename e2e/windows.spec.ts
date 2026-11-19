@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 // Journeys for Listen, Get FocusTones, the feature windows and the About windows, inside the real desktop, at 1280×800
 // and 375×812 (two Playwright projects). They also write the evidence screenshots under docs/evidence/6-windows/.
-const TOKEN = /[?&]pt=[^&]+/;
+const TOKEN = /[?&]pt=129512140(&|$)/;
 const phone = (page: Page) => page.viewportSize()!.width < 700;
 /** Waits for window-open animations and every image, so no screenshot catches a half-drawn window. */
 async function settle(page: Page) {
@@ -175,6 +175,8 @@ test('About the sound and About FocusTones (from the FocusTones menu)', async ({
   await expect(win(page, 'About the sound').getByRole('heading', { name: 'Binaural beats', exact: true })).toBeVisible();
   await expect(win(page, 'About the sound').getByText('It promises no particular effect.')).toBeVisible();
   await shot(page, 'about-sound');
+  await page.getByRole('menuitem', { name: 'File', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Close All Windows' }).click(); // a clean desktop for the About screenshot
 
   await page.getByRole('menuitem', { name: 'FocusTones menu' }).click();
   await page.getByRole('menuitem', { name: 'About FocusTones…' }).click();
@@ -183,6 +185,7 @@ test('About the sound and About FocusTones (from the FocusTones menu)', async ({
   const links = await about.locator('.ft-links a').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href));
   expect(links).toEqual(['https://tyl.sh/focustones/privacy', 'https://tyl.sh/focustones/support', 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/']);
   expect(await page.evaluate(() => document.cookie)).toBe('');
+  await expect(about.getByText('Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc.')).toBeVisible();
   await shot(page, 'about-app');
 });
 
@@ -263,4 +266,99 @@ test('on a short phone screen the Get bar never covers the last line of Listen',
   const last = (await page.locator('.ft-foot').last().boundingBox())!;
   const bar = (await page.locator('.ft-getbar').boundingBox())!;
   expect(last.y + last.height).toBeLessThanOrEqual(bar.y + 1);
+});
+
+test.describe('radio groups (WAI-ARIA): roving tabindex, arrows move and select, the engine follows', () => {
+  const listen = (page: Page) => win(page, 'Listen');
+
+  test('bands: only the selected band is a Tab stop; arrows, Home and End change the preset', async ({ page }) => {
+    await page.goto('/');
+    const g = listen(page).getByRole('radiogroup', { name: 'Band' });
+    const radios = g.getByRole('radio');
+    await expect(radios).toHaveCount(5);
+    await expect(g.locator('[tabindex="0"]')).toHaveCount(1);
+    await expect(listen(page).getByTestId('band-beta')).toHaveAttribute('tabindex', '0');
+    await expect(listen(page).getByTestId('band-delta')).toHaveAttribute('tabindex', '-1');
+    await listen(page).getByTestId('band-beta').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(listen(page).getByTestId('band-gamma')).toBeFocused();
+    await expect(listen(page).getByTestId('preset-name')).toHaveText('Peak'); // the engine's preset event
+    await page.keyboard.press('ArrowRight'); // wraps
+    await expect(listen(page).getByTestId('band-delta')).toBeFocused();
+    await expect(listen(page).getByTestId('preset-name')).toHaveText('Deep Sleep');
+    await page.keyboard.press('ArrowLeft');
+    await expect(listen(page).getByTestId('band-gamma')).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(listen(page).getByTestId('preset-line')).toHaveText('Sleep · δ 2 Hz');
+    await page.keyboard.press('End');
+    await expect(listen(page).getByTestId('preset-line')).toHaveText('Focus · γ 40 Hz');
+    await page.keyboard.press('ArrowUp');
+    await expect(listen(page).getByTestId('preset-name')).toHaveText('Deep Work');
+    await expect(listen(page).getByTestId('orb')).toHaveAttribute('data-band', 'beta');
+    await expect(g.locator('[aria-checked="true"]')).toHaveCount(1);
+    await expect(g.locator('[tabindex="0"]')).toHaveCount(1);
+  });
+
+  test('timer: arrows select a length and the engine counts it down', async ({ page }) => {
+    await page.goto('/');
+    await listen(page).getByTestId('play').click();
+    await expect(listen(page).getByTestId('status')).toHaveText('Playing');
+    await listen(page).getByTestId('timer-off').focus();
+    await page.keyboard.press('ArrowRight'); // 15
+    await page.keyboard.press('ArrowRight'); // 25
+    await expect(listen(page).getByTestId('timer-25')).toBeFocused();
+    await expect(listen(page).getByTestId('timer-25')).toHaveAttribute('aria-checked', 'true');
+    await expect(listen(page).getByTestId('status')).toHaveText(/^2[45]:\d\d left$/); // the engine's time event
+    await page.keyboard.press('End');
+    await expect(listen(page).getByTestId('timer-90')).toHaveAttribute('aria-checked', 'true');
+    await expect(listen(page).getByTestId('status')).toHaveText(/^(89|90):\d\d left$/);
+    await page.keyboard.press('Home');
+    await expect(listen(page).getByTestId('timer-off')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('mode: an arrow switches Headphones to Speaker and the engine switches to isochronic', async ({ page }) => {
+    await page.goto('/');
+    await expect(listen(page).locator('[data-engine-mode]')).toHaveAttribute('data-engine-mode', 'binaural');
+    await listen(page).getByTestId('output-headphones').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(listen(page).getByTestId('output-speaker')).toBeFocused();
+    await expect(listen(page).locator('[data-engine-mode]')).toHaveAttribute('data-engine-mode', 'isochronic');
+    await expect(listen(page).getByTestId('output-note')).toContainText('Speaker mode pulses the tone');
+    await page.keyboard.press('ArrowLeft');
+    await expect(listen(page).locator('[data-engine-mode]')).toHaveAttribute('data-engine-mode', 'binaural');
+  });
+
+  test('Tab leaves each group after one stop', async ({ page }) => {
+    await page.goto('/');
+    await listen(page).getByTestId('band-beta').focus();
+    await page.keyboard.press('Tab');
+    await expect(listen(page).getByTestId('timer-off')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(listen(page).getByTestId('output-headphones')).toBeFocused();
+  });
+});
+
+test('at 200% text Listen wraps its controls instead of clipping or scrolling sideways', async ({ page }) => {
+  await page.goto('/');
+  const listen = win(page, 'Listen');
+  // Chromium text-scaling model: double every element's own original computed font size (read first, then written, so
+  // an element does not inherit its parent's doubling on top of its own).
+  await listen.evaluate((root) => {
+    const els = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+    const sizes = els.map((el) => parseFloat(getComputedStyle(el).fontSize));
+    els.forEach((el, i) => { el.style.fontSize = `${sizes[i] * 2}px`; });
+  });
+  await page.waitForTimeout(200);
+  const body = page.locator('.win-body', { has: page.getByTestId('play') });
+  const m = await body.evaluate((b) => ({ scroll: b.scrollWidth, client: b.clientWidth }));
+  expect(m.scroll).toBeLessThanOrEqual(m.client); // no sideways scrolling inside the window
+  const box = (await body.boundingBox())!;
+  for (const id of ['locked-tune', 'locked-layers', 'locked-programs', 'timer-off', 'timer-90', 'output-speaker', 'band-gamma']) {
+    const b = (await listen.getByTestId(id).boundingBox())!;
+    expect(b.x, id).toBeGreaterThanOrEqual(box.x - 1);
+    expect(b.x + b.width, id).toBeLessThanOrEqual(box.x + box.width + 1);
+  }
+  await listen.getByTestId('locked-programs').scrollIntoViewIfNeeded();
+  await expect(listen.getByTestId('locked-programs')).toBeVisible();
+  await shot(page, 'listen-200-percent-text');
 });

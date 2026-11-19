@@ -5,6 +5,7 @@ import { Orb } from './Orb.tsx';
 import { BAND_HUES, type Band } from './orbMotion.ts';
 import { PRESETS, type EngineState, type Output } from './engineAdapter.ts';
 import { clock } from './format.ts';
+import { RadioGroup } from '../shared/RadioGroup.tsx';
 import { useListen } from './useListen.ts';
 
 const L = strings.listen;
@@ -44,13 +45,13 @@ export function ListenWindow() {
   const label = m.playing ? L.pause : m.state === 'ended' ? L.playAgain : L.play;
 
   return (
-    <section className="ft-win ft-listen" style={style} aria-label={L.title} data-state={m.state}>
+    <section className="ft-win ft-listen" style={style} aria-label={L.title} data-state={m.state} data-engine-mode={m.engineMode}>
       <div className="ft-stage">
         <Orb band={m.preset.band} playing={m.playing} size={176} />
       </div>
       <div className="ft-now">
         <h2 className="ft-name" data-testid="preset-name">{NAME[m.preset.id]}</h2>
-        <p className="ft-line" data-testid="preset-line">{GOAL[m.preset.band]} · {LETTER[m.preset.band]} {beat} Hz</p>
+        <p className="ft-line" data-testid="preset-line">{GOAL[m.preset.band]} · {LETTER[m.preset.band]} {beat} {L.hz}</p>
         <p className="ft-status" role="status" aria-live="polite" data-testid="status">
           {m.playing && m.left !== null ? `${clock(m.left)} ${L.timerLeft}` : STATUS[m.state]}
         </p>
@@ -60,41 +61,35 @@ export function ListenWindow() {
         <PlayGlyph playing={m.playing} />
       </button>
 
-      <div className="ft-group" role="radiogroup" aria-label={L.bands}>
-        {PRESETS.map((p) => (
-          <button
-            key={p.id} type="button" role="radio" aria-checked={p.id === m.preset.id} className="ft-band"
-            style={{ '--chip': rgb(BAND_HUES[p.band].base) } as React.CSSProperties}
-            onClick={() => m.choose(p.id)} data-testid={`band-${p.band}`}
-          >
-            <span className="ft-band-letter" aria-hidden="true">{LETTER[p.band]}</span>
-            <span className="ft-band-name">{BAND_NAME[p.band]}</span>
-            <span className="ft-sr">{NAME[p.id]}</span>
-          </button>
-        ))}
-      </div>
+      <RadioGroup
+        className="ft-group" itemClassName="ft-band" label={L.bands} value={m.preset.id} onChange={m.choose}
+        items={PRESETS.map((p) => ({
+          value: p.id, testId: `band-${p.band}`, style: { '--chip': rgb(BAND_HUES[p.band].base) } as React.CSSProperties,
+          children: (
+            <>
+              <span className="ft-band-letter" aria-hidden="true">{LETTER[p.band]}</span>
+              <span className="ft-band-name">{BAND_NAME[p.band]}</span>
+              <span className="ft-sr">{NAME[p.id]}</span>
+            </>
+          ),
+        }))}
+      />
 
       <div className="ft-row">
         <span className="ft-label" id="ft-timer-label">{L.timer}</span>
-        <div className="ft-seg" role="radiogroup" aria-labelledby="ft-timer-label">
-          {TIMERS.map((t) => (
-            <button key={t ?? 'off'} type="button" role="radio" aria-checked={m.timerMinutes === t} onClick={() => m.setTimerMinutes(t)} data-testid={`timer-${t ?? 'off'}`}>
-              {t === null ? L.timerOff : t}
-            </button>
-          ))}
-        </div>
+        <RadioGroup
+          className="ft-seg" labelledBy="ft-timer-label" value={m.timerMinutes} onChange={m.setTimerMinutes}
+          items={TIMERS.map((t) => ({ value: t, testId: `timer-${t ?? 'off'}`, children: t === null ? L.timerOff : t }))}
+        />
         <span className="ft-unit" aria-hidden="true">{L.timerMinutes}</span>
       </div>
 
       <div className="ft-row">
         <span className="ft-label" id="ft-output-label">{L.output}</span>
-        <div className="ft-seg ft-seg-wide" role="radiogroup" aria-labelledby="ft-output-label">
-          {(['headphones', 'speaker'] as Output[]).map((o) => (
-            <button key={o} type="button" role="radio" aria-checked={m.output === o} onClick={() => m.setOutput(o)} data-testid={`output-${o}`}>
-              {o === 'headphones' ? L.headphones : L.speaker}
-            </button>
-          ))}
-        </div>
+        <RadioGroup
+          className="ft-seg ft-seg-wide" labelledBy="ft-output-label" value={m.output} onChange={m.setOutput}
+          items={(['headphones', 'speaker'] as Output[]).map((o) => ({ value: o, testId: `output-${o}`, children: o === 'headphones' ? L.headphones : L.speaker }))}
+        />
       </div>
       <p className="ft-note" data-testid="output-note">{m.output === 'headphones' ? L.headphonesNote : L.speakerNote}</p>
 

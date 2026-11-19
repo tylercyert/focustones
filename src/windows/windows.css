@@ -48,26 +48,26 @@
 .ft-play:hover { transform: scale(1.04); }
 .ft-play:active { transform: scale(0.97); }
 
-.ft-group { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; width: 100%; padding: 4px; border-radius: 16px; background: var(--surface); border: 0.5px solid var(--sep); }
-.ft-band { border: 0; background: transparent; border-radius: 12px; padding: 7px 0 6px; display: grid; justify-items: center; gap: 0; color: var(--text2); transition: background 0.2s, color 0.2s; min-height: 44px; }
+.ft-group { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; padding: 4px; border-radius: 16px; background: var(--surface); border: 0.5px solid var(--sep); }
+.ft-band { flex: 1 1 56px; min-width: 0; border: 0; background: transparent; border-radius: 12px; padding: 7px 0 6px; display: grid; justify-items: center; gap: 0; color: var(--text2); transition: background 0.2s, color 0.2s; min-height: 44px; }
 .ft-band-letter { font-size: 16px; line-height: 1.1; font-weight: 600; }
 .ft-band-name { font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.85; }
 .ft-band[aria-checked='true'] { background: var(--chip); color: var(--ink); }
 .ft-band:not([aria-checked='true']):hover { background: var(--fill); }
 
-.ft-row { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; }
+.ft-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; width: 100%; margin-top: 10px; }
 .ft-label { flex: none; width: 74px; text-align: left; color: var(--text2); font-size: 13px; font-weight: 550; }
 .ft-unit { color: var(--text3); font-size: 12px; flex: none; }
-.ft-seg { display: flex; flex: 1; padding: 3px; gap: 2px; border-radius: 11px; background: var(--fill); }
-.ft-seg button { flex: 1; border: 0; background: transparent; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: 550; color: var(--text2); min-height: 32px; font-variant-numeric: tabular-nums; }
+.ft-seg { display: flex; flex: 1 1 12em; flex-wrap: wrap; min-width: 0; padding: 3px; gap: 2px; border-radius: 11px; background: var(--fill); }
+.ft-seg button { flex: 1 1 auto; min-width: 2.2em; border: 0; background: transparent; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: 550; color: var(--text2); min-height: 32px; font-variant-numeric: tabular-nums; }
 .ft-seg button[aria-checked='true'] { background: var(--text); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
 .ft-seg button:not([aria-checked='true']):hover { color: var(--text); }
 .ft-note { color: var(--text3); font-size: 12.5px; line-height: 1.4; margin-top: 8px; text-align: left; width: 100%; min-height: 34px; }
 
 .ft-pro { width: 100%; margin-top: 10px; padding: 10px 12px 12px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); text-align: left; }
 .ft-pro-eyebrow { display: block; color: var(--pro); font-size: 11px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
-.ft-pro-row { display: flex; gap: 6px; }
-.ft-locked { flex: 1; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border: 0.5px solid var(--sep); background: var(--elevated); border-radius: 10px; padding: 7px 8px; font-size: 13px; font-weight: 550; min-height: 34px; color: var(--text); }
+.ft-pro-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.ft-locked { flex: 1 1 auto; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border: 0.5px solid var(--sep); background: var(--elevated); border-radius: 10px; padding: 7px 8px; font-size: 13px; font-weight: 550; min-height: 34px; color: var(--text); }
 .ft-locked svg { fill: var(--pro); }
 .ft-locked:hover { border-color: color-mix(in srgb, var(--pro) 50%, var(--sep)); }
 

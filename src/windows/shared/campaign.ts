@@ -3,9 +3,8 @@
 
 export const APP_STORE_ID = '6834913847';
 
-// TODO(owner): replace with the provider token (`pt`) from App Store Connect > Analytics > Campaigns. It is not in the
-// focustones-ios docs, so links carry this placeholder until the owner supplies it; they still open the App Store page.
-export const PROVIDER_TOKEN = 'TODO-owner-provider-token';
+// The provider token (`pt`) from App Store Connect, supplied by the owner.
+export const PROVIDER_TOKEN = '129512140';
 
 /** The App Store page with a per-placement campaign, e.g. `appStoreUrl('qr')` → `ct=focustones-co-qr`. */
 export function appStoreUrl(placement: string): string {

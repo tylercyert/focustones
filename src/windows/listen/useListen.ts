@@ -10,6 +10,8 @@ export interface ListenModel {
   /** Seconds left on a running timer, or null. */
   readonly left: number | null;
   readonly playing: boolean;
+  /** What the engine is set to (not what the buttons say), so tests can see a keyboard change reach it. */
+  readonly engineMode: string;
   readonly toggle: () => void;
   readonly choose: (id: string) => void;
   readonly setOutput: (o: Output) => void;
@@ -40,7 +42,7 @@ export function useListen(): ListenModel {
 
   const playing = state === 'starting' || state === 'playing';
   return {
-    state, preset, output, timerMinutes, left, playing,
+    state, preset, output, timerMinutes, left, playing, engineMode: engine.mode,
     toggle: () => {
       if (playing) engine.pause();
       else {

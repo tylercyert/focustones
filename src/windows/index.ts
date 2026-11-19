@@ -21,5 +21,5 @@ export const windowSpecs: readonly WindowSpec[] = [
   feature('programs', F.programs.title, 'programs', 2, ProgramsWindow),
   feature('progress', F.progress.title, 'progress', 3, ProgressWindow),
   feature('iphone', F.iphone.title, 'phone', 4, IphoneWindow),
-  { id: 'about-sound', title: strings.aboutSound.title, shortTitle: 'Sound', icon: 'wave', defaultSize: { width: 460, height: 730 }, defaultPosition: { x: 200, y: 40 }, minSize: { width: 340, height: 300 }, component: AboutSoundWindow, openOnLaunch: false },
+  { id: 'about-sound', title: strings.aboutSound.title, shortTitle: strings.aboutSound.short, icon: 'wave', defaultSize: { width: 460, height: 730 }, defaultPosition: { x: 200, y: 40 }, minSize: { width: 340, height: 300 }, component: AboutSoundWindow, openOnLaunch: false },
 ];

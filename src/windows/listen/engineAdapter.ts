@@ -11,6 +11,8 @@ export interface EngineEvents { state: EngineState; time: number | null; preset:
 export interface ListenEngine {
   readonly state: EngineState;
   readonly preset: Preset;
+  /** The engine's mode: binaural for Headphones, isochronic for Speaker. */
+  readonly mode: string;
   /** Call from a click or tap handler: iOS only unlocks audio inside one. */
   start(): Promise<void>;
   pause(): void;
@@ -32,6 +34,7 @@ export function listenEngine(): ListenEngine {
   shared = {
     get state() { return e.currentState; },
     get preset() { return e.currentPreset; },
+    get mode() { return e.currentMode; },
     start: () => e.start().catch(() => { /* the engine has emitted its "error" state */ }),
     pause: () => e.pause(),
     setPreset: (id) => e.setPreset(id),

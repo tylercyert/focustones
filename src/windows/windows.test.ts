@@ -21,7 +21,8 @@ describe('campaign link', () => {
   it('is the App Store page with a provider token, a per-placement campaign and the app media type', () => {
     const url = new URL(appStoreUrl('qr'));
     expect(url.origin + url.pathname).toBe(`https://apps.apple.com/app/apple-store/id${APP_STORE_ID}`);
-    expect(url.searchParams.get('pt')).toBe(PROVIDER_TOKEN);
+    expect(PROVIDER_TOKEN).toBe('129512140');
+    expect(url.searchParams.get('pt')).toBe('129512140');
     expect(url.searchParams.get('ct')).toBe('focustones-co-qr');
     expect(url.searchParams.get('mt')).toBe('8');
   });
