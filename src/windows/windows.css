@@ -1,0 +1,172 @@
+/* The windows' insides: FocusTones' own palette (focustones-ios docs/design/DESIGN.md, "Night instrument"), not the
+   desktop chrome. Everything is scoped to .ft-win so the shell's classic Mac look is untouched. */
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/InstrumentSansVariable.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+.ft-win {
+  --ink: #0a0c12; --surface: #141823; --elevated: #1c2130; --fill: #262c3d; --sep: #262b38;
+  --text: #f2f4f8; --text2: #a3aabb; --text3: #828a9c; --pro: #e9c866;
+  --band: #d9b44a; --band-light: #f4de8e; --band-deep: #a8721a;
+  container-type: inline-size;
+  box-sizing: border-box; min-height: 100%;
+  background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--band) 9%, var(--ink)) 0%, var(--ink) 62%);
+  color: var(--text);
+  font: 400 14px/1.45 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-feature-settings: 'tnum' 1;
+  -webkit-font-smoothing: antialiased;
+  padding: 20px;
+}
+.ft-win *, .ft-win *::before, .ft-win *::after { box-sizing: border-box; }
+.ft-win h2, .ft-win h3, .ft-win p, .ft-win ul, .ft-win figure { margin: 0; padding: 0; }
+.ft-win ul { list-style: none; }
+.ft-win button { font: inherit; color: inherit; cursor: pointer; }
+.ft-win a { color: var(--band-light); }
+.ft-win :focus-visible { outline: 2px solid var(--band-light); outline-offset: 2px; }
+.ft-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ft-center { text-align: center; }
+
+.ft-h2 { font-size: 20px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+.ft-h3 { font-size: 15px; font-weight: 650; margin: 18px 0 6px; }
+.ft-p { color: var(--text2); font-size: 14px; line-height: 1.5; margin-top: 8px; }
+.ft-small { color: var(--text3); font-size: 12.5px; line-height: 1.4; }
+.ft-tag { color: var(--text3); font-size: 12.5px; }
+
+/* ---------- Listen ---------- */
+.ft-listen { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 8px; }
+.ft-stage { height: 182px; display: grid; place-items: center; margin-bottom: 4px; position: relative; z-index: 0; }
+.ft-orb { position: relative; flex: none; transform: scale(var(--orb-scale, 1)); }
+.ft-orb canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; max-width: none; }
+.ft-now { margin-top: 2px; position: relative; z-index: 1; }
+.ft-name { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.015em; }
+.ft-line { color: var(--band-light); font-size: 14px; font-weight: 550; margin-top: 3px; letter-spacing: 0.01em; transition: color 0.6s; }
+.ft-status { color: var(--text3); font-size: 12.5px; margin-top: 2px; min-height: 18px; font-variant-numeric: tabular-nums; }
+
+.ft-play {
+  width: 76px; height: 76px; border-radius: 50%; border: 0; margin: 8px 0 12px; display: grid; place-items: center;
+  color: var(--ink); fill: var(--ink);
+  background: radial-gradient(circle at 35% 28%, var(--band-light), var(--band) 58%, var(--band-deep));
+  box-shadow: 0 6px 28px color-mix(in srgb, var(--band) 45%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.35);
+  transition: transform 0.15s, box-shadow 0.4s; position: relative; z-index: 1;
+}
+.ft-play:hover { transform: scale(1.04); }
+.ft-play:active { transform: scale(0.97); }
+
+.ft-group { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; width: 100%; padding: 4px; border-radius: 16px; background: var(--surface); border: 0.5px solid var(--sep); }
+.ft-band { border: 0; background: transparent; border-radius: 12px; padding: 7px 0 6px; display: grid; justify-items: center; gap: 0; color: var(--text2); transition: background 0.2s, color 0.2s; min-height: 44px; }
+.ft-band-letter { font-size: 16px; line-height: 1.1; font-weight: 600; }
+.ft-band-name { font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; opacity: 0.85; }
+.ft-band[aria-checked='true'] { background: var(--chip); color: var(--ink); }
+.ft-band:not([aria-checked='true']):hover { background: var(--fill); }
+
+.ft-row { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; }
+.ft-label { flex: none; width: 74px; text-align: left; color: var(--text2); font-size: 13px; font-weight: 550; }
+.ft-unit { color: var(--text3); font-size: 12px; flex: none; }
+.ft-seg { display: flex; flex: 1; padding: 3px; gap: 2px; border-radius: 11px; background: var(--fill); }
+.ft-seg button { flex: 1; border: 0; background: transparent; border-radius: 8px; padding: 6px 0; font-size: 13px; font-weight: 550; color: var(--text2); min-height: 32px; font-variant-numeric: tabular-nums; }
+.ft-seg button[aria-checked='true'] { background: var(--text); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.35); }
+.ft-seg button:not([aria-checked='true']):hover { color: var(--text); }
+.ft-note { color: var(--text3); font-size: 12.5px; line-height: 1.4; margin-top: 8px; text-align: left; width: 100%; min-height: 34px; }
+
+.ft-pro { width: 100%; margin-top: 10px; padding: 10px 12px 12px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); text-align: left; }
+.ft-pro-eyebrow { display: block; color: var(--pro); font-size: 11px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+.ft-pro-row { display: flex; gap: 6px; }
+.ft-locked { flex: 1; display: inline-flex; gap: 6px; align-items: center; justify-content: center; border: 0.5px solid var(--sep); background: var(--elevated); border-radius: 10px; padding: 7px 8px; font-size: 13px; font-weight: 550; min-height: 34px; color: var(--text); }
+.ft-locked svg { fill: var(--pro); }
+.ft-locked:hover { border-color: color-mix(in srgb, var(--pro) 50%, var(--sep)); }
+
+.ft-foot { color: var(--text2); font-size: 12.5px; line-height: 1.4; margin-top: 10px; }
+.ft-foot-dim { color: var(--text3); margin-top: 4px; }
+
+/* ---------- Get FocusTones ---------- */
+.ft-get-head { display: flex; gap: 14px; align-items: center; }
+.ft-icon { border-radius: 22.4%; box-shadow: 0 6px 20px rgb(0 0 0 / 0.5), 0 0 0 0.5px rgb(255 255 255 / 0.1); flex: none; display: block; }
+.ft-icon-lg { margin: 6px auto 12px; }
+.ft-get-name { font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.ft-get-sub { color: var(--text2); font-size: 13.5px; margin-top: 2px; }
+.ft-get-pitch { margin-top: 14px; font-size: 16px; line-height: 1.4; font-weight: 550; letter-spacing: -0.005em; }
+.ft-get-cta { margin-top: 16px; display: grid; gap: 12px; }
+.ft-badge { display: inline-block; line-height: 0; border-radius: 8px; }
+.ft-badge img { display: block; }
+.ft-get-qr { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); }
+.ft-qr { flex: none; width: 96px; height: 96px; border-radius: 8px; overflow: hidden; display: block; line-height: 0; }
+.ft-qr svg { width: 100%; height: 100%; }
+.ft-get-qr-title { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.ft-get-qr-note { color: var(--text3); font-size: 12.5px; margin-top: 2px; }
+.ft-ticks { margin-top: 14px; display: grid; gap: 6px; }
+.ft-ticks li { position: relative; padding-left: 22px; color: var(--text); font-size: 13.5px; }
+.ft-ticks li::before { content: ''; position: absolute; left: 3px; top: 0.35em; width: 5px; height: 9px; border: solid #4fd18b; border-width: 0 2px 2px 0; transform: rotate(40deg); }
+.ft-prices { margin-top: 8px; display: grid; gap: 1px; border-radius: 12px; overflow: hidden; background: var(--sep); }
+.ft-prices li { background: var(--surface); padding: 9px 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.ft-get .ft-h3 { margin-top: 20px; color: var(--pro); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 650; }
+.ft-get .ft-small { margin-top: 12px; }
+
+.ft-getbar { --elevated: #1c2130; --sep: #262b38; --text: #f2f4f8; --text2: #a3aabb; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--elevated); color: var(--text); font: 400 13px/1.2 'Instrument Sans', system-ui, sans-serif; border-top: 0.5px solid var(--sep); }
+.ft-getbar img { border-radius: 8px; }
+.ft-getbar-text { flex: 1; display: grid; min-width: 0; }
+.ft-getbar-text span { color: var(--text2); font-size: 12px; }
+.ft-getbar-btn { background: #f2f4f8; color: #0a0c12 !important; text-decoration: none; font-weight: 650; border-radius: 999px; padding: 6px 16px; }
+
+/* ---------- Feature windows ---------- */
+.ft-flush { padding: 0; }
+.ft-feature { display: grid; gap: 20px; align-content: start; min-height: 100%; }
+.ft-frame { background: #05060a; display: grid; place-items: center; padding: 20px 20px 0; overflow: hidden; }
+.ft-frame img { width: min(260px, 100%); height: auto; display: block; border-radius: 22px 22px 0 0; box-shadow: 0 -8px 40px rgb(0 0 0 / 0.6); }
+.ft-feature-text { padding: 0 20px 22px; }
+.ft-eyebrow { color: var(--text3); font-size: 11px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; }
+.ft-eyebrow-pro { color: var(--pro); }
+.ft-feature .ft-h2 { margin-top: 4px; font-size: 22px; }
+.ft-feature-cta { margin-top: 16px; }
+.ft-surfaces-label { margin-top: 16px; }
+.ft-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.ft-chips li { background: var(--fill); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; font-weight: 550; }
+@container (min-width: 520px) {
+  .ft-feature { grid-template-columns: 300px 1fr; gap: 0; min-height: 100%; }
+  .ft-frame { padding: 28px 20px 0; align-items: end; }
+  .ft-feature-text { padding: 28px 24px 24px 8px; align-self: center; }
+}
+
+/* ---------- About ---------- */
+.ft-about { display: grid; gap: 22px; align-content: start; }
+.ft-sec-head { display: flex; justify-content: space-between; align-items: baseline; }
+.ft-sound-card { margin-top: 10px; padding: 14px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); display: grid; gap: 6px; }
+.ft-ear { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); }
+.ft-wave { width: 100%; height: 28px; margin: 4px 0 2px; }
+.ft-pulses { display: flex; gap: 6px; height: 28px; margin-top: 10px; }
+.ft-pulses span { flex: 1; background: var(--pro); border-radius: 99px; }
+.ft-plain { display: grid; gap: 6px; margin-top: 8px; }
+.ft-plain li { color: var(--text2); font-size: 14px; line-height: 1.5; padding-left: 14px; position: relative; }
+.ft-plain li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
+
+.ft-about-app { text-align: center; display: grid; align-content: start; justify-items: center; gap: 4px; }
+.ft-about-app .ft-p { max-width: 34ch; }
+.ft-privacy { margin-top: 14px; padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 0.5px solid var(--sep); width: 100%; }
+.ft-privacy .ft-h3 { margin: 0; color: var(--pro); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.ft-privacy .ft-p { color: var(--text); font-weight: 550; max-width: none; }
+.ft-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 10px !important; font-size: 13.5px; }
+.ft-about-app > .ft-center { margin-top: 14px; }
+.ft-fine { max-width: 36ch; margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-play, .ft-band, .ft-line { transition: none; }
+}
+
+/* Phones: Listen is the first card and must show Play without scrolling, with the Get bar under it. */
+@container (max-width: 420px) {
+  .ft-win { padding: 14px 16px; }
+  .ft-listen { padding-top: 4px; }
+  .ft-stage { height: 142px; margin-bottom: 0; --orb-scale: 0.8; }
+  .ft-name { font-size: 25px; }
+  .ft-play { width: 68px; height: 68px; margin: 6px 0 10px; }
+  .ft-row { margin-top: 8px; }
+  .ft-note { margin-top: 6px; min-height: 0; }
+  .ft-pro { margin-top: 8px; padding: 8px 10px 10px; }
+  .ft-pro-eyebrow { margin-bottom: 6px; }
+  .ft-foot { margin-top: 8px; }
+}
+
+/* A phone has the badge; the QR code is for a computer. */
+@media (pointer: coarse) { .ft-get-qr { display: none; } }

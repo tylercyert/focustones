@@ -1,0 +1,18 @@
+html, body, #root { height: 100%; margin: 0; }
+body { background: #8f939c; font: 13px system-ui, sans-serif; }
+.h-desktop { height: 100%; display: flex; flex-direction: column; background:
+  radial-gradient(circle at 30% 20%, #a3a7b0, #7b8089); }
+.h-menubar { display: flex; gap: 18px; align-items: center; height: 24px; padding: 0 14px; background: linear-gradient(#f4f4f6, #d9dade); border-bottom: 1px solid #5b5e66; font-size: 13px; }
+.h-surface { flex: 1; min-height: 0; display: flex; gap: 28px; padding: 26px 40px; align-items: flex-start; justify-content: safe center; overflow: auto; }
+.h-window { width: var(--w); max-width: 100%; height: min(var(--h), 100%); display: flex; flex-direction: column; background: #dcdde2; border: 1px solid #000; box-shadow: 3px 3px 0 rgb(0 0 0 / 0.45); flex: none; }
+.h-title { height: 22px; flex: none; display: grid; place-items: center; position: relative; background: repeating-linear-gradient(#e9eaee 0 1px, #bfc1c8 1px 2px); border-bottom: 1px solid #000; font-weight: 700; }
+.h-title span { background: #dcdde2; padding: 0 10px; line-height: 16px; }
+.h-close { position: absolute; left: 6px; top: 4px; width: 12px; height: 12px; border: 1px solid #000; background: #e9eaee; box-shadow: inset 1px 1px #fff; }
+.h-body { flex: 1; min-height: 0; overflow: auto; background: #0a0c12; border: 2px solid #dcdde2; }
+.h-bar { position: fixed; left: 0; right: 0; bottom: 0; }
+@media (max-width: 700px) {
+  .h-menubar span { display: none; }
+  .h-surface { justify-content: flex-start; flex-direction: column; padding: 10px 8px 70px; gap: 12px; align-items: stretch; }
+  .h-window { width: auto; height: auto; box-shadow: 2px 2px 0 rgb(0 0 0 / 0.4); }
+  .h-body { overflow: visible; }
+}
