@@ -16,10 +16,13 @@ export default defineConfig({
   ],
   use: { baseURL: `http://localhost:${preview}` },
   projects: [
-    { name: 'chromium', use: desktop, testIgnore: /windows\.spec/ },
+    { name: 'chromium', use: desktop, testIgnore: /(windows|delights)\.spec/ },
     // The windows' journeys, in the real desktop, at both sizes of the evidence screenshots.
     { name: 'windows-1280', use: { ...desktop, viewport: { width: 1280, height: 800 } }, testMatch: /windows\.spec/ },
     { name: 'windows-375', use: { ...desktop, viewport: { width: 375, height: 812 } }, testMatch: /windows\.spec/ },
+    // The desktop delights (issue #14): mouse and keyboard at 1280×800, touch at 375×812.
+    { name: 'delights-1280', use: { ...desktop, viewport: { width: 1280, height: 800 } }, testMatch: /delights\.spec/ },
+    { name: 'delights-375', use: { ...desktop, viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true }, testMatch: /delights\.spec/ },
     {
       name: 'engine',
       testDir: 'src/engine/e2e',

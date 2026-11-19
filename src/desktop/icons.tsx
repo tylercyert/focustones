@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { extraDrawers } from '../windows/extras/pixelIcons.ts';
 
 // Original pixel icons, drawn in code on a grid and rendered as SVG rects (no image files, no borrowed artwork: ADR 0002).
 type Grid = (string | null)[][];
@@ -162,6 +163,8 @@ const drawers: Record<string, () => Grid> = {
     return g;
   },
 };
+
+Object.assign(drawers, extraDrawers); // the desktop delights' icons (issue #14), same grid and renderer
 
 function toRects(g: Grid) {
   const out: { x: number; y: number; w: number; c: string }[] = [];

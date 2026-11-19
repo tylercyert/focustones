@@ -1,0 +1,349 @@
+import { expect, test, type Page } from '@playwright/test';
+
+// Desktop delights (issue #14), in the real desktop at 1280×800 (mouse and keyboard) and 375×812 (touch): two Playwright
+// projects. They also write the evidence screenshots under docs/evidence/14-delights/.
+const phone = (page: Page) => page.viewportSize()!.width < 700;
+const win = (page: Page, name: string) => page.getByRole('dialog', { name, exact: true });
+const icon = (page: Page, label: string) => page.locator('nav .dicon').filter({ hasText: label });
+const trashIcon = (page: Page) => page.locator('nav .dicon[data-icon="trash"]');
+
+async function settle(page: Page) {
+  await page.evaluate(async () => {
+    await Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined)));
+  });
+  await page.waitForTimeout(150);
+}
+const shot = async (page: Page, name: string) => {
+  await settle(page);
+  await page.screenshot({ path: `docs/evidence/14-delights/${name}-${page.viewportSize()!.width}x${page.viewportSize()!.height}.png` });
+};
+
+/** Taps on a phone, clicks elsewhere. */
+const press = async (page: Page, target: ReturnType<Page['locator']>) => (phone(page) ? target.tap() : target.click());
+async function menu(page: Page, name: string, item: string) {
+  await press(page, page.getByRole('menuitem', { name, exact: true }));
+  await press(page, page.getByRole('menu').getByRole('menuitem', { name: item, exact: true }));
+}
+async function closeAll(page: Page) { await menu(page, 'File', 'Close All Windows'); await expect(page.getByRole('dialog')).toHaveCount(0); }
+/** Opens a window from its desktop icon: one tap on a phone, a double-click with a mouse. */
+async function openIcon(page: Page, label: string) {
+  if (phone(page)) await icon(page, label).tap();
+  else await icon(page, label).dblclick();
+  await expect(win(page, label)).toBeVisible();
+}
+/** Counts the sounds the delights make: oscillators and noise bursts created on any audio context. */
+const sounds = (page: Page) => page.evaluate(() => ({ ...(window as unknown as { __sounds: { osc: number; buf: number } }).__sounds }));
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('focustones.startup.seen', '1');
+    const s = { osc: 0, buf: 0 };
+    (window as unknown as { __sounds: typeof s }).__sounds = s;
+    const P = BaseAudioContext.prototype;
+    const osc = P.createOscillator, buf = P.createBufferSource;
+    P.createOscillator = function (this: BaseAudioContext) { s.osc++; return osc.call(this); };
+    P.createBufferSource = function (this: BaseAudioContext) { s.buf++; return buf.call(this); };
+  });
+  const problems: string[] = [];
+  page.on('request', (r) => { if (new URL(r.url()).hostname !== 'localhost' && !/^(data|blob):/.test(r.url())) problems.push(`outside request: ${r.url()}`); });
+  page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
+  page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`); });
+  (page as Page & { problems: string[] }).problems = problems;
+});
+test.afterEach(({ page }) => { expect((page as Page & { problems: string[] }).problems).toEqual([]); });
+
+test.describe('Distractions → Trash', () => {
+  test('items and the folder go in the Trash, it bulges, Empty Trash crumples and says so, and they come back next visit', async ({ page }) => {
+    await page.goto('/');
+    await closeAll(page);
+    await expect(trashIcon(page)).toBeVisible();
+    const emptyArt = await trashIcon(page).locator('svg').innerHTML();
+    await openIcon(page, 'Distractions');
+    const folder = win(page, 'Distractions');
+    await expect(folder.getByRole('option')).toHaveCount(5);
+    await expect(folder.getByText('5 items, none of them urgent')).toBeVisible();
+    await shot(page, 'distractions');
+
+    if (phone(page)) {
+      // Touch: select, then Move to Trash.
+      await folder.getByRole('option', { name: 'Notifications' }).tap();
+      await folder.getByRole('button', { name: 'Move to Trash', exact: true }).tap();
+      await expect(folder.getByRole('option')).toHaveCount(4);
+    } else {
+      // Mouse: drag an item from the folder onto the Trash icon.
+      await win(page, 'Distractions').locator('.win-title').dragTo(page.locator('.surface'), { targetPosition: { x: 200, y: 200 }, sourcePosition: { x: 120, y: 10 } });
+      const item = folder.getByRole('option', { name: 'Just one more video' });
+      const from = (await item.boundingBox())!, to = (await trashIcon(page).boundingBox())!;
+      await page.mouse.move(from.x + from.width / 2, from.y + 20);
+      await page.mouse.down();
+      await page.mouse.move(to.x + to.width / 2, to.y + 20, { steps: 12 });
+      await expect(trashIcon(page)).toHaveAttribute('data-drop', '');
+      await page.mouse.up();
+      await expect(trashIcon(page)).not.toHaveAttribute('data-drop', '');
+      await expect(folder.getByRole('option', { name: 'Just one more video' })).toHaveCount(0);
+      // Keyboard: select an item and press Ctrl+Delete.
+      await folder.getByRole('option', { name: 'Inbox (99+)' }).click();
+      await page.keyboard.press('Control+Delete');
+      await expect(folder.getByRole('option')).toHaveCount(3);
+      // File ▸ Move to Trash acts on the selected item, twice in a row.
+      await folder.getByRole('option', { name: 'Group chat' }).click();
+      await menu(page, 'File', 'Move to Trash');
+      await folder.getByRole('option', { name: 'Notifications' }).click();
+      await menu(page, 'File', 'Move to Trash');
+      await expect(folder.getByRole('option')).toHaveCount(1);
+      await expect(folder.getByText('1 item, not urgent')).toBeVisible();
+    }
+
+    // The Trash bulges and lists what went in.
+    await expect.poll(() => trashIcon(page).locator('svg').innerHTML()).not.toBe(emptyArt);
+    const fullArt = await trashIcon(page).locator('svg').innerHTML();
+    if (phone(page)) {
+      await folder.getByRole('button', { name: 'Move Folder to Trash' }).tap();
+    } else {
+      // Drag the folder icon itself onto the Trash.
+      await closeAll(page);
+      const f = (await icon(page, 'Distractions').boundingBox())!, t = (await trashIcon(page).boundingBox())!;
+      await page.mouse.move(f.x + f.width / 2, f.y + 20);
+      await page.mouse.down();
+      await page.mouse.move(t.x + t.width / 2, t.y + 20, { steps: 12 });
+      await page.mouse.up();
+    }
+    await expect(icon(page, 'Distractions')).toHaveCount(0);
+    await expect(folder).toHaveCount(0);
+    await expect(trashIcon(page).locator('svg')).toHaveJSProperty('innerHTML', fullArt);
+    if (phone(page)) await press(page, page.getByRole('navigation', { name: 'Open windows' }).getByRole('button', { name: 'Desktop', exact: true }));
+    await openIcon(page, 'Trash');
+    await expect(win(page, 'Trash').getByRole('list', { name: 'In the Trash' }).getByRole('listitem')).not.toHaveCount(0);
+    await expect(win(page, 'Trash').getByRole('button', { name: 'Empty Trash' })).toBeInViewport({ ratio: 1 });
+    if (!phone(page)) await page.mouse.click(700, 700); // deselect, so the bulging Trash shows in the screenshot
+    await shot(page, 'trash-full');
+
+    // Special ▸ Empty Trash: a crumple (noise bursts, from the click) and the alert.
+    const before = await sounds(page);
+    if (phone(page)) await win(page, 'Trash').getByRole('button', { name: 'Empty Trash' }).tap(); // phones keep the menu bar to one row: no Special menu
+    else await menu(page, 'Special', 'Empty Trash');
+    const alert = page.getByRole('alertdialog');
+    await expect(alert).toContainText('Distractions emptied. Enjoy the quiet.');
+    expect((await sounds(page)).buf - before.buf).toBeGreaterThan(10);
+    await shot(page, 'emptied');
+    await press(page, alert.getByRole('button', { name: 'OK' }));
+    await expect(alert).toHaveCount(0);
+    await expect(win(page, 'Trash').getByText('The Trash is empty.')).toBeVisible();
+    if (!phone(page)) {
+      await press(page, page.getByRole('menuitem', { name: 'Special', exact: true }));
+      await expect(page.getByRole('menuitem', { name: 'Empty Trash' })).toHaveAttribute('aria-disabled', 'true');
+      await page.keyboard.press('Escape');
+    }
+
+    // About This Desktop's memory bar has emptied too.
+    await menu(page, 'FocusTones menu', 'About This Desktop…');
+    await expect(page.getByTestId('memory-summary')).toHaveText('Focus: 100% · Distractions: 0%');
+
+    // Next visit: the distractions are back.
+    await page.reload();
+    await expect(icon(page, 'Distractions')).toHaveCount(1);
+  });
+});
+
+test('Today’s One Thing: editable, kept on the device, resizable', async ({ page }) => {
+  await page.goto('/');
+  await closeAll(page);
+  await openIcon(page, 'Today’s One Thing');
+  const note = win(page, 'Today’s One Thing');
+  const box = note.getByRole('textbox', { name: 'Today’s one thing' });
+  await box.fill('Write the chapter outline 📝');
+  await expect(note).toHaveCSS('background-color', /./);
+  if (!phone(page)) {
+    const b0 = (await note.boundingBox())!;
+    const grow = (await note.locator('.win-grow').boundingBox())!;
+    await page.mouse.move(grow.x + 8, grow.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(grow.x + 68, grow.y + 48, { steps: 6 });
+    await page.mouse.up();
+    const b1 = (await note.boundingBox())!;
+    expect(b1.width).toBeGreaterThan(b0.width + 40);
+  }
+  await shot(page, 'note');
+  await page.reload();
+  if (phone(page)) await closeAll(page);
+  await openIcon(page, 'Today’s One Thing');
+  await expect(win(page, 'Today’s One Thing').getByRole('textbox')).toHaveValue('Write the chapter outline 📝');
+});
+
+test('Beat Calculator: beat, band and color from two ears; Hear It plays the pair and pauses Listen', async ({ page }) => {
+  await page.goto('/');
+  const listen = win(page, 'Listen');
+  await press(page, listen.getByRole('button', { name: 'Play' }));
+  await expect(listen.getByTestId('status')).toHaveText(/Fading in|Playing/);
+  await menu(page, 'FocusTones menu', 'Beat Calculator');
+  const calc = win(page, 'Beat Calculator');
+  const readout = calc.getByTestId('beat-readout');
+  await expect(readout).toContainText('10.0 Hz');
+  await expect(readout).toContainText('Alpha');
+  await calc.getByRole('spinbutton', { name: 'Left ear' }).fill('200');
+  await calc.getByRole('spinbutton', { name: 'Right ear' }).fill('206');
+  await expect(readout).toContainText('6.0 Hz');
+  await expect(readout).toContainText('Theta');
+  const before = await sounds(page);
+  await press(page, calc.getByRole('button', { name: 'Hear It' }));
+  await expect(calc.getByRole('button', { name: 'Stop' })).toHaveAttribute('aria-pressed', 'true');
+  expect((await sounds(page)).osc - before.osc).toBe(2);
+  await shot(page, 'beat-calculator');
+  await press(page, calc.getByRole('button', { name: 'Stop' }));
+  await expect(calc.getByRole('button', { name: 'Hear It' })).toBeVisible();
+  // Out of range and junk input: a message, and nothing to play.
+  await calc.getByRole('spinbutton', { name: 'Right ear' }).fill('300');
+  await expect(readout).toContainText('Out of range: the bands run from 0.5 to 45 Hz.');
+  await expect(calc.getByRole('button', { name: 'Hear It' })).toBeDisabled();
+  await calc.getByRole('spinbutton', { name: 'Left ear' }).fill('');
+  await expect(readout).toContainText('Enter two frequencies from 80 to 1000 Hz.');
+  // The slider drives the same value from the keyboard.
+  await calc.getByRole('spinbutton', { name: 'Left ear' }).fill('290');
+  await calc.getByRole('slider', { name: 'Right ear' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(readout).toContainText('10.5 Hz');
+  // Hear It paused the Listen session (one sound at a time).
+  if (phone(page)) await press(page, page.getByRole('navigation', { name: 'Open windows' }).getByRole('button', { name: 'Listen' }));
+  await expect(listen.getByTestId('status')).toHaveText('Paused');
+});
+
+test.describe('screen saver', () => {
+  test('starts after 2 idle minutes, wakes on input, Off keeps it away, Test starts it', async ({ page }) => {
+    await page.clock.install();
+    await page.goto('/');
+    await page.clock.fastForward('01:50');
+    await expect(page.getByTestId('screen-saver')).toHaveCount(0);
+    await page.clock.fastForward('00:15');
+    const saver = page.getByTestId('screen-saver');
+    await expect(saver).toBeVisible();
+    await shot(page, 'screen-saver');
+    await page.clock.fastForward('00:02'); // past the grace period
+    await page.keyboard.press('Shift');
+    await expect(saver).toHaveCount(0);
+    await expect(win(page, 'Listen')).toBeVisible();
+
+    await menu(page, 'FocusTones menu', 'Screen Saver');
+    const panel = win(page, 'Screen Saver');
+    await press(page, panel.getByRole('radio', { name: 'Off' }));
+    await shot(page, 'screen-saver-panel');
+    await page.clock.fastForward('03:00');
+    await expect(saver).toHaveCount(0);
+    await page.reload();
+    await page.clock.fastForward('03:00');
+    await expect(saver).toHaveCount(0); // remembered
+    await menu(page, 'FocusTones menu', 'Screen Saver');
+    await press(page, win(page, 'Screen Saver').getByRole('button', { name: 'Test' }));
+    await expect(saver).toBeVisible();
+    await page.clock.fastForward('00:02');
+    if (phone(page)) await page.touchscreen.tap(40, 400);
+    else await page.mouse.click(40, 400);
+    await expect(saver).toHaveCount(0);
+  });
+
+  test('holds still with Reduce Motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    if (phone(page)) { await menu(page, 'FocusTones menu', 'Screen Saver'); await win(page, 'Screen Saver').getByRole('button', { name: 'Test' }).tap(); }
+    else await menu(page, 'Special', 'Start Screen Saver');
+    const saver = page.getByTestId('screen-saver');
+    await expect(saver).toHaveAttribute('data-still', 'true');
+    expect(await saver.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
+  });
+});
+
+test('Desktop Patterns: pick one, tinted by the band, remembered; the startup chord plays once on the first Play', async ({ page }) => {
+  await page.goto('/');
+  await menu(page, 'FocusTones menu', 'Desktop Patterns');
+  const panel = win(page, 'Desktop Patterns');
+  await expect(panel.getByRole('radio')).toHaveCount(8);
+  await expect(panel.getByRole('radio', { name: 'Default' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('.surface')).not.toHaveAttribute('data-pattern');
+  await press(page, panel.getByRole('radio', { name: 'Ripple' }));
+  await expect(page.locator('.surface')).toHaveAttribute('data-pattern', 'ripple');
+  const tint = () => page.locator('.surface').evaluate((el) => (el as HTMLElement).style.getPropertyValue('--dx-band'));
+  const beta = await tint();
+  await shot(page, 'patterns');
+  // The pattern follows the band chosen in Listen.
+  if (phone(page)) await press(page, page.getByRole('navigation', { name: 'Open windows' }).getByRole('button', { name: 'Listen' }));
+  await press(page, win(page, 'Listen').getByTestId('band-delta'));
+  await expect.poll(tint).not.toBe(beta);
+  await page.reload();
+  await expect(page.locator('.surface')).toHaveAttribute('data-pattern', 'ripple');
+
+  // Startup chord: nothing on load, ten voices (5 notes × 2) on the first Play, nothing on the second.
+  expect((await sounds(page)).osc).toBe(0);
+  const listen = win(page, 'Listen');
+  await press(page, listen.getByRole('button', { name: 'Play' }));
+  await expect.poll(async () => (await sounds(page)).osc).toBe(10);
+  await press(page, listen.getByRole('button', { name: 'Pause' }));
+  await press(page, listen.getByRole('button', { name: /Play/ }));
+  await page.waitForTimeout(200);
+  expect((await sounds(page)).osc).toBe(10);
+  // Turned off, the next visit's first Play is silent apart from the tone.
+  await menu(page, 'FocusTones menu', 'Desktop Patterns');
+  await win(page, 'Desktop Patterns').getByRole('checkbox', { name: 'Play a startup chord on the first Play' }).uncheck();
+  await page.reload();
+  await press(page, win(page, 'Listen').getByRole('button', { name: 'Play' }));
+  await page.waitForTimeout(300);
+  expect((await sounds(page)).osc).toBe(0);
+});
+
+test.describe('small eggs', () => {
+  test.use({ reducedMotion: 'no-preference' });
+
+  test('the Konami code waves the icons and reveals Credits; About This Desktop shows the memory bar', async ({ page }) => {
+    await page.goto('/');
+    await closeAll(page);
+    await expect(page.getByRole('menuitem', { name: /Credits/ })).toHaveCount(0); // hidden until found
+    if (phone(page)) expect((await page.locator('.menubar').boundingBox())!.height).toBeLessThanOrEqual(46); // the menu bar stays one row
+    if (phone(page)) {
+      // Touch: swipe ↑↑↓↓←→←→ on the bare desktop, then tap twice for B and A.
+      const swipe = (dx: number, dy: number) => page.locator('.surface').evaluate((el, [dx, dy]) => {
+        const at = (type: string, x: number, y: number) => el.dispatchEvent(new PointerEvent(type, { pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
+        at('pointerdown', 180, 600); at('pointerup', 180 + dx, 600 + dy);
+      }, [dx, dy]);
+      for (const [dx, dy] of [[0, -80], [0, -80], [0, 80], [0, 80], [-80, 0], [80, 0], [-80, 0], [80, 0], [0, 0], [0, 0]]) await swipe(dx, dy);
+    } else {
+      for (const k of ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']) await page.keyboard.press(k);
+      await expect(page.locator('.desktop')).toHaveAttribute('data-wave', '');
+    }
+    await expect(win(page, 'Credits')).toBeVisible();
+    await expect(win(page, 'Credits')).toContainText('You found the credits');
+    await shot(page, 'credits');
+
+    await menu(page, 'FocusTones menu', 'About This Desktop…');
+    await expect(page.getByTestId('memory-summary')).toHaveText('Focus: 98% · Distractions: 2%');
+    await shot(page, 'about-desktop');
+  });
+
+  test('icons drag and stay where dropped; View ▸ Clean Up puts them back', async ({ page }) => {
+    test.skip(phone(page), 'Phones lay icons out in a grid; dragging is for a mouse or pen.');
+    await page.goto('/');
+    await closeAll(page);
+    const tune = icon(page, 'Tune');
+    const a = (await tune.boundingBox())!;
+    await page.mouse.move(a.x + a.width / 2, a.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(a.x - 400, a.y + 160, { steps: 10 });
+    await page.mouse.up();
+    const b = (await tune.boundingBox())!;
+    expect(b.x).toBeLessThan(a.x - 350);
+    await expect(win(page, 'Tune')).toHaveCount(0); // a drag never opens
+    // Far past the edge, an icon stops at the desktop's edge.
+    await page.mouse.move(b.x + b.width / 2, b.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(-500, b.y + 20, { steps: 10 });
+    await page.mouse.up();
+    expect((await tune.boundingBox())!.x).toBeGreaterThanOrEqual(0);
+    await shot(page, 'icons-moved');
+    await page.reload();
+    await closeAll(page);
+    expect((await tune.boundingBox())!.x).toBeLessThan(a.x - 350); // remembered
+    await menu(page, 'View', 'Clean Up Desktop');
+    await expect.poll(async () => Math.round((await tune.boundingBox())!.x)).toBe(Math.round(a.x));
+    // Keyboard selection still opens it.
+    await tune.focus();
+    await page.keyboard.press('Enter');
+    await expect(win(page, 'Tune')).toBeVisible();
+  });
+});

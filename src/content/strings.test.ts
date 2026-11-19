@@ -9,7 +9,7 @@ function leaves(value: unknown, path = ''): [string, string][] {
 
 describe('strings', () => {
   const all = leaves(strings);
-  const mine = leaves({ listen: strings.listen, get: strings.get, features: strings.features, aboutSound: strings.aboutSound, aboutApp: strings.aboutApp });
+  const mine = leaves({ listen: strings.listen, get: strings.get, features: strings.features, aboutSound: strings.aboutSound, aboutApp: strings.aboutApp, delights: strings.delights });
 
   it('has no empty string', () => {
     for (const [, s] of all) expect(s.trim()).not.toBe('');
@@ -23,5 +23,11 @@ describe('strings', () => {
   it('quotes approved copy verbatim where a sentence is reused', () => {
     expect(strings.get.annual).toBe('Annual: a 7-day trial, then $39.99 a year.');
     expect(strings.listen.free).toBe(strings.get.free);
+  });
+
+  it('marks every desktop delight (issue #14) new, one entry per string', () => {
+    const delights = leaves(strings.delights, 'delights');
+    expect(delights.length).toBeGreaterThan(60);
+    for (const [path] of delights) expect(provenance[path], path).toBe('new');
   });
 });
